@@ -12,7 +12,8 @@ cerebro = bt.Cerebro()
 modpath = os.path.dirname(os.path.abspath(sys.argv[0]))
 
 # TODO: create generic data path reader
-tickers = ['AMZN', 'AAPL']
+#tickers = ['AMZN', 'AAPL']
+tickers = ['AAPL', 'AMZN']
 for ticker in tickers:
     datapath = os.path.join(modpath, '../Data/{}.csv')
     data = bt.feeds.YahooFinanceCSVData(
@@ -43,4 +44,4 @@ Requires matplotlib==3.2.2. Run the following in order to execute:
 pip uninstall matplotlib
 pip install matplotlib==3.2.2
 """
-# cerebro.plot()
+#cerebro.plot()

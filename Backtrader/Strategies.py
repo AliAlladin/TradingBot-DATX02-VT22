@@ -13,7 +13,8 @@ class Strategy_1(bt.Strategy):
 
     def __init__(self):
         # Keep a reference to the "close" line in the data[0] dataseries
-        self.dataclose = self.datas[0].close
+        self.index = 0
+        self.dataclose = self.datas[self.index].close
 
         # To keep track of pending orders and buy price/commission
         self.order = None
@@ -69,7 +70,7 @@ class Strategy_1(bt.Strategy):
             return
 
         # Check if we are in the market
-        if not self.position:  # Returns the current position for a given data in a given broker.
+        if not self.getposition(self.datas[self.index]):  # Returns the current position for a given data in a given broker.
 
             # Not yet ... we MIGHT BUY if ...
             if self.dataclose[0] < self.dataclose[-1]:
@@ -82,7 +83,7 @@ class Strategy_1(bt.Strategy):
                     self.log('BUY CREATE, %.2f' % self.dataclose[0])
 
                     # Keep track of the created order to avoid a 2nd order
-                    self.order = self.buy()
+                    self.order = self.buy(self.datas[self.index])
 
         else:
 
@@ -92,7 +93,8 @@ class Strategy_1(bt.Strategy):
                 self.log('SELL CREATE, %.2f' % self.dataclose[0])
 
                 # Keep track of the created order to avoid a 2nd order
-                self.order = self.sell()
+
+                self.order = self.sell(self.datas[self.index])
 
 
 """

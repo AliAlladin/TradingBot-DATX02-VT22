@@ -9,13 +9,12 @@ from Strategies import Strategy_1  # import our first strategy
 cerebro = bt.Cerebro()
 
 # Setting up path to data
-modpath = os.path.dirname(os.path.abspath(sys.argv[0]))
-
+modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
 
 # TODO: create generic data path reader
 tickers = ['AMZN', 'AAPL']
 for ticker in tickers:
-    datapath = os.path.join(modpath, '../../TradingBot/Data/{}.csv')
+    datapath = os.path.join(modpath, 'Data/{}.csv')
     data = bt.feeds.YahooFinanceCSVData(
         dataname=datapath.format(ticker))
     cerebro.adddata(data)  # Add the Data Feed to Cerebro
@@ -48,4 +47,4 @@ Requires matplotlib==3.2.2. Run the following in order to execute:
 pip uninstall matplotlib
 pip install matplotlib==3.2.2
 """
-cerebro.plot()
+# cerebro.plot()

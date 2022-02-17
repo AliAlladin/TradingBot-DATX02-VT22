@@ -11,10 +11,11 @@ cerebro = bt.Cerebro()
 # Setting up path to data
 modpath = os.path.dirname(os.path.abspath(sys.argv[0]))
 
+
 # TODO: create generic data path reader
 tickers = ['AMZN', 'AAPL']
 for ticker in tickers:
-    datapath = os.path.join(modpath, '../../Backtrader/Data/{}.csv')
+    datapath = os.path.join(modpath, '../../TradingBot/Data/{}.csv')
     data = bt.feeds.YahooFinanceCSVData(
         dataname=datapath.format(ticker))
     cerebro.adddata(data)  # Add the Data Feed to Cerebro
@@ -32,6 +33,10 @@ cerebro.broker.setcommission(commission=0.001)
 # Print starting portfolio value
 print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
+# Creates csv files with inquired data. Has to be executed before cerebro.run()
+# "out" specifies the name of the output file. It currently overwrites the same file.
+cerebro.addwriter(bt.WriterFile, csv=True, out='log.csv')
+
 # Core method to perform backtesting
 cerebro.run()
 
@@ -43,4 +48,4 @@ Requires matplotlib==3.2.2. Run the following in order to execute:
 pip uninstall matplotlib
 pip install matplotlib==3.2.2
 """
-# cerebro.plot()
+cerebro.plot()

@@ -13,7 +13,7 @@ class Strategy_1(bt.Strategy):
 
     def __init__(self):
         # Keep a reference to the "close" line in the data[0] dataseries
-        self.index = 1
+        self.index = len(self.datas)-1
         self.currentIndex = 0
         self.dataclose = []
         for i in range(0,self.index+1):
@@ -22,6 +22,7 @@ class Strategy_1(bt.Strategy):
 
         # To keep track of pending orders and buy price/commission
         self.order = None
+        self.order_pending = [None, None]
         self.buyprice = None
         self.buycomm = None
         self.bar_executed = [len(self), len(self)]
@@ -51,13 +52,13 @@ class Strategy_1(bt.Strategy):
                           order.executed.value,
                           order.executed.comm))
 
-            self.bar_executed[self.currentIndex] = len(self)
+
 
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
             self.log('Order Canceled/Margin/Rejected')
 
         # Write down: no pending order
-        self.order = None
+        #self.order = None
 
     # Receives a trade whenever there has been a change in one
     def notify_trade(self, trade):
@@ -74,8 +75,8 @@ class Strategy_1(bt.Strategy):
             self.log('Close, %.2f' % self.dataclose[i][0])
 
             # Check if an order is pending ... if yes, we cannot send a 2nd one
-            if self.order:
-                return
+            #if self.order:
+                #return
 
             # Check if we are in the market
             if not self.getposition(self.datas[i]):  # Returns the current position for a given data in a given broker.
@@ -94,17 +95,18 @@ class Strategy_1(bt.Strategy):
                         self.currentIndex = i
                         self.order = self.buy(self.datas[i])
 
-            else:
+            else: # Already in the market ... we might sell
+                if self.dataclose[i][0] > self.dataclose[i][-1]:
+                    # current close less than previous close
 
-                # Already in the market ... we might sell
-                if len(self) >= (self.bar_executed[i] + 5):
-                    # SELL, SELL, SELL!!! (with all possible default parameters)
-                    self.log('SELL CREATE, %.2f' % self.dataclose[i][0])
+                    if self.dataclose[i][-1] > self.dataclose[i][-2]:
 
-                    # Keep track of the created order to avoid a 2nd order
+                        # SELL, SELL, SELL!!! (with all possible default parameters)
+                        self.log('SELL CREATE, %.2f' % self.dataclose[i][0])
 
-                    self.currentIndex = i
-                    self.order = self.sell(self.datas[i])
+                        # Keep track of the created order to avoid a 2nd order
+
+                        self.order = self.sell(self.datas[i])
 
 
 """

@@ -12,8 +12,9 @@ cerebro = bt.Cerebro()
 modpath = os.path.dirname(os.path.abspath(sys.argv[0]))
 
 # TODO: create generic data path reader
-#tickers = ['AMZN', 'AAPL']
-tickers = ['AAPL', 'AMZN']
+#tickers = ['AMZN', 'AAPL','NFLX']
+#tickers = ['AAPL', 'AMZN','NFLX']
+tickers = ['NFLX', 'AMZN','AAPL']
 for ticker in tickers:
     datapath = os.path.join(modpath, '../Data/{}.csv')
     data = bt.feeds.YahooFinanceCSVData(

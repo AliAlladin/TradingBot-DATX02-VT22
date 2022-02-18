@@ -44,4 +44,4 @@ Requires matplotlib==3.2.2. Run the following in order to execute:
 pip uninstall matplotlib
 pip install matplotlib==3.2.2
 """
-#cerebro.plot()
+cerebro.plot()

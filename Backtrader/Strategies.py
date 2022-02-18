@@ -13,13 +13,20 @@ class Strategy_1(bt.Strategy):
 
     def __init__(self):
         # Keep a reference to the "close" line in the data[0] dataseries
-        self.index = 0
-        self.dataclose = self.datas[self.index].close
+        self.index = 1
+        self.currentIndex = 0
+        self.dataclose = []
+        for i in range(0,self.index+1):
+            self.dataclose.append(self.datas[i].close)
+        #self.dataclose = self.datas[self.index].close
 
         # To keep track of pending orders and buy price/commission
         self.order = None
         self.buyprice = None
         self.buycomm = None
+        self.bar_executed = [len(self), len(self)]
+
+
 
     def notify_order(self, order):
         if order.status in [order.Submitted, order.Accepted]:
@@ -44,7 +51,7 @@ class Strategy_1(bt.Strategy):
                           order.executed.value,
                           order.executed.comm))
 
-            self.bar_executed = len(self)
+            self.bar_executed[self.currentIndex] = len(self)
 
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
             self.log('Order Canceled/Margin/Rejected')
@@ -62,39 +69,42 @@ class Strategy_1(bt.Strategy):
 
     # Defines when to buy and sell
     def next(self):
-        # Log the closing price of the series from the reference
-        self.log('Close, %.2f' % self.dataclose[0])
+        for i in range(0, self.index + 1):
+            # Log the closing price of the series from the reference
+            self.log('Close, %.2f' % self.dataclose[i][0])
 
-        # Check if an order is pending ... if yes, we cannot send a 2nd one
-        if self.order:
-            return
+            # Check if an order is pending ... if yes, we cannot send a 2nd one
+            if self.order:
+                return
 
-        # Check if we are in the market
-        if not self.getposition(self.datas[self.index]):  # Returns the current position for a given data in a given broker.
+            # Check if we are in the market
+            if not self.getposition(self.datas[i]):  # Returns the current position for a given data in a given broker.
 
-            # Not yet ... we MIGHT BUY if ...
-            if self.dataclose[0] < self.dataclose[-1]:
-                # current close less than previous close
+                # Not yet ... we MIGHT BUY if ...
+                if self.dataclose[i][0] < self.dataclose[i][-1]:
+                    # current close less than previous close
 
-                if self.dataclose[-1] < self.dataclose[-2]:
-                    # previous close less than the previous close
+                    if self.dataclose[i][-1] < self.dataclose[i][-2]:
+                        # previous close less than the previous close
 
-                    # BUY, BUY, BUY!!! (with default parameters)
-                    self.log('BUY CREATE, %.2f' % self.dataclose[0])
+                        # BUY, BUY, BUY!!! (with default parameters)
+                        self.log('BUY CREATE, %.2f' % self.dataclose[i][0])
+
+                        # Keep track of the created order to avoid a 2nd order
+                        self.currentIndex = i
+                        self.order = self.buy(self.datas[i])
+
+            else:
+
+                # Already in the market ... we might sell
+                if len(self) >= (self.bar_executed[i] + 5):
+                    # SELL, SELL, SELL!!! (with all possible default parameters)
+                    self.log('SELL CREATE, %.2f' % self.dataclose[i][0])
 
                     # Keep track of the created order to avoid a 2nd order
-                    self.order = self.buy(self.datas[self.index])
 
-        else:
-
-            # Already in the market ... we might sell
-            if len(self) >= (self.bar_executed + 5):
-                # SELL, SELL, SELL!!! (with all possible default parameters)
-                self.log('SELL CREATE, %.2f' % self.dataclose[0])
-
-                # Keep track of the created order to avoid a 2nd order
-
-                self.order = self.sell(self.datas[self.index])
+                    self.currentIndex = i
+                    self.order = self.sell(self.datas[i])
 
 
 """

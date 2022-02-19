@@ -1,4 +1,9 @@
 import backtrader as bt
+import backtrader.indicators as btind
+import numpy as np
+import statsmodels.api as sm
+from statsmodels.tsa.stattools import coint
+from statsmodels.tsa.stattools import adfuller
 
 
 # Strategy 1
@@ -92,7 +97,6 @@ class Strategy_1(bt.Strategy):
                         self.log('BUY CREATE, %.2f' % self.dataclose[i][0])
 
                         # Keep track of the created order to avoid a 2nd order
-                        self.currentIndex = i
                         self.order = self.buy(self.datas[i])
 
             else: # Already in the market ... we might sell
@@ -109,20 +113,148 @@ class Strategy_1(bt.Strategy):
                         self.order = self.sell(self.datas[i])
 
 
-"""
-#Stategy 2
-class Strategy_1(bt.Strategy):
 
+
+#------------------------------------------------------------------------------------------
+
+
+
+class Strategy_pair(bt.Strategy):
+
+    # "Self" is the bar/line we are on, of the data
     def log(self, txt, dt=None):
-        ''' Logging function for this strategy'''
+        # Logging function/output for this strategy
         dt = dt or self.datas[0].datetime.date(0)
         print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):
         # Keep a reference to the "close" line in the data[0] dataseries
-        self.dataclose = self.datas[0].close
+        self.distance = 2.5
+        self.long = None
+        self.data_x =[]
+        self.data_y = []
+        self.dataclose = []
+        for i in range(0,2):
+            self.dataclose.append(self.datas[i].close)
+        self.period = 100
+        '''
+        self.avf = bt.ind.SMA(self.spread,period = self.period)
 
+        meansquared = bt.ind.SMA(pow(self.spread,2),period = self.period)
+        squaredmean = pow(bt.ind.SMA(self.spread,period = self.period),2)
+        self.stddev = pow(meansquared - squaredmean, 0.5)'''
+
+
+    
+
+        # To keep track of pending orders and buy price/commission
+        self.order = None
+        self.buyprice = None
+        self.buycomm = None
+
+
+
+
+    def notify_order(self, order):
+        if order.status in [order.Submitted, order.Accepted]:
+            # Buy/Sell order submitted/accepted to/by broker - Nothing to do
+            return
+
+        # Check if an order has been completed
+        # Attention: broker could reject order if not enough cash
+        if order.status in [order.Completed]:
+            if order.isbuy():
+                self.log(
+                    'BUY EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
+                    (order.executed.price,
+                     order.executed.value,
+                     order.executed.comm))
+
+                self.buyprice = order.executed.price
+                self.buycomm = order.executed.comm
+            else:  # Sell
+                self.log('SELL EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
+                         (order.executed.price,
+                          order.executed.value,
+                          order.executed.comm))
+
+
+
+        elif order.status in [order.Canceled, order.Margin, order.Rejected]:
+            self.log('Order Canceled/Margin/Rejected')
+
+        # Write down: no pending order
+        #self.order = None
+
+    # Receives a trade whenever there has been a change in one
+    def notify_trade(self, trade):
+        if not trade.isclosed:
+            return
+
+        self.log('OPERATION PROFIT, GROSS %.2f, NET %.2f' %
+                 (trade.pnl, trade.pnlcomm))
+
+    # Defines when to buy and sell
     def next(self):
-        # Simply log the closing price of the series from the reference
-        self.log('Close, %.2f' % self.dataclose[0])
-"""
+        # Log the closing price of the series from the reference
+        self.log('Close, %.2f' % self.dataclose[0][0])
+        self.log('Close, %.2f' % self.dataclose[1][0])
+
+        self.data_x.append(self.dataclose[0][0])
+        self.data_y.append(self.dataclose[1][0])
+
+        if len(self) > self.period:
+
+            relevantXData = self.data_x[len(self) - self.period:len(self)]
+            relevantYData = self.data_y[len(self) - self.period:len(self)]
+
+
+            result = sm.OLS(relevantXData,relevantYData).fit()
+            beta = result.params[0]
+            spread = []
+            for i in range(0,len(relevantXData)):
+                spread.append(relevantXData[i] - beta *relevantYData[i])
+            mean = np.mean(spread)
+            std = np.std(spread)
+            #p1 = adfuller(spread)[1]
+            #p2 = coint(relevantXData, relevantYData)[1]
+            zScore = (spread[self.period-1] - mean) /std
+
+            currentRatio = relevantXData[self.period-1]/relevantYData[self.period-1]
+            if currentRatio < 1:
+                currentRatio = 1/currentRatio
+                reversed = True
+                currentRatio = round(currentRatio)
+
+
+            # Check if we are in the market
+            if not self.getposition(self.datas[0]):  # Returns the current position for a given data in a given broker.
+                if zScore > self.distance:
+                    self.log('BUY CREATE, %.2f' % self.dataclose[1][0])
+                    self.order = self.buy(self.datas[1],30)
+                    self.log('SELL CREATE, %.2f' % self.dataclose[0][0])
+                    self.order = self.sell(self.datas[0],currentRatio*30)
+                    self.long = False
+                    self.lastRatio = currentRatio
+                elif zScore < -self.distance:
+                    self.log('BUY CREATE, %.2f' % self.dataclose[0][0])
+                    self.order = self.buy(self.datas[0],currentRatio*30)
+                    self.log('SELL CREATE, %.2f' % self.dataclose[1][0])
+                    self.order = self.sell(self.datas[1],30)
+                    self.long = True
+                    self.lastRatio = currentRatio
+
+            else:
+                if self.long:
+                    if zScore > 0:
+                        self.log('BUY CREATE, %.2f' % self.dataclose[1][0])
+                        self.order = self.buy(self.datas[1],30)
+                        self.log('SELL CREATE, %.2f' % self.dataclose[0][0])
+                        self.order = self.sell(self.datas[0],self.lastRatio*30)
+                else:
+                    if zScore < 0:
+                        self.log('BUY CREATE, %.2f' % self.dataclose[0][0])
+                        self.order = self.buy(self.datas[0],self.lastRatio*30)
+                        self.log('SELL CREATE, %.2f' % self.dataclose[1][0])
+                        self.order = self.sell(self.datas[1],30)
+

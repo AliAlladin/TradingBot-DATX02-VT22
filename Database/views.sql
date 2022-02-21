@@ -1,5 +1,5 @@
  CREATE VIEW Purchase AS (
-    SELECT id, ticker, buyTime, sellTime, , buyPrice, sellPrice, (sellPrice-buyPrice) as priceDifference
-    FROM Buy , Sell
-    WHERE Buy.id=Sell.id 
+    SELECT Buy.id as buyID, Sell.id sellID, Buy.ticker buyTicker,  Sell.ticker SellTicker, buyTime, sellTime, Buy.price as bPrice, Sell.price as sPrice, (Sell.price - Buy.price) as priceDifference, active
+    FROM Buy, Sell
+    WHERE Buy.ticker=Sell.ticker 
 ); 

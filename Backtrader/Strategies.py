@@ -129,14 +129,14 @@ class Strategy_pair(bt.Strategy):
 
     def __init__(self):
         # Keep a reference to the "close" line in the data[0] dataseries
-        self.distance = 2.5
+        self.distance = 3
         self.long = None
         self.data_x =[]
         self.data_y = []
         self.dataclose = []
         for i in range(0,2):
             self.dataclose.append(self.datas[i].close)
-        self.period = 100
+        self.period = 300
         '''
         self.avf = bt.ind.SMA(self.spread,period = self.period)
 

@@ -1,8 +1,6 @@
 import os
 import sys  # To find out the script name (in argv[0])
 
-import backtrader as bt
-
 from Strategies import *  # import our first strategy
 
 # Instantiate Cerebro engine. This is the main control center / brain
@@ -28,7 +26,7 @@ cerebro.broker.setcash(100000.0)
 cerebro.addstrategy(Strategy_pair)
 
 # Set the commission - 0.1% ... divide by 100 to remove the %
-cerebro.broker.setcommission(commission=0.001)
+cerebro.broker.setcommission(commission=0)
 
 # Print starting portfolio value
 print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())

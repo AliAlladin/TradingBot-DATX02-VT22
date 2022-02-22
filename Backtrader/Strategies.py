@@ -1,9 +1,6 @@
 import backtrader as bt
-import backtrader.indicators as btind
 import numpy as np
 import statsmodels.api as sm
-from statsmodels.tsa.stattools import coint
-from statsmodels.tsa.stattools import adfuller
 
 
 # Strategy 1
@@ -224,7 +221,7 @@ class Strategy_pair(bt.Strategy):
             if currentRatio < 1:
                 currentRatio = 1/currentRatio
                 reversed = True
-                currentRatio = round(currentRatio)
+                # currentRatio = round(currentRatio)
 
 
             # Check if we are in the market

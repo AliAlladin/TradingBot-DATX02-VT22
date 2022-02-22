@@ -1,11 +1,11 @@
-CREATE TABLE Stocks(
+CREATE TABLE IF NOT EXISTS Stocks(
     ticker TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     market TEXT NOT NULL,
     category TEXT NOT NULL
 );
 
-CREATE TABLE Buy(
+CREATE TABLE IF NOT EXISTS Buy(
     id SERIAL PRIMARY KEY,
     ticker TEXT NOT NULL,
     FOREIGN KEY (ticker) REFERENCES Stocks(ticker),
@@ -14,7 +14,7 @@ CREATE TABLE Buy(
     active TEXT NOT NULL
 );
 
-CREATE TABLE Sell(
+CREATE TABLE IF NOT EXISTS Sell(
     id SERIAL NOT NULL,
     ticker TEXT NOT NULL,
     FOREIGN KEY (id) REFERENCES Buy(id),
@@ -24,7 +24,7 @@ CREATE TABLE Sell(
     PRIMARY KEY (id)
 );
 
-CREATE TABLE Blank(
+CREATE TABLE IF NOT EXISTS Blank(
     id SERIAL PRIMARY KEY,
     ticker TEXT,
     FOREIGN KEY (ticker) REFERENCES Stocks(ticker),
@@ -32,7 +32,7 @@ CREATE TABLE Blank(
     price DECIMAL NOT NULL
 );
 
-CREATE TABLE Pairs(
+CREATE TABLE IF NOT EXISTS Pairs(
     stock1 TEXT,
     stock2 TEXT,
     FOREIGN KEY (stock1) REFERENCES Stocks(ticker),

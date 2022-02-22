@@ -15,4 +15,5 @@ INSERT INTO Sell VALUES (DEFAULT,'B',Current_timestamp,420);
 INSERT INTO Sell VALUES (DEFAULT,'C',Current_timestamp,420);
 INSERT INTO Sell VALUES (DEFAULT,'D',Current_timestamp,420);
 INSERT INTO Sell VALUES (DEFAULT,'A',Current_timestamp,29);
+INSERT INTO Sell VALUES (DEFAULT,'E',Current_timestamp,420);
 

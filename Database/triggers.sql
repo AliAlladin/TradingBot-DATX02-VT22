@@ -1,4 +1,7 @@
-CREATE FUNCTION set_sold() 
+DROP TRIGGER IF EXISTS sell_stock
+ON Sell;
+
+CREATE OR REPLACE FUNCTION  set_sold()
   RETURNS trigger AS $$
 BEGIN
     IF NEW.ticker IN (SELECT ticker FROM Stocks)

@@ -90,8 +90,8 @@ def wait_for_market_open():
 def main():
     assetsToTrade = ["SPY", "MSFT", "AAPL", "NFLX"]
     barTimeframe = tradeapi.TimeFrame.Minute  # 1H 1Min, 5Min, 15Min, 1H, 1D
-    if market_is_open():
-        while True:
+    while True:
+        if market_is_open():
             start_time = date.today().isoformat()
             current_time = api.get_clock().timestamp
             fifteen_minutes = timedelta(minutes=15)
@@ -102,8 +102,8 @@ def main():
                 trade(symbol=symbol, data=data)
             time.sleep(60)
             print("----------------------------------------")
-    else:
-        wait_for_market_open()
+        else:
+            wait_for_market_open()
 
 
 if __name__ == "__main__":

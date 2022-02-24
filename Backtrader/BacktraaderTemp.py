@@ -1,6 +1,6 @@
 import os
 import sys  # To find out the script name (in argv[0])
-
+from Pair import *
 from Strategies import *  # import our first strategy
 
 # Instantiate Cerebro engine. This is the main control center / brain
@@ -10,9 +10,28 @@ cerebro = bt.Cerebro()
 modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
 
 # TODO: create generic data path reader
-#tickers = ['AMZN', 'AAPL','NFLX']
-#tickers = ['AAPL', 'AMZN','NFLX']
-tickers = ['NFLX', 'AMZN']
+
+datap = os.path.join(modpath, 'Backtrader/Pairs.txt')
+my_pair_file = open(datap, 'r')
+tickers = []
+dict = {}
+i=0
+pairs = []
+for x in my_pair_file:
+    stocks = x.split()
+    stock1 = stocks[0]
+    stock2 = stocks[1]
+    pairs.append(Pair(stock1,stock2))
+    if stock1 not in tickers:
+        tickers.append(stock1)
+        dict[stock1] = i
+        i += 1
+    if stock2 not in tickers:
+        tickers.append(stock2)
+        dict[stock2] = i
+        i += 1
+
+
 for ticker in tickers:
     datapath = os.path.join(modpath, 'Data/{}.csv')
     data = bt.feeds.YahooFinanceCSVData(
@@ -23,7 +42,7 @@ cerebro.broker.setcash(100000.0)
 
 # Add strategy to Cerebro
 # TODO: allow for strategy switching
-cerebro.addstrategy(Strategy_pair)
+cerebro.addstrategy(Strategy_pairGen,dict,pairs)
 
 # Set the commission - 0.1% ... divide by 100 to remove the %
 cerebro.broker.setcommission(commission=0)

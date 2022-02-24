@@ -118,14 +118,16 @@ class Strategy_1(bt.Strategy):
 
 class Strategy_pair(bt.Strategy):
 
+
     # "Self" is the bar/line we are on, of the data
     def log(self, txt, dt=None):
         # Logging function/output for this strategy
         dt = dt or self.datas[0].datetime.date(0)
         print('%s, %s' % (dt.isoformat(), txt))
 
-    def __init__(self):
+    def __init__(self, dic):
         # Keep a reference to the "close" line in the data[0] dataseries
+        self.dic = dic
         self.distance = 3
         self.long = None
         self.data_x =[]
@@ -134,12 +136,8 @@ class Strategy_pair(bt.Strategy):
         for i in range(0,2):
             self.dataclose.append(self.datas[i].close)
         self.period = 300
-        '''
-        self.avf = bt.ind.SMA(self.spread,period = self.period)
 
-        meansquared = bt.ind.SMA(pow(self.spread,2),period = self.period)
-        squaredmean = pow(bt.ind.SMA(self.spread,period = self.period),2)
-        self.stddev = pow(meansquared - squaredmean, 0.5)'''
+
 
 
     
@@ -255,3 +253,149 @@ class Strategy_pair(bt.Strategy):
                         self.log('SELL CREATE, %.2f' % self.dataclose[1][0])
                         self.order = self.sell(self.datas[1],30)
 
+
+#----------------------------------------------------------------------------------
+
+class Strategy_pairGen(bt.Strategy):
+
+    # "Self" is the bar/line we are on, of the data
+    def log(self, txt, dt=None):
+        # Logging function/output for this strategy
+        dt = dt or self.datas[0].datetime.date(0)
+        print('%s, %s' % (dt.isoformat(), txt))
+
+    def __init__(self, dic , pairs):
+        # Keep a reference to the "close" line in the data[0] dataseries
+        self.dic = dic
+        self.myData = {}
+        for key in dic.keys():
+            self.myData[key] = []
+        self.distance = 2.45
+        self.pairs = pairs
+        self.dataclose = []
+        for i in range(0, 2):
+            self.dataclose.append(self.datas[i].close)
+        self.period = 300
+
+        # To keep track of pending orders and buy price/commission
+        self.order = None
+        self.buyprice = None
+        self.buycomm = None
+        self.opsize = None
+
+    def notify_order(self, order):
+        if order.status in [order.Submitted, order.Accepted]:
+            # Buy/Sell order submitted/accepted to/by broker - Nothing to do
+            return
+
+        # Check if an order has been completed
+        # Attention: broker could reject order if not enough cash
+        if order.status in [order.Completed]:
+            if order.isbuy():
+                '''
+                self.log(
+                    'BUY EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
+                    (order.executed.price,
+                     order.executed.value,
+                     order.executed.comm))
+
+                #self.buyprice = order.executed.price
+                #self.buycomm = order.executed.comm
+                #self.opsize = order.executed.size'''
+
+            else:  # Sell
+                '''self.log('SELL EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
+                         (order.executed.price,
+                          order.executed.value,
+                          order.executed.comm))'''
+
+
+
+        elif order.status in [order.Canceled, order.Margin, order.Rejected]:
+            self.log('Order Canceled/Margin/Rejected')
+
+        # Write down: no pending order
+        # self.order = None
+
+    # Receives a trade whenever there has been a change in one
+    def notify_trade(self, trade):
+        if not trade.isclosed:
+            return
+
+        self.log('OPERATION PROFIT, GROSS %.2f, NET %.2f' %
+                 (trade.pnl, trade.pnlcomm))
+
+    # Defines when to buy and sell
+    def next(self):
+        for key in self.myData.keys():
+            self.myData.get(key).append(self.dataclose[self.dic.get(key)][0])
+        for pair in self.pairs:
+            # Log the closing price of the series from the reference
+            #self.log('Close, %.2f' % self.dataclose[self.dic.get(pair.stock1)][0])
+            #self.log('Close, %.2f' % self.dataclose[self.dic.get(pair.stock2)][0])
+
+            if len(self) > self.period:
+
+                relevantXData = self.myData.get(pair.stock1)[len(self) - self.period:len(self)]
+                relevantYData = self.myData.get(pair.stock2)[len(self) - self.period:len(self)]
+
+                result = sm.OLS(relevantXData, relevantYData).fit()
+                beta = result.params[0]
+                spread = []
+                for i in range(0, len(relevantXData)):
+                    spread.append(relevantXData[i] - beta * relevantYData[i])
+                mean = np.mean(spread)
+                std = np.std(spread)
+                # p1 = adfuller(spread)[1]
+                # p2 = coint(relevantXData, relevantYData)[1]
+                zScore = (spread[self.period - 1] - mean) / std
+
+                currentRatio = relevantXData[self.period - 1] / relevantYData[self.period - 1]
+                sharesX = 10000/relevantXData[self.period - 1]
+
+
+                # Check if we are in the market
+                if not pair.isActive:  # Returns the current position for a given data in a given broker.
+                    if zScore > self.distance:
+                        print(zScore)
+                        #self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock1)][0])
+                        self.order = self.sell(self.datas[self.dic.get(pair.stock1)],size = sharesX)
+                        #self.log('BUY CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock2)][0])
+                        self.order = self.buy(self.datas[self.dic.get(pair.stock2)], size = sharesX * currentRatio)
+                        pair.long = False
+                        pair.lastRatio = currentRatio
+                        pair.sharesX = sharesX
+                        pair.isActive = True
+
+
+
+                    elif zScore < -self.distance:
+                        print(zScore)
+                       # self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock2)][0])
+                        self.order = self.sell(self.datas[self.dic.get(pair.stock2)], size = sharesX * currentRatio)
+                        #self.log('BUY CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock1)][0])
+                        self.order = self.buy(self.datas[self.dic.get(pair.stock1)],  size = sharesX)
+                        pair.long = True
+                        pair.sharesX = sharesX
+                        pair.lastRatio = currentRatio
+                        pair.isActive = True
+
+
+                else:
+                    if pair.long:
+                        if zScore > 0:
+                            print(zScore)
+                            #self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock1)][0])
+                            self.order = self.sell(self.datas[self.dic.get(pair.stock1)], size = pair.sharesX)
+                           # self.log('BUY CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock2)][0])
+                            self.order = self.buy(self.datas[self.dic.get(pair.stock2)], size = pair.lastRatio * pair.sharesX)
+                            pair.isActive = False
+
+                    else:
+                        if zScore < 0:
+                            print(zScore)
+                            #self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock2)][0])
+                            self.order = self.sell(self.datas[self.dic.get(pair.stock2)], size = pair.lastRatio * pair.sharesX)
+                            #self.log('BUY CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock1)][0])
+                            self.order = self.buy(self.datas[self.dic.get(pair.stock1)],size = pair.sharesX)
+                            pair.isActive = False

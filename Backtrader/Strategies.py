@@ -265,17 +265,21 @@ class Strategy_pairGen(bt.Strategy):
         print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self, dic , pairs):
-        # Keep a reference to the "close" line in the data[0] dataseries
-        self.dic = dic
-        self.myData = {}
-        for key in dic.keys():
-            self.myData[key] = []
+        self.dic = dic  # Dictionary of tickers with indices
+        self.pairs = pairs  # List of pairs
+
+        self.myData = {}  # To store all the data we need, {'TICKER' -> Data}
+        for ticker in dic.keys():  # Initially, the values of data are just empty lists
+            self.myData[ticker] = []
+
+        # The parameters that are to be varied to optimize the model
         self.distance = 2.45
-        self.pairs = pairs
-        self.dataclose = []
-        for i in range(0, 2):
-            self.dataclose.append(self.datas[i].close)
         self.period = 300
+
+        # The closing data of the stocks
+        self.dataclose = []
+        for i in range(0, len(self.dic)):
+            self.dataclose.append(self.datas[i].close)
 
         # To keep track of pending orders and buy price/commission
         self.order = None

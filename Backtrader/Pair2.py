@@ -1,7 +1,5 @@
 import pandas as pd
 
-import pandas as pd
-
 class Pair2:
 
     def __init__(self, stock1, stock2, p1, p2):

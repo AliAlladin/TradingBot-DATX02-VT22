@@ -22,11 +22,11 @@ dict = {} # Dictionary to store tickers as keys and an integer value that separa
 i=0 # A variable to work as a counter of the integer value
 
 # We go through Pairs.txt to add all tickers and Pairs
-for x in my_pair_file:
-    stocks = x.split()
+for line in my_pair_file:
+    stocks = line.split()
     stock1 = stocks[0]
     stock2 = stocks[1]
-    pairs.append(Pair(stock1,stock2))
+    pairs.append(Pair(stock1, stock2))
 
     # If the stock is not added into the list of tickers, we do it.
     if stock1 not in tickers:
@@ -37,7 +37,6 @@ for x in my_pair_file:
         tickers.append(stock2)
         dict[stock2] = i
         i += 1
-
 # We add the data to cerebro
 for ticker in tickers:
     datapath = os.path.join(modpath, 'Data/{}.csv')

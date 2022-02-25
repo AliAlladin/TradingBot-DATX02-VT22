@@ -13,8 +13,8 @@ from statsmodels.regression.rolling import RollingOLS
 
 def findPairs(stocks):
     print(stocks)
-    start = '2014-02-18'
-    end = '2020-02-16'
+    start = '2017-02-08'
+    end = '2020-02-08'
     window = 252
     data = pd.DataFrame()
     pairs = []
@@ -42,8 +42,8 @@ def findPairs(stocks):
                 beta = result.params[0]
                 p1 = adfuller((stock2data-beta*stock1data))[1]
                 p2 = coint(stock1data, stock2data)[1]
-                if p1 <0.05 and p2 < 0.05:
-                    p = Pair(stocks[i],stocks[j],beta,[p1,p2])
+                if p1 <0.1 and p2 < 0.1:
+                    p = Pair(stocks[i],stocks[j],p1,p2)
                     pairs.append(p)
     toc = time.perf_counter()
     print('finding pairs took ' , toc - tic , ' seconds')
@@ -82,4 +82,4 @@ def run(sample):
     my_pair_file.close()
 
 
-run(stocks_dj)
+run(stocks_all)

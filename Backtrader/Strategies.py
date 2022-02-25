@@ -273,7 +273,7 @@ class Strategy_pairGen(bt.Strategy):
         self.distance = 2.45
         self.pairs = pairs
         self.dataclose = []
-        for i in range(0, 2):
+        for i in range(0, 4):
             self.dataclose.append(self.datas[i].close)
         self.period = 300
 

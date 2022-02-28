@@ -1,14 +1,10 @@
-import csv
+import datetime
 import os
 import sys  # To find out the script name (in argv[0])
-import datetime
-from tempfile import NamedTemporaryFile
+
 import pandas as pd
-import datetime
 
 pd.options.mode.chained_assignment = None
-
-import quantstats
 
 from Strategies import *  # import our first strategy
 
@@ -18,9 +14,10 @@ cerebro = bt.Cerebro()
 # Setting up path to data
 modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
 
-# tickers = ['AMZN', 'AAPL','NFLX']
+#tickers = ['AMZN', 'AAPL', 'NFLX']
 # tickers = ['AAPL', 'AMZN','NFLX']
 # tickers = ['NFLX', 'AMZN']
+tickers = ['AMZN (1)', 'NFLX']
 '''
 for ticker in tickers:
     datapath = os.path.join(modpath, 'Data/{}.csv')
@@ -61,14 +58,18 @@ def reformatData(pathToFile):
     df.to_csv(pathToFile, index=False, )
 
 
-tickers = ['AMZN_Nas', 'AAPL_Nas']
+# tickers = ['AMZN_Nas', 'AAPL_Nas']
 for ticker in tickers:
     datapath = os.path.join(modpath, 'Data/{}.csv')
     file = datapath.format(ticker)
 
-    # reformatData(file)  # Uncomment if you want to reformat the data
+    '''
+    Uncomment if you want to reformat the data. Should not be run more than once. 
+    '''
+    # reformatData(file)
 
-    # GenericCSVData() is used to parse different CSV formats
+    '''
+    GenericCSVData() is used to parse different CSV formats
     data = bt.feeds.GenericCSVData(
         dataname=file,
         fromdate=datetime.datetime(2017, 2, 28),  # Ending  date
@@ -88,6 +89,33 @@ for ticker in tickers:
         open=3,
         close=1,
         volume=2,
+        openinterest=-1,  # -1 if no such column exists
+    )
+    '''
+    #df = pd.read_csv(file)
+    #df = df.iloc[::-1]  # Reverses order of dataframe
+    #df.to_csv(file, index=False, )  # Overwrite csv file
+
+    data = bt.feeds.GenericCSVData(
+
+        dataname=file,
+        fromdate=datetime.datetime(2017, 2, 28),  # Ending  date
+        todate=datetime.datetime(2022, 2, 28),  # Starting date
+
+        nullvalue=0.0,  # Used for replacing NaN-values with 0
+
+        dtformat='%Y-%m-%d',  # used to parse the datetime CSV field. Default %Y-%m-%d
+        tmformat='%H.%M.%S',  # used to parse the time CSV field if “present”
+
+        datetime=0,  # column containing the date
+        time=-1,  # column containing the time field if separate from the datetime field. -1 if not present.
+
+        # For each below, reference the corresponding index from the data
+        high=2,
+        low=3,
+        open=1,
+        close=4,
+        volume=6,
         openinterest=-1,  # -1 if no such column exists
     )
     cerebro.adddata(data)

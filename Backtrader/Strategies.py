@@ -15,12 +15,12 @@ class Strategy_1(bt.Strategy):
 
     def __init__(self):
         # Keep a reference to the "close" line in the data[0] dataseries
-        self.index = len(self.datas)-1
+        self.index = len(self.datas) - 1
         self.currentIndex = 0
         self.dataclose = []
-        for i in range(0,self.index+1):
+        for i in range(0, self.index + 1):
             self.dataclose.append(self.datas[i].close)
-        #self.dataclose = self.datas[self.index].close
+        # self.dataclose = self.datas[self.index].close
 
         # To keep track of pending orders and buy price/commission
         self.order = None
@@ -28,8 +28,6 @@ class Strategy_1(bt.Strategy):
         self.buyprice = None
         self.buycomm = None
         self.bar_executed = [len(self), len(self)]
-
-
 
     def notify_order(self, order):
         if order.status in [order.Submitted, order.Accepted]:
@@ -60,7 +58,7 @@ class Strategy_1(bt.Strategy):
             self.log('Order Canceled/Margin/Rejected')
 
         # Write down: no pending order
-        #self.order = None
+        # self.order = None
 
     # Receives a trade whenever there has been a change in one
     def notify_trade(self, trade):
@@ -77,8 +75,8 @@ class Strategy_1(bt.Strategy):
             self.log('Close, %.2f' % self.dataclose[i][0])
 
             # Check if an order is pending ... if yes, we cannot send a 2nd one
-            #if self.order:
-                #return
+            # if self.order:
+            # return
 
             # Check if we are in the market
             if not self.getposition(self.datas[i]):  # Returns the current position for a given data in a given broker.
@@ -96,12 +94,11 @@ class Strategy_1(bt.Strategy):
                         # Keep track of the created order to avoid a 2nd order
                         self.order = self.buy(self.datas[i])
 
-            else: # Already in the market ... we might sell
+            else:  # Already in the market ... we might sell
                 if self.dataclose[i][0] > self.dataclose[i][-1]:
                     # current close less than previous close
 
                     if self.dataclose[i][-1] > self.dataclose[i][-2]:
-
                         # SELL, SELL, SELL!!! (with all possible default parameters)
                         self.log('SELL CREATE, %.2f' % self.dataclose[i][0])
 
@@ -110,10 +107,7 @@ class Strategy_1(bt.Strategy):
                         self.order = self.sell(self.datas[i])
 
 
-
-
-#------------------------------------------------------------------------------------------
-
+# ------------------------------------------------------------------------------------------
 
 
 class Strategy_pair(bt.Strategy):
@@ -128,10 +122,10 @@ class Strategy_pair(bt.Strategy):
         # Keep a reference to the "close" line in the data[0] dataseries
         self.distance = 3
         self.long = None
-        self.data_x =[]
+        self.data_x = []
         self.data_y = []
         self.dataclose = []
-        for i in range(0,2):
+        for i in range(0, 2):
             self.dataclose.append(self.datas[i].close)
         self.period = 300
         '''
@@ -141,16 +135,10 @@ class Strategy_pair(bt.Strategy):
         squaredmean = pow(bt.ind.SMA(self.spread,period = self.period),2)
         self.stddev = pow(meansquared - squaredmean, 0.5)'''
 
-
-    
-
         # To keep track of pending orders and buy price/commission
         self.order = None
         self.buyprice = None
         self.buycomm = None
-
-
-
 
     def notify_order(self, order):
         if order.status in [order.Submitted, order.Accepted]:
@@ -181,7 +169,7 @@ class Strategy_pair(bt.Strategy):
             self.log('Order Canceled/Margin/Rejected')
 
         # Write down: no pending order
-        #self.order = None
+        # self.order = None
 
     # Receives a trade whenever there has been a change in one
     def notify_trade(self, trade):
@@ -205,39 +193,37 @@ class Strategy_pair(bt.Strategy):
             relevantXData = self.data_x[len(self) - self.period:len(self)]
             relevantYData = self.data_y[len(self) - self.period:len(self)]
 
-
-            result = sm.OLS(relevantXData,relevantYData).fit()
+            result = sm.OLS(relevantXData, relevantYData).fit()
             beta = result.params[0]
             spread = []
-            for i in range(0,len(relevantXData)):
-                spread.append(relevantXData[i] - beta *relevantYData[i])
+            for i in range(0, len(relevantXData)):
+                spread.append(relevantXData[i] - beta * relevantYData[i])
             mean = np.mean(spread)
             std = np.std(spread)
-            #p1 = adfuller(spread)[1]
-            #p2 = coint(relevantXData, relevantYData)[1]
-            zScore = (spread[self.period-1] - mean) /std
+            # p1 = adfuller(spread)[1]
+            # p2 = coint(relevantXData, relevantYData)[1]
+            zScore = (spread[self.period - 1] - mean) / std
 
-            currentRatio = relevantXData[self.period-1]/relevantYData[self.period-1]
+            currentRatio = relevantXData[self.period - 1] / relevantYData[self.period - 1]
             if currentRatio < 1:
-                currentRatio = 1/currentRatio
+                currentRatio = 1 / currentRatio
                 reversed = True
                 # currentRatio = round(currentRatio)
-
 
             # Check if we are in the market
             if not self.getposition(self.datas[0]):  # Returns the current position for a given data in a given broker.
                 if zScore > self.distance:
                     self.log('BUY CREATE, %.2f' % self.dataclose[1][0])
-                    self.order = self.buy(self.datas[1],30)
+                    self.order = self.buy(self.datas[1], 30)
                     self.log('SELL CREATE, %.2f' % self.dataclose[0][0])
-                    self.order = self.sell(self.datas[0],currentRatio*30)
+                    self.order = self.sell(self.datas[0], currentRatio * 30)
                     self.long = False
                     self.lastRatio = currentRatio
                 elif zScore < -self.distance:
                     self.log('BUY CREATE, %.2f' % self.dataclose[0][0])
-                    self.order = self.buy(self.datas[0],currentRatio*30)
+                    self.order = self.buy(self.datas[0], currentRatio * 30)
                     self.log('SELL CREATE, %.2f' % self.dataclose[1][0])
-                    self.order = self.sell(self.datas[1],30)
+                    self.order = self.sell(self.datas[1], 30)
                     self.long = True
                     self.lastRatio = currentRatio
 
@@ -245,13 +231,12 @@ class Strategy_pair(bt.Strategy):
                 if self.long:
                     if zScore > 0:
                         self.log('BUY CREATE, %.2f' % self.dataclose[1][0])
-                        self.order = self.buy(self.datas[1],30)
+                        self.order = self.buy(self.datas[1], 30)
                         self.log('SELL CREATE, %.2f' % self.dataclose[0][0])
-                        self.order = self.sell(self.datas[0],self.lastRatio*30)
+                        self.order = self.sell(self.datas[0], self.lastRatio * 30)
                 else:
                     if zScore < 0:
                         self.log('BUY CREATE, %.2f' % self.dataclose[0][0])
-                        self.order = self.buy(self.datas[0],self.lastRatio*30)
+                        self.order = self.buy(self.datas[0], self.lastRatio * 30)
                         self.log('SELL CREATE, %.2f' % self.dataclose[1][0])
-                        self.order = self.sell(self.datas[1],30)
-
+                        self.order = self.sell(self.datas[1], 30)

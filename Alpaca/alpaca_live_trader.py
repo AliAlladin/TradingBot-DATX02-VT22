@@ -15,6 +15,8 @@ api = tradeapi.REST(ALPACA_API_KEY, ALPACA_SECRET_KEY,
 
 positionSizing = 0.25
 
+# Save intraday data to a list.
+
 
 def save_data(list, price):
     list.append(price)
@@ -24,19 +26,22 @@ def save_data(list, price):
 
 saved_prices = []
 
+# Function that take the bar of the share that wants to be traded.
+
 
 async def trade(bar):
     if market_is_open():
 
         save_data(saved_prices, bar.close)
-
+        # Check if enough data:
         if len(saved_prices) == 100:
             close_list = np.array(saved_prices, dtype=np.float64)
-            EMA50 = talib.EMA(close_list, 50)[-1]
+            # Calculates 50-period exponential moving average.
+            EMA50 = talib.EMA(close_list, 100)[-1]
             print("{} | Closing price: {} EMA50: {}".format(
                 bar.symbol, bar.close, EMA50))
 
-            # Calculates the trading signals
+            # Calculates the trading signals and buy:
             if bar.close > EMA50:
                 try:
                     openPosition = api.get_position(bar.symbol)
@@ -52,8 +57,10 @@ async def trade(bar):
                     print("BOUGHT:")
                     print(returned)
             else:
+                # Check if position is open and close position if SMA20 is below SMA50
                 try:
-                    # Closes position if SMA20 is below SMA50
+                    # Closes position if price is below EMA50
+
                     openPosition = api.get_position(bar.symbol)
                     # Market order to fully close position
                     print(openPosition)
@@ -64,16 +71,21 @@ async def trade(bar):
                     print(returned)
                 except tradeapi.rest.APIError:
                     print("No open position")
+        # Else collect data:
         else:
             print("Collecting data {}/100".format(len(saved_prices)))
 
     else:
         wait_for_market_open()
 
+# Function that checks if market is open.
+
 
 def market_is_open():
     clock = api.get_clock()
     return clock.is_open and (clock.next_close - clock.timestamp).total_seconds() > 120
+
+# Function that puts the program to sleep until the market opens.
 
 
 def wait_for_market_open():
@@ -82,6 +94,8 @@ def wait_for_market_open():
         print("Going to sleep!")
         time_to_open = (clock.next_open - clock.timestamp).total_seconds()
         time.sleep(round(time_to_open))
+
+# Main program loop.
 
 
 def main():
@@ -92,7 +106,6 @@ def main():
                     BASE_URL,
                     data_feed='iex')
 
-    # subscribing to event
     stream.subscribe_bars(trade, 'AAPL')
 
     stream.run()

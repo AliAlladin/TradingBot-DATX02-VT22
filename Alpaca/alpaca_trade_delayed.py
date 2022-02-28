@@ -10,6 +10,7 @@ api = tradeapi.REST(ALPACA_API_KEY, ALPACA_SECRET_KEY,
                     BASE_URL, api_version='v2')
 
 
+# Function that take the symbol of the share that wants to be traded and historical data related to it.
 def trade(symbol, data):
     positionSizing = 0.25
 
@@ -38,16 +39,20 @@ def trade(symbol, data):
     volumeList = np.array(volumeList, dtype=np.float64)
 
     # Calculated trading indicators
+    # Calculates the 20-period simple moving average.
     SMA20 = talib.SMA(closeList[-100:], 20)[-1]
+    # Calculates the 50-period simple moving average.
     SMA50 = talib.SMA(closeList[-100:], 50)[-1]
 
     print("{} | SMA20: {} SMA50: {}".format(symbol, SMA20, SMA50))
 
     # Calculates the trading signals
     if SMA20 > SMA50:
+        # Check if position already open:
         try:
             openPosition = api.get_position(symbol)
             print("Position already open")
+        # If there is no open-position we get an error.
         except tradeapi.rest.APIError:
             cashBalance = float(api.get_account().cash)
             price = closeList[-1]
@@ -60,26 +65,30 @@ def trade(symbol, data):
             print(returned)
 
     else:
+        # Check if position is open and close position if SMA20 is below SMA50
         try:
             # Closes position if SMA20 is below SMA50
             openPosition = api.get_position(symbol)
-            # Market order to fully close position
 
+            # Market order to fully close position
             print(openPosition)
 
             returned = api.submit_order(
                 symbol, openPosition.qty, "sell", "market", "day")
             print("SOLD:")
             print(returned)
+        # If there is no open-position we get an error.
         except tradeapi.rest.APIError:
             print("No open position")
 
 
+# Function that checks if market is open.
 def market_is_open():
     clock = api.get_clock()
     return clock.is_open and (clock.next_close - clock.timestamp).total_seconds() > 120
 
 
+# Function that puts the program to sleep until the market opens.
 def wait_for_market_open():
     clock = api.get_clock()
     if not clock.is_open:
@@ -87,8 +96,9 @@ def wait_for_market_open():
         time.sleep(round(time_to_open))
 
 
+# Main program loop.
 def main():
-    assetsToTrade = ["SPY", "MSFT", "AAPL", "NFLX"]
+    assetsToTrade = ["SPY", "MSFT", "AAPL", "NFLX"]  # Stocks to trade.
     barTimeframe = tradeapi.TimeFrame.Minute  # 1H 1Min, 5Min, 15Min, 1H, 1D
     while True:
         if market_is_open():

@@ -271,12 +271,12 @@ class Strategy_pairGen(bt.Strategy):
         self.myData = {}
         for key in dic.keys():
             self.myData[key] = []
-        self.distance = 2.45
+        self.distance = 1.5
         self.pairs = pairs
         self.dataclose = []
-        for i in range(0, len(pairs)+1):
+        for i in range(0, len(dic)):
             self.dataclose.append(self.datas[i].close)
-        self.period = 300
+        self.period = 1000
 
         # To keep track of pending orders and buy price/commission
         self.order = None
@@ -352,7 +352,7 @@ class Strategy_pairGen(bt.Strategy):
                 zScore = (spread[self.period - 1] - mean) / std
 
                 currentRatio = relevantXData[self.period - 1] / relevantYData[self.period - 1]
-                sharesX = 10000/relevantXData[self.period - 1]
+                sharesX = 100000/relevantXData[self.period - 1]
 
 
                 # Check if we are in the market
@@ -383,7 +383,6 @@ class Strategy_pairGen(bt.Strategy):
                 else:
                     if pair.long:
                         if zScore > 0:
-                            print(zScore)
                             #self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock1)][0])
                             self.order = self.sell(self.datas[self.dic.get(pair.stock1)], size = pair.sharesX)
                            # self.log('BUY CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock2)][0])
@@ -392,7 +391,6 @@ class Strategy_pairGen(bt.Strategy):
 
                     else:
                         if zScore < 0:
-                            print(zScore)
                             #self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock2)][0])
                             self.order = self.sell(self.datas[self.dic.get(pair.stock2)], size = pair.lastRatio * pair.sharesX)
                             #self.log('BUY CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock1)][0])

@@ -12,11 +12,12 @@ from statsmodels.regression.rolling import RollingOLS
 
 
 def checkPair(pairs):
-    start = '2014-02-08'
+    start = '2019-02-08'
     end = '2022-02-08'
     window = 252
     data = pd.DataFrame()
     newPairs = []
+    stillCo = 0
 
     for pair in pairs:
         prices = yf.download(pair.stock1,start,end)
@@ -30,9 +31,18 @@ def checkPair(pairs):
         beta = result.params[0]
         p1 = adfuller((stock2data-beta*stock1data))[1]
         p2 = coint(stock1data, stock2data)[1]
+
+        if(p1 < 0.1 and p2 <0.1):
+            stillCo += 1
+
         p = Pair(pair.stock1,pair.stock2,p1,p2)
         newPairs.append(p)
+
+        plt.plot(stock2data-beta*stock1data)
+        plt.show()
+
     my_pair_file = open('pairs2.txt', 'w')
+    print(stillCo/(len(pairs)))
     for pair in newPairs:
         my_pair_file.write(pair.stock1+" "+pair.stock2+ " "+ pair.p1 +" "+pair.p2+ "\n")
     my_pair_file.close()

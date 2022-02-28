@@ -265,7 +265,8 @@ class Strategy_pairGen(bt.Strategy):
         print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self, dic , pairs):
-        # Keep a reference to the "close" line in the data[0] dataseries
+
+
         self.dic = dic
         self.myData = {}
         for key in dic.keys():
@@ -273,7 +274,7 @@ class Strategy_pairGen(bt.Strategy):
         self.distance = 2.45
         self.pairs = pairs
         self.dataclose = []
-        for i in range(0, 4):
+        for i in range(0, len(pairs)+1):
             self.dataclose.append(self.datas[i].close)
         self.period = 300
 
@@ -357,7 +358,6 @@ class Strategy_pairGen(bt.Strategy):
                 # Check if we are in the market
                 if not pair.isActive:  # Returns the current position for a given data in a given broker.
                     if zScore > self.distance:
-                        print(zScore)
                         #self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock1)][0])
                         self.order = self.sell(self.datas[self.dic.get(pair.stock1)],size = sharesX)
                         #self.log('BUY CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock2)][0])
@@ -370,7 +370,6 @@ class Strategy_pairGen(bt.Strategy):
 
 
                     elif zScore < -self.distance:
-                        print(zScore)
                        # self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock2)][0])
                         self.order = self.sell(self.datas[self.dic.get(pair.stock2)], size = sharesX * currentRatio)
                         #self.log('BUY CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock1)][0])

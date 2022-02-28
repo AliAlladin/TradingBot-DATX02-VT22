@@ -42,7 +42,7 @@ def findPairs(stocks):
                 beta = result.params[0]
                 p1 = adfuller((stock2data-beta*stock1data))[1]
                 p2 = coint(stock1data, stock2data)[1]
-                if p1 <0.1 and p2 < 0.1:
+                if p1 <0.05 and p2 < 0.05:
                     p = Pair(stocks[i],stocks[j],p1,p2)
                     pairs.append(p)
     toc = time.perf_counter()
@@ -55,7 +55,7 @@ stocks_advertising = ['IPG', 'OMC']
 stocks_defence_aerospace = ['BA','GD', 'HWM', 'HII','LHX','LMT','NOC','RTX','TDY','TXT','TDG']
 stocks_logistics = ['CHRW','EXPD','FDX','UPS']
 stocks_apparel = ['NKE','PVH','RL', 'TPR', 'UAA', 'UA', 'VFC']
-stocks_application_software = ['ADBE','ANSS','ADSK','CDNS','CDAY','CTXS','INTU', 'NLOK', 'ORCL','PAYC','PTC','CRM','SNPS','TYL']
+stocks_application_software = ['ADBE','ANSS','ADSK','CDNS','CTXS','INTU', 'NLOK', 'ORCL','PAYC','PTC','CRM','SNPS','TYL']#,'CDAY'
 stocks_matrix = [stocks_Airline,stocks_advertising,stocks_defence_aerospace,stocks_logistics,stocks_apparel,stocks_application_software]
 stocks_all = stocks_Airline+stocks_advertising+stocks_defence_aerospace+stocks_logistics+stocks_apparel +stocks_application_software
 stocks_dj = ['AA','AAPL','AIG','AMGN','AXP','BA','BAC','C','CAT','CRM','CSCO','CVX','DD','DIS','GE','GM','GS','HD',
@@ -82,4 +82,4 @@ def run(sample):
     my_pair_file.close()
 
 
-run(stocks_all)
+run(stocks_apparel)

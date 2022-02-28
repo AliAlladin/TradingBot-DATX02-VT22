@@ -12,7 +12,7 @@ from statsmodels.regression.rolling import RollingOLS
 
 
 def checkPair(pairs):
-    start = '2019-02-08'
+    start = '2018-02-08'
     end = '2022-02-08'
     window = 252
     data = pd.DataFrame()

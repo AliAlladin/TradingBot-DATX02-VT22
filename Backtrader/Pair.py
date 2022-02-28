@@ -7,3 +7,6 @@ class Pair:
         self.ratio = None                   # The buy ratio between the two stock
         self.long = None                    # We are long the first stock
         self.isActive = False               # Whether we have a position of the pair in the market
+
+    def get_pairs(self):
+        return self.stock1, self.stock2

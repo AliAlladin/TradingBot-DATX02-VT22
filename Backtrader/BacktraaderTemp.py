@@ -14,22 +14,22 @@ cerebro = bt.Cerebro()
 # Setting up path to data
 modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
 
-#tickers = ['AMZN', 'AAPL', 'NFLX']
+# tickers = ['AMZN', 'AAPL', 'NFLX']
 # tickers = ['AAPL', 'AMZN','NFLX']
 # tickers = ['NFLX', 'AMZN']
+# tickers = ['AMZN_Nas', 'AAPL_Nas']
 tickers = ['AMZN (1)', 'NFLX']
+
 '''
 for ticker in tickers:
     datapath = os.path.join(modpath, 'Data/{}.csv')
-    data = bt.feeds.YahooFinanceCSVData(dataname=datapath.format(ticker))
-    cerebro.adddata(data)  # Add the Data Feed to Cerebro
-'''
-
-'''
-Used for reformatting data from Nasdaq. Run only once! 
+    file = datapath.format(ticker)
+    data = bt.feeds.YahooFinanceCSVData(dataname=file)
+    cerebro.adddata(data)  # Add the data to Cerebro
 '''
 
 
+# Used for reformatting data from Nasdaq. Run only once!
 def reformatData(pathToFile):
     df = pd.read_csv(pathToFile)
 
@@ -58,18 +58,15 @@ def reformatData(pathToFile):
     df.to_csv(pathToFile, index=False, )
 
 
-# tickers = ['AMZN_Nas', 'AAPL_Nas']
 for ticker in tickers:
     datapath = os.path.join(modpath, 'Data/{}.csv')
     file = datapath.format(ticker)
 
     '''
-    Uncomment if you want to reformat the data. Should not be run more than once. 
-    '''
+    # Uncomment if you want to reformat the data. Should not be run more than once. 
     # reformatData(file)
 
-    '''
-    GenericCSVData() is used to parse different CSV formats
+    GenericCSVData() is used to parse different CSV formats. Below is for Nasdaq
     data = bt.feeds.GenericCSVData(
         dataname=file,
         fromdate=datetime.datetime(2017, 2, 28),  # Ending  date
@@ -91,16 +88,18 @@ for ticker in tickers:
         volume=2,
         openinterest=-1,  # -1 if no such column exists
     )
+    
+    # df = pd.read_csv(file)
+    # df = df.iloc[::-1]  # Reverses order of dataframe
+    # df.to_csv(file, index=False, )  # Overwrite csv file
     '''
-    #df = pd.read_csv(file)
-    #df = df.iloc[::-1]  # Reverses order of dataframe
-    #df.to_csv(file, index=False, )  # Overwrite csv file
 
+    # Data feed for Yahoo
     data = bt.feeds.GenericCSVData(
 
         dataname=file,
         fromdate=datetime.datetime(2017, 2, 28),  # Ending  date
-        todate=datetime.datetime(2022, 2, 28),  # Starting date
+        todate=datetime.datetime(2022, 2, 25),  # Starting date
 
         nullvalue=0.0,  # Used for replacing NaN-values with 0
 

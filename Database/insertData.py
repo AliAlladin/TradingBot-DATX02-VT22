@@ -3,7 +3,7 @@ import datetime
 import time
 
 from psycopg2.sql import DEFAULT
-
+ #setup databas
 DB_HOST = "abul.db.elephantsql.com"
 DB_NAME = "rqagkzhe"
 DB_USER = "rqagkzhe"
@@ -27,12 +27,14 @@ conn.commit()
 
 print("table created")
 
+#Views
 sql = open('views.sql', 'r')
 cursor.execute(sql.read())
 conn.commit()
 
 print("views created")
 
+#Setup Triggers
 sql = open('triggers.sql', 'r')
 cursor.execute(sql.read())
 conn.commit()
@@ -45,6 +47,7 @@ print("triggers created")
 ##conn.commit()
 ##print("inserts created")
 
+#inserts into buy
 
 def sqlBuy(stockTicker: str, price: float):
     query = "INSERT INTO Buy VALUES (DEFAULT,a1,current_timestamp ,a2,a3)"
@@ -55,6 +58,7 @@ def sqlBuy(stockTicker: str, price: float):
     conn.commit()
 
 
+#inserts into sell
 def sqlSell(stockTicker: str, price: float):
     query = "INSERT INTO Sell VALUES (DEFAULT,a1,current_timestamp ,a2)"
     query = query.replace('a1', "\'" + stockTicker + "\'")
@@ -63,6 +67,8 @@ def sqlSell(stockTicker: str, price: float):
     conn.commit()
 
 
+
+#inserts into pairs
 def sqlPairs(stockTicker1: str, stockTicker2: str, standardDiv: float):
     query = "INSERT INTO Sell VALUES (a1 ,a2, a3)"
     query = query.replace('a1', "\'" + stockTicker1 + "\'")

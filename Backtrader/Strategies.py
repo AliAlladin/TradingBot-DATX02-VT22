@@ -221,14 +221,21 @@ class Strategy_pairGen(bt.Strategy):
         #         (trade.pnl, trade.pnlcomm))
 
     # The "run method", defines when to buy and sell
+
+
     def next(self):
 
+        self.log('Close, %.2f' % self.dataclose[0][0])
+        self.log('Close, %.2f' % self.dataclose[1][0])
         # For each stock, we add the data
         # Append today's stock price at the ticker's index to the initially emptly list
         for ticker in self.myData.keys():
             self.myData.get(ticker).append(self.dataclose[self.dic.get(ticker)][0])
 
-        # We go through each pair
+
+
+
+    # We go through each pair
         for pair in self.pairs:
 
             # We want to only look after 'period' days

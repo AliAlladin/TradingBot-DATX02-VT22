@@ -53,9 +53,9 @@ def reformatData(input_path, output_path):
     df.to_csv(output_path, index=False, )  # Converts dataframe to csv-file and saves file to Data/reformatted_csv_files
 
 
-ticks = ['AAPL_1hour', 'AMZN_1hour']
+# ticks = ['AAPL_1hour', 'AMZN_1hour']
 # We add the data to cerebro
-for ticker in ticks:
+for ticker in tickers:
     txt_file_path = os.path.join(modpath, 'Data/txt_files/{}.txt').format(ticker)  # Full path to txt-file
 
     CSV_file_path = os.path.join(modpath, 'Data/reformatted_csv_files/{}.csv').format(ticker)  # Full path to csv-file
@@ -65,8 +65,11 @@ for ticker in ticks:
     data = bt.feeds.GenericCSVData(
 
         dataname=CSV_file_path,  # Full path to csv-file
-        fromdate=datetime.datetime(2021, 8, 2, 4, 00, 00),  # Ending  date
-        todate=datetime.datetime(2021, 2, 13, 19, 59, 00),  # Starting date
+        fromdate=datetime.datetime(2021, 8, 2, 4, 00, 00),  # Start  date
+        todate=datetime.datetime(2021, 8, 13, 19, 00, 00),  # Ending date
+
+        # fromdate=datetime.datetime(2021, 8, 2, 4, 00, 00),  # Start  date
+        # todate=datetime.datetime(2021, 8, 13, 19, 00, 00),  # Ending date
 
         nullvalue=0.0,  # Used for replacing NaN-values with 0
 

@@ -42,7 +42,6 @@ for line in my_pair_file:
         dict[stock2] = i
         i += 1
 
-
 # Reformat txt-files to csv-files with added row for column names
 def reformatData(input_path, output_path):
     df = pd.read_csv(input_path, sep=',', header=None)  # Creates a dataframe from txt-file, splits each row at ','

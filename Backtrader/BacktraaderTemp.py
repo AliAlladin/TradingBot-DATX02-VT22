@@ -11,55 +11,32 @@ from Strategies import *
 # Instantiate Cerebro engine. This is the main control center / brain
 cerebro = bt.Cerebro()
 
-# Setting up path to data
+# Individual os paths
 modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
 
-# tickers = ['AMZN', 'AAPL', 'NFLX']
-# tickers = ['AAPL', 'AMZN','NFLX']
-# tickers = ['NFLX', 'AMZN']
-# tickers = ['AMZN_Nas', 'AAPL_Nas']
-# tickers = ['AMZN (1)', 'NFLX']
-tickers = ['AAPL_1min', 'AMZN_1min']
-
-'''
-for ticker in tickers:
-    datapath = os.path.join(modpath, 'Data/{}.csv')
-    file = datapath.format(ticker)
-    data = bt.feeds.YahooFinanceCSVData(dataname=file)
-    cerebro.adddata(data)  # Add the data to Cerebro
-'''
+tickers = ['AAPL_1hour', 'AMZN_1hour']
 
 
-# Used for reformatting data from Nasdaq. Run only once!
-def reformatData(pathToFile, outputName):
-    cs = os.path.join(modpath, 'Data/{}')  # Holder
+# Reformat txt-files to csv-files with added row for column names
+def reformatData(input_path, output_path):
+    df = pd.read_csv(input_path, sep=',', header=None)  # Creates a dataframe from txt-file, splits each row at ','
 
-    df = pd.read_csv(pathToFile, sep=',', header=None)
+    header = ["DateTime", "Open", "High", "Low", "Close", "Volume"]  # Row for column names
+    df.columns = header  # Adds column names to top of dataframe
 
-    header = ["DateTime", "Open", "High", "Low", "Close", "Volume"]
-    df.columns = header
-
-    new = cs.format(outputName)
-
-    df.to_csv(new, index=False, )
+    df.to_csv(output_path, index=False, )  # Converts dataframe to csv-file and saves file to Data/reformatted_csv_files
 
 
 for ticker in tickers:
-    datapath = os.path.join(modpath, 'Data/{}.txt')  # Holder
-    file = datapath.format(ticker)  # Path to file, example Data/AAPL.txt
+    txt_file_path = os.path.join(modpath, 'Data/txt_files/{}.txt').format(ticker)  # Full path to txt-file
 
-    csvPath = os.path.join(modpath, 'Data/{}.csv')  # Holder
-    csvFile = csvPath.format(ticker)  # Path to file, example Data/AAPL.csv
+    CSV_file_path = os.path.join(modpath, 'Data/reformatted_csv_files/{}.csv').format(ticker)  # Full path to csv-file
 
-    i = '{}.csv'  # Holder
-    fileName = i.format(ticker)  # Example, AAPL.csv
-
-    # Converts txt files to CSV-files with added header
-    reformatData(file, fileName)
+    reformatData(txt_file_path, CSV_file_path)  # Reformat txt-files to csv-files with added row for column names
 
     data = bt.feeds.GenericCSVData(
 
-        dataname=csvFile,
+        dataname=CSV_file_path,  # Full path to csv-file
         fromdate=datetime.datetime(2021, 8, 2, 4, 00, 00),  # Ending  date
         todate=datetime.datetime(2021, 2, 13, 19, 59, 00),  # Starting date
 

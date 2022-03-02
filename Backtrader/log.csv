@@ -1,17 +1,17 @@
 ===============================================================================
-Id,AAPL_1min,len,datetime,open,high,low,close,volume,openinterest,AMZN_1min,len,datetime,open,high,low,close,volume,openinterest,Strategy_pair,len,datetime,Broker,len,cash,value,BuySell,len,buy,sell,BuySell,len,buy,sell,DataTrades,len,AAPL_1min,AMZN_1min
+Id,AAPL_1hour,len,datetime,open,high,low,close,volume,openinterest,AMZN_1hour,len,datetime,open,high,low,close,volume,openinterest,Strategy_pair,len,datetime,Broker,len,cash,value,BuySell,len,buy,sell,BuySell,len,buy,sell,DataTrades,len,AAPL_1hour,AMZN_1hour
 ===============================================================================
 Cerebro:
   -----------------------------------------------------------------------------
   - Datas:
     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     - Data0:
-      - Name: AAPL_1min
+      - Name: AAPL_1hour
       - Timeframe: Days
       - Compression: 1
     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     - Data1:
-      - Name: AMZN_1min
+      - Name: AMZN_1hour
       - Timeframe: Days
       - Compression: 1
   -----------------------------------------------------------------------------
@@ -39,7 +39,7 @@ Cerebro:
             - bardist: 0.015
         .......................................................................
         - DataTrades:
-          - Lines: AAPL_1min, AMZN_1min
+          - Lines: AAPL_1hour, AMZN_1hour
           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
           - Params:
             - usenames: True

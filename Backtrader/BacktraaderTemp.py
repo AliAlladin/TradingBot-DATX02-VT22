@@ -1,13 +1,33 @@
+import datetime
 import os
 import sys  # To find out the script name (in argv[0])
+
+import pandas as pd
+
+pd.options.mode.chained_assignment = None
+
+from Strategies import *
 from Pair import *
 from Strategies import *  # import our first strategy
 
 # Instantiate Cerebro engine. This is the main control center / brain
 cerebro = bt.Cerebro()
 
-# Setting up path to data
+# Individual os paths
 modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
+
+tickers = ['AAPL_1hour', 'AMZN_1hour']
+
+
+# Reformat txt-files to csv-files with added row for column names
+def reformatData(input_path, output_path):
+    df = pd.read_csv(input_path, sep=',', header=None)  # Creates a dataframe from txt-file, splits each row at ','
+
+    header = ["DateTime", "Open", "High", "Low", "Close", "Volume"]  # Row for column names
+    df.columns = header  # Adds column names to top of dataframe
+
+    df.to_csv(output_path, index=False, )  # Converts dataframe to csv-file and saves file to Data/reformatted_csv_files
+
 
 # TODO: create generic data path reader
 
@@ -39,10 +59,37 @@ for line in my_pair_file:
         i += 1
 # We add the data to cerebro
 for ticker in tickers:
-    datapath = os.path.join(modpath, 'Data/{}.csv')
-    data = bt.feeds.YahooFinanceCSVData(
-        dataname=datapath.format(ticker))
-    cerebro.adddata(data)  # Add the Data Feed to Cerebro
+    txt_file_path = os.path.join(modpath, 'Data/txt_files/{}.txt').format(ticker)  # Full path to txt-file
+
+    CSV_file_path = os.path.join(modpath, 'Data/reformatted_csv_files/{}.csv').format(ticker)  # Full path to csv-file
+
+    reformatData(txt_file_path, CSV_file_path)  # Reformat txt-files to csv-files with added row for column names
+
+    data = bt.feeds.GenericCSVData(
+
+        dataname=CSV_file_path,  # Full path to csv-file
+        fromdate=datetime.datetime(2021, 8, 2, 4, 00, 00),  # Ending  date
+        todate=datetime.datetime(2021, 2, 13, 19, 59, 00),  # Starting date
+
+        nullvalue=0.0,  # Used for replacing NaN-values with 0
+
+        dtformat='%Y-%m-%d %H:%M:%S',  # used to parse the datetime CSV field. Default %Y-%m-%d
+        tmformat='%H:%M:%S',  # used to parse the time CSV field if present
+
+        datetime=0,  # column containing the date
+        time=-1,  # column containing the time field if separate from the datetime field. -1 if not present.
+
+        # For each below, reference the corresponding index from the data
+
+        open=1,
+        high=2,
+        low=3,
+        close=4,
+        volume=5,
+
+        openinterest=-1  # -1 if no such column exists
+    )
+    cerebro.adddata(data)
 
 # Set starting value of portfolio
 cerebro.broker.setcash(100000.0)

@@ -6,7 +6,6 @@ import pandas as pd
 
 pd.options.mode.chained_assignment = None
 
-from Strategies import *
 from Pair import *
 from Strategies import *  # import our first strategy
 
@@ -16,30 +15,15 @@ cerebro = bt.Cerebro()
 # Individual os paths
 modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
 
-tickers = ['AAPL_1hour', 'AMZN_1hour']
-
-
-# Reformat txt-files to csv-files with added row for column names
-def reformatData(input_path, output_path):
-    df = pd.read_csv(input_path, sep=',', header=None)  # Creates a dataframe from txt-file, splits each row at ','
-
-    header = ["DateTime", "Open", "High", "Low", "Close", "Volume"]  # Row for column names
-    df.columns = header  # Adds column names to top of dataframe
-
-    df.to_csv(output_path, index=False, )  # Converts dataframe to csv-file and saves file to Data/reformatted_csv_files
-
-
-# TODO: create generic data path reader
-
 # The data of pairs comes from Pairs.txt which we read
 datap = os.path.join(modpath, 'Backtrader/Pairs.txt')
 my_pair_file = open(datap, 'r')
 
 # We start without any tickers
-tickers = [] # A list of tickers
-pairs = [] # A list of Pairs (see Pair.py)
-dict = {} # Dictionary to store tickers as keys and an integer value that separates the tickers.
-i=0 # A variable to work as a counter of the integer value
+tickers = []  # A list of tickers
+pairs = []  # A list of Pairs (see Pair.py)
+dict = {}  # Dictionary to store tickers as keys and an integer value that separates the tickers.
+i = 0  # A variable to work as a counter of the integer value
 
 # We go through Pairs.txt to add all tickers and Pairs
 for line in my_pair_file:
@@ -57,8 +41,21 @@ for line in my_pair_file:
         tickers.append(stock2)
         dict[stock2] = i
         i += 1
+
+
+# Reformat txt-files to csv-files with added row for column names
+def reformatData(input_path, output_path):
+    df = pd.read_csv(input_path, sep=',', header=None)  # Creates a dataframe from txt-file, splits each row at ','
+
+    header = ["DateTime", "Open", "High", "Low", "Close", "Volume"]  # Row for column names
+    df.columns = header  # Adds column names to top of dataframe
+
+    df.to_csv(output_path, index=False, )  # Converts dataframe to csv-file and saves file to Data/reformatted_csv_files
+
+
+ticks = ['AAPL_1hour', 'AMZN_1hour']
 # We add the data to cerebro
-for ticker in tickers:
+for ticker in ticks:
     txt_file_path = os.path.join(modpath, 'Data/txt_files/{}.txt').format(ticker)  # Full path to txt-file
 
     CSV_file_path = os.path.join(modpath, 'Data/reformatted_csv_files/{}.csv').format(ticker)  # Full path to csv-file

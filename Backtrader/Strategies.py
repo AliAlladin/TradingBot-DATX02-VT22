@@ -161,7 +161,6 @@ class Strategy_pairGen(bt.Strategy):
         for i in range(0, len(self.dic)):  # We add the closing data for each of all stocks
             self.dataclose.append(self.datas[i].close)
         self.oldDate=str(self.datas[0].datetime.date(0))
-        print(self.oldDate)
         self.firstTime=True
         ''' This might be unnecessary 
         # To keep track of pending orders and buy price/commission
@@ -217,8 +216,8 @@ class Strategy_pairGen(bt.Strategy):
 
     def next(self):
 
-        self.log('Close, %.2f' % self.dataclose[0][0])
-        self.log('Close, %.2f' % self.dataclose[1][0])
+        #self.log('Close, %.2f' % self.dataclose[0][0])
+        #self.log('Close, %.2f' % self.dataclose[1][0])
         # For each stock, we add the data
         # Append today's stock price at the ticker's index to the initially emptly list
         if (self.firstTime):
@@ -241,9 +240,9 @@ class Strategy_pairGen(bt.Strategy):
             if len(self.myData.get(pair.stock1)) > self.period:
                 # Sort to receive only data of the last 'period' days
                 relevant_data_stock1 = self.myData.get(pair.stock1)[len(self.myData.get(pair.stock1)) - self.period:len(self.myData.get(pair.stock1))-1]
-                relevant_data_stock2 = self.myData.get(pair.stock2)[len(self.myData.get(pair.stock1)) - self.period:len(self.myData.get(pair.stock1))-1]
-                relevant_data_stock1.append(self.dataclose[self.dic.get(pair.stock1)][0])
-                relevant_data_stock2.append(self.dataclose[self.dic.get(pair.stock2)][0])
+                relevant_data_stock2 = self.myData.get(pair.stock2)[len(self.myData.get(pair.stock2)) - self.period:len(self.myData.get(pair.stock2))-1]
+                #relevant_data_stock1.append(self.dataclose[self.dic.get(pair.stock1)][0])
+                #relevant_data_stock2.append(self.dataclose[self.dic.get(pair.stock2)][0])
                 # Perform a linear regression to calculate the spread
                 result = sm.OLS(relevant_data_stock1, relevant_data_stock2).fit()
                 beta = result.params[0]

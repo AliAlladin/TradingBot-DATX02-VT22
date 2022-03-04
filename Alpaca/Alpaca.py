@@ -48,3 +48,17 @@ class Alpaca:
                                  end=end_date, timeframe=TimeFrame.Day)
 
         return data.df
+
+    # Function to place a buy order.
+    def buy(self, symbol: str, target_position_size: float, limit_price: float):
+        returned = self.api.submit_order(
+            symbol, target_position_size, "buy", "limit", "day", limit_price)
+        print("BUY order for {} {} at {} {}".format(returned.qty,
+              returned.symbol, returned.limit_pricem, returned.status))
+
+    # Function to place a sell order.
+    def buy(self, symbol: str, target_position_size: float, limit_price: float):
+        returned = self.api.submit_order(
+            symbol, target_position_size, "sell", "limit", "day", limit_price)
+        print("SELL order for {} {} at {} {}".format(returned.qty,
+              returned.symbol, returned.limit_pricem, returned.status))

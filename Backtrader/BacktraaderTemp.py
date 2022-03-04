@@ -42,25 +42,14 @@ for line in my_pair_file:
         dict[stock2] = i
         i += 1
 
-
-# Reformat txt-files to csv-files with added row for column names
-def reformatData(input_path, output_path):
-    df = pd.read_csv(input_path, sep=',', header=None)  # Creates a dataframe from txt-file, splits each row at ','
-
-    header = ["DateTime", "Open", "High", "Low", "Close", "Volume"]  # Row for column names
-    df.columns = header  # Adds column names to top of dataframe
-
-    df.to_csv(output_path, index=False, )  # Converts dataframe to csv-file and saves file to Data/reformatted_csv_files
-
-
 # ticks = ['AAPL_1hour', 'AMZN_1hour']
 # We add the data to cerebro
 for ticker in tickers:
-    txt_file_path = os.path.join(modpath, 'Data/txt_files/{}.txt').format(ticker)  # Full path to txt-file
+    # txt_file_path = os.path.join(modpath, 'Data/txt_files/{}.txt').format(ticker)  # Full path to txt-file
 
-    CSV_file_path = os.path.join(modpath, 'Data/reformatted_csv_files/{}.csv').format(ticker)  # Full path to csv-file
+    CSV_file_path = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(ticker)  # Full path to csv-file
 
-    reformatData(txt_file_path, CSV_file_path)  # Reformat txt-files to csv-files with added row for column names
+    # reformatData(txt_file_path, CSV_file_path)  # Reformat txt-files to csv-files with added row for column names
 
     data = bt.feeds.GenericCSVData(
 

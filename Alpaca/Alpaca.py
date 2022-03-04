@@ -24,13 +24,13 @@ class Alpaca:
             time_to_open = (clock.next_open - clock.timestamp).total_seconds()
             time.sleep(round(time_to_open))
 
-    def get_intraday_data(self, symbol):
+    # Function returns intraday stockdata (15-mintes delayed)
+    def get_intraday_data(self, symbol: str):
         current_time = self.api.get_clock().timestamp
         start_time = current_time.replace(hour=9, minute=30).isoformat()
-        print(start_time)
         fifteen_minutes = timedelta(minutes=15)
-        print(current_time)
         end_time = current_time.replace(hour=16, minute=00).isoformat()
+
         if self.market_is_open():
             end_time = (current_time - fifteen_minutes).isoformat()
 
@@ -39,7 +39,12 @@ class Alpaca:
 
         return data.df
 
+    # Function returns historical end-of-day stockdata
+    def get_endofday_data(self, symbol: str, from_date: str):
+        today = date.today()
+        one_day = timedelta(days=1)
+        end_date = (today - one_day)
+        data = self.api.get_bars(symbol=symbol, start=from_date,
+                                 end=end_date, timeframe=TimeFrame.Day)
 
-broker = Alpaca()
-
-print(broker.get_intraday_data("AAPL"))
+        return data.df

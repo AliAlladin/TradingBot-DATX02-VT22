@@ -1,9 +1,8 @@
 import psycopg2
-import datetime
-import time
 
 from psycopg2.sql import DEFAULT
- #setup databas
+
+# setup databas
 DB_HOST = "abul.db.elephantsql.com"
 DB_NAME = "rqagkzhe"
 DB_USER = "rqagkzhe"
@@ -20,6 +19,7 @@ conn = psycopg2.connect(
 
 print("Database Connected Successfully")
 
+# Tables
 cursor = conn.cursor()
 sql = open('tables.sql', 'r')
 cursor.execute(sql.read())
@@ -27,14 +27,14 @@ conn.commit()
 
 print("table created")
 
-#Views
+# Views
 sql = open('views.sql', 'r')
 cursor.execute(sql.read())
 conn.commit()
 
 print("views created")
 
-#Setup Triggers
+# Setup Triggers
 sql = open('triggers.sql', 'r')
 cursor.execute(sql.read())
 conn.commit()
@@ -42,33 +42,33 @@ conn.commit()
 print("triggers created")
 
 
-##sql = open('inserts.sql', 'r')
-##cursor.execute(sql.read())
-##conn.commit()
-##print("inserts created")
+def insertAndCommitQuery(stockTicker: str, price: float, query: str):
+    query = query.replace('a1', "\'" + stockTicker + "\'")
+    query = query.replace('a2', str(price))
+    cursor.execute(query)
+    conn.commit()
 
-#inserts into buy
 
 def sqlBuy(stockTicker: str, price: float):
     query = "INSERT INTO Buy VALUES (DEFAULT,a1,current_timestamp ,a2,a3)"
-    query = query.replace('a1', "\'" + stockTicker + "\'")
-    query = query.replace('a2', str(price))
     query = query.replace('a3', "\'" + 'Active ' + "\'")
-    cursor.execute(query)
-    conn.commit()
+    insertAndCommitQuery(stockTicker, price, query)
 
 
-#inserts into sell
+# inserts into sell
 def sqlSell(stockTicker: str, price: float):
     query = "INSERT INTO Sell VALUES (DEFAULT,a1,current_timestamp ,a2)"
-    query = query.replace('a1', "\'" + stockTicker + "\'")
-    query = query.replace('a2', str(price))
-    cursor.execute(query)
-    conn.commit()
+    insertAndCommitQuery(stockTicker, price, query)
 
 
+# inserts into blank
+def sqlBlank(stockTicker: str, price: float):
+    query = "INSERT INTO Blank VALUES (DEFAULT,a1,current_timestamp ,a2,a3)"
+    query = query.replace('a3', "\'" + 'Active ' + "\'")
+    insertAndCommitQuery(stockTicker, price, query)
 
-#inserts into pairs
+
+# inserts into pairs
 def sqlPairs(stockTicker1: str, stockTicker2: str, standardDiv: float):
     query = "INSERT INTO Sell VALUES (a1 ,a2, a3)"
     query = query.replace('a1', "\'" + stockTicker1 + "\'")

@@ -7,7 +7,6 @@ import statsmodels.api as sm
 # Every strategy made needs to extend the base strategy, bt.Strategy class.
 class Strategy_pair(bt.Strategy):
 
-
     # "Self" is the bar/line we are on, of the data
     def log(self, txt, dt=None):
         # Logging function/output for this strategy
@@ -26,18 +25,10 @@ class Strategy_pair(bt.Strategy):
             self.dataclose.append(self.datas[i].close)
         self.period = 300
 
-
-
-
-    
-
         # To keep track of pending orders and buy price/commission
         self.order = None
         self.buyprice = None
         self.buycomm = None
-
-
-
 
     def notify_order(self, order):
         if order.status in [order.Submitted, order.Accepted]:
@@ -157,20 +148,20 @@ class Strategy_pairGen(bt.Strategy):
 
         self.dic = dic  # Dictionary of tickers with indices
         self.pairs = pairs  # List of pairs
-
         self.myData = {}  # To store all the data we need, {'TICKER' -> Data}
         for ticker in dic.keys():  # Initially, the values of data are just empty lists
             self.myData[ticker] = []
 
         # The parameters that are to be varied to optimize the model
-        self.distance = 2.45
-        self.period = 300
+        self.distance = 0.5
+        self.period = 5
         self.invested_amount = 10000
         # The closing data of the stocks
         self.dataclose = []
         for i in range(0, len(self.dic)):  # We add the closing data for each of all stocks
             self.dataclose.append(self.datas[i].close)
-
+        self.oldDate=str(self.datas[0].datetime.date(0))
+        self.firstTime=True
         ''' This might be unnecessary 
         # To keep track of pending orders and buy price/commission
         self.order = None
@@ -186,7 +177,7 @@ class Strategy_pairGen(bt.Strategy):
         # Attention: broker could reject order if there is not enough cash
         if order.status in [order.Completed]:
             # If it is a buying order
-            if order.isbuy():'''
+            if order.isbuy():
                 self.log(
                     'BUY EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
                     (order.executed.price,
@@ -195,15 +186,15 @@ class Strategy_pairGen(bt.Strategy):
                 
                 #self.buyprice = order.executed.price
                 #self.buycomm = order.executed.comm
-                #self.opsize = order.executed.size'''
+                #self.opsize = order.executed.size
 
 
             # It is a selling order
-            else:'''
+            else:
                 self.log('SELL EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
                          (order.executed.price,
                           order.executed.value,
-                          order.executed.comm))'''
+                          order.executed.comm))
 
 
         # If the order is canceled, margin or rejected
@@ -225,26 +216,33 @@ class Strategy_pairGen(bt.Strategy):
 
     def next(self):
 
-        self.log('Close, %.2f' % self.dataclose[0][0])
-        self.log('Close, %.2f' % self.dataclose[1][0])
+        #self.log('Close, %.2f' % self.dataclose[0][0])
+        #self.log('Close, %.2f' % self.dataclose[1][0])
         # For each stock, we add the data
         # Append today's stock price at the ticker's index to the initially emptly list
-        for ticker in self.myData.keys():
-            self.myData.get(ticker).append(self.dataclose[self.dic.get(ticker)][0])
+        if self.firstTime:
+            self.oldDate = str(self.datas[0].datetime.date(0))
+            self.firstTime = False
+        newPotentialDate = str(self.datas[0].datetime.date(0))
+        #print(self.oldDate)
+        #print(newPotentialDate)
+        if newPotentialDate != self.oldDate:
+            self.oldDate = newPotentialDate
+            for ticker in self.myData.keys():
+                self.myData.get(ticker).append(self.dataclose[self.dic.get(ticker)][0])
 
 
 
 
     # We go through each pair
         for pair in self.pairs:
-
             # We want to only look after 'period' days
-            if len(self) > self.period:
-
+            if len(self.myData.get(pair.stock1)) > self.period:
                 # Sort to receive only data of the last 'period' days
-                relevant_data_stock1 = self.myData.get(pair.stock1)[len(self) - self.period:len(self)]
-                relevant_data_stock2 = self.myData.get(pair.stock2)[len(self) - self.period:len(self)]
-
+                relevant_data_stock1 = self.myData.get(pair.stock1)[len(self.myData.get(pair.stock1)) - self.period:len(self.myData.get(pair.stock1))-1]
+                relevant_data_stock2 = self.myData.get(pair.stock2)[len(self.myData.get(pair.stock2)) - self.period:len(self.myData.get(pair.stock2))-1]
+                relevant_data_stock1.append(self.dataclose[self.dic.get(pair.stock1)][0])
+                relevant_data_stock2.append(self.dataclose[self.dic.get(pair.stock2)][0])
                 # Perform a linear regression to calculate the spread
                 result = sm.OLS(relevant_data_stock1, relevant_data_stock2).fit()
                 beta = result.params[0]
@@ -252,11 +250,15 @@ class Strategy_pairGen(bt.Strategy):
                 for i in range(0, self.period):
                     spread.append(relevant_data_stock1[i] - beta * relevant_data_stock2[i])
 
+
                 # Calculation of the Z-score
                 mean = np.mean(spread)
                 std = np.std(spread)
 
+
                 z_score = (spread[self.period - 1] - mean) / std
+                print(z_score)
+
 
                 # To know how much we need to buy of each stock
                 shares_stock1 = self.invested_amount / relevant_data_stock1[self.period - 1]
@@ -266,6 +268,7 @@ class Strategy_pairGen(bt.Strategy):
                 if not pair.isActive:
                     # We check whether the Z-score is unusually high or low (>distance or <-distance)
                     if z_score > self.distance:
+                        print('heh')
 
                         # High Z-score, we sell stock 1 and buy stock 2
                         # self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock1)][0])
@@ -282,6 +285,7 @@ class Strategy_pairGen(bt.Strategy):
 
                     # The Z-score is unusually low, we buy stock1 and sell stock2
                     elif z_score < -self.distance:
+                        print('heh2')
                         # self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock2)][0])
                         self.order = self.sell(self.datas[self.dic.get(pair.stock2)], size=shares_stock1 * current_ratio)
                         # self.log('BUY CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock1)][0])
@@ -300,6 +304,7 @@ class Strategy_pairGen(bt.Strategy):
                     if pair.long:
 
                         if z_score > 0:
+                            print('hehheh')
                             # Sell stock 1 and buy back stock 2
                             # self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock1)][0])
                             self.order = self.sell(self.datas[self.dic.get(pair.stock1)], size=pair.shares_stock1)
@@ -322,6 +327,7 @@ class Strategy_pairGen(bt.Strategy):
                     else:
 
                         if z_score < 0:
+                            print('hehheh2')
                             # Buy back stock 1 and sell stock 2
                             # self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock2)][0])
                             self.order = self.sell(self.datas[self.dic.get(pair.stock2)], size=pair.ratio * pair.shares_stock1)

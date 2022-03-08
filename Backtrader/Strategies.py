@@ -20,8 +20,8 @@ class Strategy_pairGen(bt.Strategy):
             self.myData[ticker] = []
 
         # The parameters that are to be varied to optimize the model
-        self.distance = 2.5
-        self.period = 30
+        self.distance = 3
+        self.period = 500
         self.invested_amount = 10000
         # The closing data of the stocks
         self.dataclose = []
@@ -120,7 +120,6 @@ class Strategy_pairGen(bt.Strategy):
                 std = np.std(spread)
 
                 z_score = (spread[self.period - 1] - mean) / std
-                print(z_score)
 
                 # To know how much we need to buy of each stock
                 shares_stock1 = self.invested_amount / relevant_data_stock1[self.period - 1]
@@ -130,7 +129,6 @@ class Strategy_pairGen(bt.Strategy):
                 if not pair.isActive:
                     # We check whether the Z-score is unusually high or low (>distance or <-distance)
                     if z_score > self.distance:
-                        print('heh')
 
                         # High Z-score, we sell stock 1 and buy stock 2
                         # self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock1)][0])
@@ -147,7 +145,6 @@ class Strategy_pairGen(bt.Strategy):
 
                     # The Z-score is unusually low, we buy stock1 and sell stock2
                     elif z_score < -self.distance:
-                        print('heh2')
                         # self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock2)][0])
                         self.order = self.sell(self.datas[self.dic.get(pair.stock2)],
                                                size=shares_stock1 * current_ratio)
@@ -166,7 +163,6 @@ class Strategy_pairGen(bt.Strategy):
                     if pair.long:
 
                         if z_score > 0:
-                            print('hehheh')
                             # Sell stock 1 and buy back stock 2
                             # self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock1)][0])
                             self.order = self.sell(self.datas[self.dic.get(pair.stock1)], size=pair.shares_stock1)
@@ -191,7 +187,6 @@ class Strategy_pairGen(bt.Strategy):
                     else:
 
                         if z_score < 0:
-                            print('hehheh2')
                             # Buy back stock 1 and sell stock 2
                             # self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock2)][0])
                             self.order = self.sell(self.datas[self.dic.get(pair.stock2)],

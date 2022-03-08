@@ -51,7 +51,7 @@ for ticker in tickers:
     data = bt.feeds.GenericCSVData(
 
         dataname=CSV_file_path,  # Full path to csv-file
-        fromdate=datetime.datetime(2021, 8, 2, 4, 00, 00),  # Start  date
+        fromdate=datetime.datetime(2020, 8, 2, 4, 00, 00),  # Start  date
         todate=datetime.datetime(2021, 8, 13, 19, 00, 00),  # Ending date
 
         nullvalue=0.0,  # Used for replacing NaN-values with 0

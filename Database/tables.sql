@@ -29,7 +29,9 @@ CREATE TABLE IF NOT EXISTS Blank(
     ticker TEXT,
     FOREIGN KEY (ticker) REFERENCES Stocks(ticker),
     blankTime TIMESTAMP NOT NULL,
-    price DECIMAL NOT NULL
+    price DECIMAL NOT NULL,
+    active TEXT NOT NULL
+
 );
 
 CREATE TABLE IF NOT EXISTS Pairs(

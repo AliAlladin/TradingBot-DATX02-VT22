@@ -25,7 +25,7 @@ class Strategy_pairGen(bt.Strategy):
         self.invested_amount = 10000
         # The closing data of the stocks
         self.dataclose = []
-        for i in range(0, len(self.dic)):  # We add the closing data for each of all stocks
+        for i in range(0, len(self.dic)):  # We add the closing data for each of all stocks len(self.dic)
             self.dataclose.append(self.datas[i].close)
         self.oldDate = str(self.datas[0].datetime.date(0))
         self.firstTime = True
@@ -206,3 +206,71 @@ class Strategy_pairGen(bt.Strategy):
                             pair.isActive = False
                             pair.shares_stock1 = None
                             pair.ratio = None
+
+
+class Strategy_fibonacci(bt.Strategy):
+
+    # "Self" is the bar/line we are on, of the data
+    def log(self, txt, dt=None):
+        # Logging function/output for this strategy
+        dt = dt or self.datas[0].datetime.date(0)
+        print('%s, %s' % (dt.isoformat(), txt))
+
+    def __init__(self, dic):
+
+        self.dic = dic  # Dictionary of tickers with indices
+        self.myData = {}  # To store all the data we need, {'TICKER' -> Data}
+        for ticker in dic.keys():  # Initially, the values of data are just empty lists
+            self.myData[ticker] = []
+
+        # Sets that store the highs and lows of the stock price
+        self.highs = {}
+        self.lows = {}
+
+        # The closing data of the stocks
+        self.dataclose = []
+        for i in range(0, len(self.dic)):  # We add the closing data for each of all stocks
+            self.dataclose.append(self.datas[i].close)
+
+        # The parameters that are to be varied to optimize the model
+        self.invested_amount = 10000
+
+
+    # Reports an order instance
+    def notify_order(self, order):
+        # The order is completed
+        # Attention: broker could reject order if there is not enough cash
+        if order.status in [order.Completed]:
+            # If it is a buying order
+            if order.isbuy():
+                self.log(
+                    'BUY EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
+                    (order.executed.price,
+                     order.executed.value,
+                     order.executed.comm))
+
+            # It is a selling order
+            else:
+                self.log('SELL EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
+                         (order.executed.price,
+                          order.executed.value,
+                          order.executed.comm))
+
+
+        # If the order is canceled, margin or rejected
+        elif order.status in [order.Canceled, order.Margin, order.Rejected]:
+            self.log('Order Canceled/Margin/Rejected')
+
+    # Receives a trade whenever there has been a change in one
+    def notify_trade(self, trade):
+        if not trade.isclosed:
+            return
+
+    # The "run method", defines when to buy and sell
+    def next(self):
+        # For each ticker, we add the stock price of today to the matching list in the set myData.
+        for ticker in self.myData.keys():
+            self.myData.get(ticker).append(self.dataclose[self.dic.get(ticker)][0])
+
+            # We also look for potential buy/sell opportunities for each ticker
+

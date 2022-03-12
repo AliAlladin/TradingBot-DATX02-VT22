@@ -1,9 +1,12 @@
-from curses.ascii import EM
+import numpy
 import numpy as np
 import talib
 import alpaca_trade_api as tradeapi
 from Config import *
 import time
+from datapackage import Package
+import pandas
+
 from datetime import date, timedelta
 
 import logging
@@ -14,6 +17,7 @@ api = tradeapi.REST(ALPACA_API_KEY, ALPACA_SECRET_KEY,
                     BASE_URL, api_version='v2')
 
 positionSizing = 0.25
+
 
 # Save intraday data to a list.
 
@@ -26,10 +30,12 @@ def save_data(list, price):
 
 saved_prices = []
 
+
 # Function that take the bar of the share that wants to be traded.
 
 
 async def trade(bar):
+    print('im here')
     if market_is_open():
 
         save_data(saved_prices, bar.close)
@@ -73,10 +79,13 @@ async def trade(bar):
                     print("No open position")
         # Else collect data:
         else:
+            print(bar)
             print("Collecting data {}/100".format(len(saved_prices)))
+
 
     else:
         wait_for_market_open()
+
 
 # Function that checks if market is open.
 
@@ -84,6 +93,7 @@ async def trade(bar):
 def market_is_open():
     clock = api.get_clock()
     return clock.is_open and (clock.next_close - clock.timestamp).total_seconds() > 120
+
 
 # Function that puts the program to sleep until the market opens.
 
@@ -95,7 +105,16 @@ def wait_for_market_open():
         time_to_open = (clock.next_open - clock.timestamp).total_seconds()
         time.sleep(round(time_to_open))
 
+
 # Main program loop.
+
+
+def getSP500Tickers():
+    payload = pandas.read_html("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
+    first_table = payload[0]
+    df = first_table
+    df.head()
+    return df['Symbol'].values.tolist()
 
 
 def main():
@@ -106,8 +125,12 @@ def main():
                     BASE_URL,
                     data_feed='iex')
 
-    stream.subscribe_bars(trade, 'AAPL')
+    tickers = getSP500Tickers()
 
+    for ticker in tickers:
+        stream.subscribe_bars(trade, ticker)
+
+    print('lolololololo')
     stream.run()
 
 

@@ -53,7 +53,6 @@ class AlpacaBroker:
             print("BUY ERROR")
 
     # Function to place a sell order.
-
     def sell(self, symbol: str, target_position_size: float, limit_price: float):
         try:
             position = self.get_position(symbol)
@@ -75,6 +74,10 @@ class AlpacaBroker:
                 print("Can't create SELL order. (Check symbol and target_position_size)")
         except self.error:
             print("SELL ERROR")
+
+    def get_orders(self, symbol: str):
+        all_orders = self.all_orders()
+        return all_orders[all_orders['symbol'] == symbol]
 
     def all_orders(self):
         orders = self.api.list_orders(limit=500)
@@ -126,3 +129,4 @@ class AlpacaBroker:
 broker = AlpacaBroker()
 
 print(broker.get_position("AAPL"))
+print(broker.get_orders("AAPL"))

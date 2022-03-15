@@ -9,6 +9,7 @@ import datetime
 import threading
 import logging
 from alpaca_trade_api.stream import Stream
+import asyncio
 
 log = logging.getLogger(__name__)
 api = tradeapi.REST(ALPACA_API_KEY, ALPACA_SECRET_KEY,
@@ -68,15 +69,21 @@ def send_data(data):
     alpacaLiveDataStream.notify_observers(data)
 
 
+i = 0
+
+
 async def getLiveData(bar):
-    print('im here')
+    global i
+    i += 1
+    print(str(i) + '-------------------------------------------')
+    if i == 200:
+        time.sleep(60)
+        i = 0
     if market_is_open():
-
-        fixedTime = fix_time(bar)
-        save_data(bar)
-        send_data(bar)
         print(bar)
-
+        # fixedTime = fix_time(bar)
+        # save_data(bar)
+        # send_data(bar)
     else:
         wait_for_market_open()
 
@@ -121,11 +128,33 @@ def accessLiveData():
     return returnData
 
 
+tickers = []
+
+
 def main():
-    thread1 = alpacaLiveDataStream(1, 'thread1')
-    thread1.start()
+    global tickers
+    firstStart = False
+    logging.basicConfig(level=logging.INFO)
+    stream = Stream(ALPACA_API_KEY,
+                    ALPACA_SECRET_KEY,
+                    BASE_URL,
+                    data_feed='iex')
+    firstStart = False
+    if len(tickers) == 0:
+        firstStart = True
+        print('filling up')
+        tickers = getSP500Tickers()
+
+    if firstStart:
+        for ticker in tickers:
+            stream.subscribe_bars(getLiveData, ticker)
+
+    stream.run()
+
+    # thread1 = alpacaLiveDataStream(1, 'thread1')
+    # thread1.start()
     # Remove join when called from other classes, just here for testing
-    thread1.join()
+    # thread1.join()
 
 
 if __name__ == "__main__":

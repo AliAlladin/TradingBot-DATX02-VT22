@@ -31,36 +31,33 @@ class AlpacaBroker:
             time.sleep(round(time_to_open))
 
     # Function to place a buy order.
-    def buy(self, symbol: str, target_position_size: float, limit_price: float):
+    def buy(self, symbol: str, target_position_size: float):
         try:
-            if target_position_size * limit_price <= self.get_balance:
-                order = self.api.submit_order(
-                    symbol, target_position_size, "buy", "limit", "day", limit_price)
-                print("BUY order for {} {} at {}$ {}".format(order.qty,
-                                                             order.symbol, order.limit_price, order.status))
+            order = self.api.submit_order(
+                symbol, target_position_size, "buy", "market", "day")
+            print("BUY order for {} {} {}".format(order.qty,
+                                                  order.symbol, order.status))
 
-                order_info = {
-                    'id': order.id,
-                    'symbol': order.symbol,
-                    'type': order.side,
-                    'qty': float(order.qty),
-                    'time_stamp': order.created_at
-                }
-                return order_info
-            else:
-                print("Can't create BUY order. (Check available balance)")
+            order_info = {
+                'id': order.id,
+                'symbol': order.symbol,
+                'type': order.side,
+                'qty': float(order.qty),
+                'time_stamp': order.created_at
+            }
+            return order_info
         except self.error:
             print("BUY ERROR")
 
     # Function to place a sell order.
-    def sell(self, symbol: str, target_position_size: float, limit_price: float):
+    def sell(self, symbol: str, target_position_size: float):
         try:
             position = self.get_position(symbol)
             if position is not None and target_position_size <= position["qty"]:
                 order = self.api.submit_order(
-                    symbol, target_position_size, "sell", "limit", "day", limit_price)
-                print("SELL order for {} {} at {}$ {}".format(order.qty,
-                                                              order.symbol, order.limit_price, order.status))
+                    symbol, target_position_size, "sell", "market", "day")
+                print("SELL order for {} {} {}".format(order.qty,
+                                                       order.symbol, order.status))
 
                 order_info = {
                     'id': order.id,
@@ -75,9 +72,32 @@ class AlpacaBroker:
         except self.error:
             print("SELL ERROR")
 
+     # Function to place a short order.
+    def short(self, symbol: str, target_position_size: float):
+        try:
+            orders = self.get_orders(symbol)
+            if 'buy' not in set(orders['type']):
+                order = self.api.submit_order(
+                    symbol, target_position_size, "sell", "market", "day")
+                print("SHORT order for {} {} {}".format(order.qty,
+                                                        order.symbol, order.status))
+
+                order_info = {
+                    'id': order.id,
+                    'symbol': order.symbol,
+                    'type': "short",
+                    'qty': float(order.qty),
+                    'time_stamp': order.created_at
+                }
+                return order_info
+            else:
+                print("Can't create SHORT order when BUY order exists.")
+        except self.error:
+            print("SHORT ERROR")
+
     def get_orders(self, symbol: str):
         all_orders = self.all_orders()
-        return all_orders[all_orders['symbol'] == symbol]
+        return all_orders.loc[all_orders['symbol'] == symbol]
 
     def all_orders(self):
         orders = self.api.list_orders(limit=500)
@@ -128,5 +148,5 @@ class AlpacaBroker:
 
 broker = AlpacaBroker()
 
-print(broker.get_position("AAPL"))
-print(broker.get_orders("AAPL"))
+print(broker.short("AAPL", 10))
+print(broker.buy("AAPL", 5))

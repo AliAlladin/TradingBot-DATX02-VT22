@@ -230,7 +230,6 @@ class Strategy_fibonacci(bt.Strategy):
             self.lows[ticker] = float('inf')
             self.date_high[ticker] = self.datas[0].datetime.datetime(0)
             self.date_low[ticker] = self.datas[0].datetime.datetime(0)
-            print(self.date_low)
 
         # The closing data of the stocks
         self.dataclose = []
@@ -239,7 +238,8 @@ class Strategy_fibonacci(bt.Strategy):
 
         # The parameters that are to be varied to optimize the model
         self.invested_amount = 10000  # The amount for which we invest
-        self.ratios = [0.382, 0.5, 0.618]  # The Fibonacci ratios
+        self.ratios = [0.618, 0.5, 0.382]  # The Fibonacci ratios
+        self.invested_at_level = [False] * len(self.ratios) # We have initially no position in any stock
 
         # If we need to only have one data point per day
         self.old_date = str(self.datas[0].datetime.date(0))
@@ -281,19 +281,7 @@ class Strategy_fibonacci(bt.Strategy):
 
     # The "run method", defines when to buy and sell
     def next(self):
-
-        today = self.datas[0].datetime.datetime(0)
-        print(today)
-        '''
-        # We check which day it is
-        
-        yesterday = self.datas[0].datetime.datetime(-1)
-        tomorrow = self.datas[-1].datetime
-        print(yesterday)
-        print(today > yesterday)
-        print(type(today))
-        '''
-
+        # TODO: Might need to initialize high and low here
         if not self.can_run:
             self.startup = self.startup + 1
             if self.startup == 2:
@@ -314,21 +302,45 @@ class Strategy_fibonacci(bt.Strategy):
 
                 # We recognize the swing high
                 if price_today > price_yesterday and price_today > price_tomorrow and price_today > self.highs[ticker]:
-                    self.highs[ticker] = price_today
-                    self.date_high[ticker] = self.datas[0].datetime.datetime(-1)
+                    self.highs[ticker] = price_today # Price of the swing high
+                    self.date_high[ticker] = self.datas[0].datetime.datetime(-1) # Date of the swing high
+                    # We calculate the Fibonacci support levels
+                    high = self.highs.get(ticker)
+                    low = self.lows.get(ticker)
+                    self.fibonacci_levels = [(high - low) * ratio + low for ratio in self.ratios]
+                    self.uptrend = True # We are in an uptrend
+
 
                 # We recognize the swing low
-                if price_today < price_yesterday and price_today < price_tomorrow and price_today < self.lows[ticker]:
-                    self.lows[ticker] = price_today
-                    self.date_low[ticker] = self.datas[0].datetime.datetime(-1)
+                elif price_today < price_yesterday and price_today < price_tomorrow and price_today < self.lows[ticker]:
+                    self.lows[ticker] = price_today # Price of the swing low
+                    self.date_low[ticker] = self.datas[0].datetime.datetime(-1) # Price of the swing high
+                    self.uptrend = False # We are in a downtrend
 
+                # If we are in an uptrend, we want to buy the stocks at drawbacks.
+                if self.uptrend:
+                    # We check if we have reached the first Fibonacci support level (at 0.618)
+                    if price_tomorrow < self.fibonacci_levels[0] and not self.invested_at_level[0]:
+                        # We have, so we buy some stocks
+                        number_of_stocks = self.invested_amount / price_tomorrow
+                        self.order = self.buy(self.datas[self.dic.get(ticker)], size = 1)
 
-                # Check whether we are in an uptrend or in a downtrend
-                if self.date_low.get(ticker) < self.date_high.get(ticker):
-                    self.uptrend = True
-                else:
-                    self.uptrend = False
+                        # We do not want to buy consecutive days, so we say that we have invested in this level
+                        self.invested_at_level[0] = True
 
-                print(self.uptrend)
+                    # We check the next Fibonacci level
+                    if price_tomorrow < self.fibonacci_levels[1] and not self.invested_at_level[1]:
+                        # We have, so we buy some stocks
+                        number_of_stocks = self.invested_amount / price_tomorrow
+                        self.order = self.buy(self.datas[self.dic.get(ticker)], size = 1)
 
-                # We also look for potential buy/sell opportunities for each ticker
+                        # We do not want to buy consecutive days, so we say that we have invested in this level
+                        self.invested_at_level[1] = True
+
+                    # WHEN TO SELL? We sell when the stock price is at high again
+                    if price_tomorrow == self.highs.get(ticker) and self.invested_at_level.count(True) > 0:
+
+                        # How many times have we 'bought the dip'? We close every position
+                        for i in range(self.invested_at_level.count(True)):
+                            self.order = self.sell(self.datas[self.dic.get(ticker)], size = 1)
+                            self.invested_at_level[i] = False

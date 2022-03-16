@@ -1,10 +1,9 @@
 import os
-import sys  # To find out the script name (in argv[0])
+import sys
 
 import numpy as np
-import statsmodels.api as sm
-from IPython.display import display
 import pandas as pd
+import statsmodels.api as sm
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -15,31 +14,50 @@ to check whether or not we should sell or buy a either of the stocks of that pai
 a sell/buy sigal will be passed back to Main.
 '''
 
+# Converting Pairs.txt to a dataframe
+pairsFile = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Backtrader/Pairs.txt'),
+                        sep=" ",
+                        header=None)
+pairsFile.columns = ['T1', 'T2']  # Adding column names to dataframe for easier access
+
 
 class PairsTrading:
-    def __init__(self, pairs: pd.DataFrame):
-        self.pairs = pairs
+
+    def subscribe(self, observer):
+        self._observers.append(observer)
+
+    def notify_observers(self, *args, **kwargs):
+        for obs in self._observers:
+            obs.notify(self, *args, **kwargs)
+
+    def unsubscribe(self, observer):
+        self._observers.remove(observer)
+
+    def __init__(self):
+        self.pairs = pairsFile
         self.pairs['Active'] = False
         self.pairs['long'] = None
         self.pairs['ratio'] = None
         self.pairs['shares_stock1'] = None
 
+        self._observers = []
+
         # The parameters that are to be varied to optimize the model
-        self.distance = 3
+        self.distance = 0.5
         self.period = 500
         self.invested_amount = 10000
         self.trade_taken = False
 
-    def run(self, lates_prices: pd.DataFrame, hist_prices: pd.DataFrame):
+    def run(self, latest_prices: pd.DataFrame, hist_prices: pd.DataFrame):
         for i in range(len(self.pairs.index)):
             # Fetches pair and their corresponding, updated prices from the dataframe provided by Main
             t1 = self.pairs['T1'][i]  # Ticker symbol
             t2 = self.pairs['T2'][i]  # Ticker symbol
 
             # Minute data for ticker
-            tick1 = lates_prices.loc[lates_prices['Symbol'] == t1]
+            tick1 = latest_prices.loc[latest_prices['Symbol'] == t1]
             # Minute data for ticker
-            tick2 = lates_prices.loc[lates_prices['Symbol'] == t2]
+            tick2 = latest_prices.loc[latest_prices['Symbol'] == t2]
 
             '''
             Creates a new dataframe with only the historical closing prices for the specific pair.
@@ -82,11 +100,11 @@ class PairsTrading:
                     # High Z-score, we sell stock 1 and buy stock 2
 
                     # Send sell signal to main
-                    print("SELL {} {}".format(
+                    self.notify_observers("SELL {} {}".format(
                         shares_stock1, self.pairs['T1'][i]))
 
                     # Send buy signal to main
-                    print("BUY {} {}".format(
+                    self.notify_observers("BUY {} {}".format(
                         shares_stock1 * current_ratio, self.pairs['T2'][i]))
 
                     # Description of our position
@@ -99,11 +117,11 @@ class PairsTrading:
                 elif z_score < -self.distance:
 
                     # Send buy signal to main
-                    print("BUY {} {}".format(
+                    self.notify_observers("BUY {} {}".format(
                         shares_stock1, self.pairs['T1'][i]))
 
                     # Send sell signal to main
-                    print("SELL {} {}".format(
+                    self.notify_observers("SELL {} {}".format(
                         shares_stock1 * current_ratio, self.pairs['T2'][i]))
 
                     # Description of our position
@@ -115,16 +133,16 @@ class PairsTrading:
             # We have a position on a pair and therefore examine whether to close it
             else:
                 # We previously bought the stock 1
-                if pairs['long'][i]:
+                if self.pairs['long'][i]:
                     if z_score > 0:
                         # Sell stock 1 and buy back stock 2
 
                         # Send sell signal to main
-                        print("SELL {} {}".format(
+                        self.notify_observers("SELL {} {}".format(
                             self.pairs['shares_stock1'][i], self.pairs['T1'][i]))
 
                         # Send buy signal to main
-                        print("BUY {} {}".format(
+                        self.notify_observers("BUY {} {}".format(
                             self.pairs['shares_stock1'][i] * self.pairs['ratio'][i], self.pairs['T2'][i]))
 
                         # Calculating the profit of the pairs trading
@@ -139,11 +157,11 @@ class PairsTrading:
                         # Buy back stock 1 and sell stock 2
 
                         # Send buy signal to main
-                        print("BUY {} {}".format(
+                        self.notify_observers("BUY {} {}".format(
                             self.pairs['shares_stock1'][i], self.pairs['T1'][i]))
 
                         # Send sell signal to main
-                        print("SELL {} {}".format(
+                        self.notify_observers("SELL {} {}".format(
                             self.pairs['shares_stock1'][i] * self.pairs['ratio'][i], self.pairs['T2'][i]))
 
                         # Calculating the profit of the pairs trading
@@ -152,24 +170,3 @@ class PairsTrading:
                         self.pairs['ratio'][i] = None
                         self.pairs['shares_stock1'][i] = None
                         self.pairs['Active'][i] = False
-
-
-# These dataframes should be provided by Main, in the same format as below
-# ----------------------------------------------------------------------------------------------------------------------
-example_input = {'Symbol': ['AMZN', 'AA', 'AAPL',
-                            'A'], 'Price': [2837.06, 73.50, 150.62, 127.58]}
-latest_price = pd.DataFrame(example_input)
-
-# Queried historical daily bar data
-hist_data = pd.read_csv(os.path.join(os.path.dirname(
-    os.path.dirname(sys.argv[0])), 'Algorithms/hist_data.csv'))
-# ----------------------------------------------------------------------------------------------------------------------
-
-
-# Converting Pairs.txt to a dataframe
-pairs = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Backtrader/Pairs.txt'), sep=" ",
-                    header=None)
-pairs.columns = ['T1', 'T2']  # Adding column names to dataframe for easier access
-
-strategy = PairsTrading(pairs)
-strategy.run(latest_price, hist_data)

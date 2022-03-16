@@ -1,3 +1,7 @@
+"""
+THIS FILE IS TO BE REMOVED ONCE FINISHED WITH. IT IS ONLY A HELPER CLASS FOR GENERATING DATAFRAMES.
+"""
+
 import os
 import sys
 from IPython.display import display
@@ -21,6 +25,6 @@ data_df = pd.concat(
 
 data_df.to_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/hist_data.csv'), index=False, )
 
-# hist_data = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/hist_data.csv'))
+hist_data = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/hist_data.csv'))
 
-# display(hist_data)
+display(hist_data)

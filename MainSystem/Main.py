@@ -1,7 +1,7 @@
 import os
 import sys
 import pandas as pd
-from MainSystem import PairsTrading
+from Algorithms import PairsTrading
 
 
 class Observer:
@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     # Queried historical daily bar data
     hist_data = pd.read_csv(os.path.join(os.path.dirname(
-        os.path.dirname(sys.argv[0])), 'MainSystem/hist_data.csv'))
+        os.path.dirname(sys.argv[0])), 'Data/hist_data.csv'))
     # ----------------------------------------------------------------------------------------------------------------------
 
     '''

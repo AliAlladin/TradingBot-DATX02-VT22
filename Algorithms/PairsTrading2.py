@@ -5,12 +5,24 @@ import numpy as np
 import statsmodels.api as sm
 from IPython.display import display
 import pandas as pd
+pd.options.mode.chained_assignment = None  # default='warn'
+
+
+'''
+This class receives a dataframe containing the latest prices for each ticker.
+It will go through each ticker, find its pair and perform the strategy on that pair in order
+to check whether or not we should sell or buy a either of the stocks of that pair. In that case,
+a sell/buy sigal will be passed back to Main.
+'''
 
 
 class PairsTrading:
     def __init__(self, pairs: pd.DataFrame):
         self.pairs = pairs
         self.pairs['Active'] = False
+        self.pairs['long'] = None
+        self.pairs['ratio'] = None
+        self.pairs['shares_stock1'] = None
 
         # The parameters that are to be varied to optimize the model
         self.distance = 3
@@ -19,7 +31,6 @@ class PairsTrading:
         self.trade_taken = False
 
     def run(self, lates_prices: pd.DataFrame, hist_prices: pd.DataFrame):
-        print(self.pairs)
         for i in range(len(self.pairs.index)):
             # Fetches pair and their corresponding, updated prices from the dataframe provided by Main
             t1 = self.pairs['T1'][i]  # Ticker symbol
@@ -64,7 +75,83 @@ class PairsTrading:
             current_ratio = data_df[t1][len(
                 data_df) - 1] / data_df[t2][len(data_df) - 1]
 
-            print(mean, std, z_score)
+            # If we don't have a position in this pair
+            if not self.pairs['Active'][i]:
+                # We check whether the Z-score is unusually high or low (>distance or <-distance)
+                if z_score > self.distance:
+                    # High Z-score, we sell stock 1 and buy stock 2
+
+                    # Send sell signal to main
+                    print("SELL {} {}".format(
+                        shares_stock1, self.pairs['T1'][i]))
+
+                    # Send buy signal to main
+                    print("BUY {} {}".format(
+                        shares_stock1 * current_ratio, self.pairs['T2'][i]))
+
+                    # Description of our position
+                    self.pairs['long'][i] = False
+                    self.pairs['ratio'][i] = current_ratio
+                    self.pairs['shares_stock1'][i] = shares_stock1
+                    self.pairs['Active'][i] = True
+
+                # The Z-score is unusually low, we buy stock1 and sell stock2
+                elif z_score < -self.distance:
+
+                    # Send buy signal to main
+                    print("BUY {} {}".format(
+                        shares_stock1, self.pairs['T1'][i]))
+
+                    # Send sell signal to main
+                    print("SELL {} {}".format(
+                        shares_stock1 * current_ratio, self.pairs['T2'][i]))
+
+                    # Description of our position
+                    self.pairs['long'][i] = True
+                    self.pairs['ratio'][i] = current_ratio
+                    self.pairs['shares_stock1'][i] = shares_stock1
+                    self.pairs['Active'][i] = True
+
+            # We have a position on a pair and therefore examine whether to close it
+            else:
+                # We previously bought the stock 1
+                if pairs['long'][i]:
+                    if z_score > 0:
+                        # Sell stock 1 and buy back stock 2
+
+                        # Send sell signal to main
+                        print("SELL {} {}".format(
+                            self.pairs['shares_stock1'][i], self.pairs['T1'][i]))
+
+                        # Send buy signal to main
+                        print("BUY {} {}".format(
+                            self.pairs['shares_stock1'][i] * self.pairs['ratio'][i], self.pairs['T2'][i]))
+
+                        # Calculating the profit of the pairs trading
+
+                        # We close the position in the pair
+                        self.pairs['ratio'][i] = None
+                        self.pairs['shares_stock1'][i] = None
+                        self.pairs['Active'][i] = False
+
+                else:
+                    if z_score < 0:
+                        # Buy back stock 1 and sell stock 2
+
+                        # Send buy signal to main
+                        print("BUY {} {}".format(
+                            self.pairs['shares_stock1'][i], self.pairs['T1'][i]))
+
+                        # Send sell signal to main
+                        print("SELL {} {}".format(
+                            self.pairs['shares_stock1'][i] * self.pairs['ratio'][i], self.pairs['T2'][i]))
+
+                        # Calculating the profit of the pairs trading
+
+                        # We close the position in the pair
+                        self.pairs['ratio'][i] = None
+                        self.pairs['shares_stock1'][i] = None
+                        self.pairs['Active'][i] = False
 
 
 # ----------------------------------------------------------------------------------------------------------------------

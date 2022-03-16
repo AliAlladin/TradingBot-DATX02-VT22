@@ -19,9 +19,8 @@ data_df = pd.concat(
     keys=['A', 'AA', 'AMZN', 'AAPL'],
 )
 
-data_df.to_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/hist_data.csv'),index=False,)
+data_df.to_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/hist_data.csv'), index=False, )
 
-#hist_data = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/hist_data.csv'))
+# hist_data = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/hist_data.csv'))
 
-#display(hist_data)
-
+# display(hist_data)

@@ -4,13 +4,11 @@ import statsmodels.api as sm
 
 
 class Strategy_pairGen(bt.Strategy):
-
     # "Self" is the bar/line we are on, of the data
     def log(self, txt, dt=None):
         # Logging function/output for this strategy
         dt = dt or self.datas[0].datetime.date(0)
         print('%s, %s' % (dt.isoformat(), txt))
-
     def __init__(self, dic, pairs):
 
         self.dic = dic  # Dictionary of tickers with indices
@@ -36,7 +34,6 @@ class Strategy_pairGen(bt.Strategy):
         self.buycomm = None
         self.opsize = None
         '''
-
     # Reports an order instance
     def notify_order(self, order):
 
@@ -67,7 +64,6 @@ class Strategy_pairGen(bt.Strategy):
         # If the order is canceled, margin or rejected
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
             self.log('Order Canceled/Margin/Rejected')
-
     # Receives a trade whenever there has been a change in one
     def notify_trade(self, trade):
         if not trade.isclosed:
@@ -77,9 +73,7 @@ class Strategy_pairGen(bt.Strategy):
 
         # self.log('OPERATION PROFIT, GROSS %.2f, NET %.2f' %
         #         (trade.pnl, trade.pnlcomm))
-
     # The "run method", defines when to buy and sell
-
     def next(self):
 
         # self.log('Close, %.2f' % self.dataclose[0][0])
@@ -90,10 +84,9 @@ class Strategy_pairGen(bt.Strategy):
             self.oldDate = str(self.datas[0].datetime.date(0))
             self.firstTime = False
         newPotentialDate = str(self.datas[0].datetime.date(0))
-        # print(self.oldDate)
-        # print(newPotentialDate)
         if newPotentialDate != self.oldDate:
             self.oldDate = newPotentialDate
+            print(self.oldDate)
             for ticker in self.myData.keys():
                 self.myData.get(ticker).append(self.dataclose[self.dic.get(ticker)][0])
 
@@ -216,6 +209,7 @@ class Strategy_fibonacci(bt.Strategy):
         dt = dt or self.datas[0].datetime.date(0)
         print('%s, %s' % (dt.isoformat(), txt))
 
+    # Initialization of the strategy
     def __init__(self, dic):
 
         self.dic = dic  # Dictionary of tickers with indices
@@ -224,8 +218,19 @@ class Strategy_fibonacci(bt.Strategy):
             self.myData[ticker] = []
 
         # Sets that store the highs and lows of the stock price
-        self.highs = {}
-        self.lows = {}
+        self.highs = {}  # {'TICKER' -> HIGH}
+        self.lows = {}  # {'TICKER' -> LOW}
+        # Sets that store the dates of the highs and lows of the stock price {'TICKER' -> DATE}
+        self.date_high = {}
+        self.date_low = {}
+        # We initialize these dictionary
+        for ticker in dic.keys():
+            # Initialization of the highs and lows for the stock 'ticker'
+            self.highs[ticker] = -1
+            self.lows[ticker] = float('inf')
+            self.date_high[ticker] = self.datas[0].datetime.datetime(0)
+            self.date_low[ticker] = self.datas[0].datetime.datetime(0)
+            print(self.date_low)
 
         # The closing data of the stocks
         self.dataclose = []
@@ -233,8 +238,16 @@ class Strategy_fibonacci(bt.Strategy):
             self.dataclose.append(self.datas[i].close)
 
         # The parameters that are to be varied to optimize the model
-        self.invested_amount = 10000
+        self.invested_amount = 10000  # The amount for which we invest
+        self.ratios = [0.382, 0.5, 0.618]  # The Fibonacci ratios
 
+        # If we need to only have one data point per day
+        self.old_date = str(self.datas[0].datetime.date(0))
+
+        # Startup
+        self.startup = 0
+        self.can_run = False
+        self.uptrend = None
 
     # Reports an order instance
     def notify_order(self, order):
@@ -268,9 +281,54 @@ class Strategy_fibonacci(bt.Strategy):
 
     # The "run method", defines when to buy and sell
     def next(self):
-        # For each ticker, we add the stock price of today to the matching list in the set myData.
-        for ticker in self.myData.keys():
-            self.myData.get(ticker).append(self.dataclose[self.dic.get(ticker)][0])
 
-            # We also look for potential buy/sell opportunities for each ticker
+        today = self.datas[0].datetime.datetime(0)
+        print(today)
+        '''
+        # We check which day it is
+        
+        yesterday = self.datas[0].datetime.datetime(-1)
+        tomorrow = self.datas[-1].datetime
+        print(yesterday)
+        print(today > yesterday)
+        print(type(today))
+        '''
 
+        if not self.can_run:
+            self.startup = self.startup + 1
+            if self.startup == 2:
+                self.can_run = True
+
+        if self.can_run:
+            # Loop through of all tickers, the following is done for all of them
+            for ticker in self.myData.keys():
+
+                # We take the latest price
+                price_today = self.dataclose[self.dic.get(ticker)][-1]
+                price_yesterday = self.dataclose[self.dic.get(ticker)][-2]
+                price_tomorrow = self.dataclose[self.dic.get(ticker)][0]
+
+                # Append the stock price of today to the matching list in the set myData.
+                self.myData.get(ticker).append(price_today)
+
+
+                # We recognize the swing high
+                if price_today > price_yesterday and price_today > price_tomorrow and price_today > self.highs[ticker]:
+                    self.highs[ticker] = price_today
+                    self.date_high[ticker] = self.datas[0].datetime.datetime(-1)
+
+                # We recognize the swing low
+                if price_today < price_yesterday and price_today < price_tomorrow and price_today < self.lows[ticker]:
+                    self.lows[ticker] = price_today
+                    self.date_low[ticker] = self.datas[0].datetime.datetime(-1)
+
+
+                # Check whether we are in an uptrend or in a downtrend
+                if self.date_low.get(ticker) < self.date_high.get(ticker):
+                    self.uptrend = True
+                else:
+                    self.uptrend = False
+
+                print(self.uptrend)
+
+                # We also look for potential buy/sell opportunities for each ticker

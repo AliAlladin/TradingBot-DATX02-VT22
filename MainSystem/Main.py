@@ -1,7 +1,8 @@
 import os
+import sys
+
 import pandas as pd
 from Algorithms import PairsTrading
-from NotificationHandler import NotificationBot
 
 
 class Observer:
@@ -18,8 +19,7 @@ class Observer:
 
 
 if __name__ == "__main__":
-
-    #NotificationBot.sendNotification("Last test")
+    # NotificationBot.sendNotification("Last test")
 
     # These dataframes should be provided by the database, in the same format as below
     # ----------------------------------------------------------------------------------------------------------------------

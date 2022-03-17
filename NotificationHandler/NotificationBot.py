@@ -3,7 +3,8 @@ import sys
 
 import requests
 
-url = "___________________________________________________________-"
+# Replace with the generated webhock URL
+url = "___________________________________________________________"
 
 
 def sendNotification(message):

@@ -7,18 +7,18 @@ import statsmodels.api as sm
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
+# Convert Pairs.txt to a dataframe
+pairsFile = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Backtrader/Pairs.txt'),
+                        sep=" ",
+                        header=None)
+pairsFile.columns = ['T1', 'T2']  # Assigning names to the columns of the dataframe for easier access
+
 '''
 This class receives a dataframe containing the latest prices for each ticker.
 It will go through each ticker, find its pair and perform the strategy on that pair in order
 to check whether or not we should sell or buy a either of the stocks of that pair. In that case,
 a sell/buy sigal will be passed back to Main.
 '''
-
-# Converting Pairs.txt to a dataframe
-pairsFile = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Backtrader/Pairs.txt'),
-                        sep=" ",
-                        header=None)
-pairsFile.columns = ['T1', 'T2']  # Adding column names to dataframe for easier access
 
 
 class PairsTrading:
@@ -40,7 +40,7 @@ class PairsTrading:
         self.pairs['ratio'] = None
         self.pairs['shares_stock1'] = None
 
-        self._observers = []
+        self._observers = []  # List of observers to be notified
 
         # The parameters that are to be varied to optimize the model
         self.distance = 0.5
@@ -50,7 +50,8 @@ class PairsTrading:
 
     def run(self, latest_prices: pd.DataFrame, hist_prices: pd.DataFrame):
         for i in range(len(self.pairs.index)):
-            # Fetches pair and their corresponding, updated prices from the dataframe provided by Main
+
+            # Fetches a pair and the latest prices for each of the tickers
             t1 = self.pairs['T1'][i]  # Ticker symbol
             t2 = self.pairs['T2'][i]  # Ticker symbol
 
@@ -88,10 +89,8 @@ class PairsTrading:
             z_score = (spread[len(data_df) - 1] - mean) / std
 
             # To know how much we need to buy of each stock
-            shares_stock1 = self.invested_amount / \
-                            data_df[t1][len(data_df) - 1]
-            current_ratio = data_df[t1][len(
-                data_df) - 1] / data_df[t2][len(data_df) - 1]
+            shares_stock1 = self.invested_amount / data_df[t1][len(data_df) - 1]
+            current_ratio = data_df[t1][len(data_df) - 1] / data_df[t2][len(data_df) - 1]
 
             # If we don't have a position in this pair
             if not self.pairs['Active'][i]:

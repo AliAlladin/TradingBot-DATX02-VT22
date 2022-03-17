@@ -46,8 +46,8 @@ class AlpacaBroker:
                 'time_stamp': order.created_at
             }
             return order_info
-        except self.error:
-            print("BUY ERROR")
+        except Exception as e:
+            print(e)
 
     # Function to place a sell order.
     def sell(self, symbol: str, target_position_size: float):
@@ -69,14 +69,14 @@ class AlpacaBroker:
                 return order_info
             else:
                 print("Can't create SELL order. (Check symbol and target_position_size)")
-        except self.error:
-            print("SELL ERROR")
+        except Exception as e:
+            print(e)
 
      # Function to place a short order.
     def short(self, symbol: str, target_position_size: float):
         try:
             orders = self.get_orders(symbol)
-            if 'buy' not in set(orders['type']):
+            if orders.empty or 'buy' not in set(orders['type']):
                 order = self.api.submit_order(
                     symbol, target_position_size, "sell", "market", "day")
                 print("SHORT order for {} {} {}".format(order.qty,
@@ -92,12 +92,15 @@ class AlpacaBroker:
                 return order_info
             else:
                 print("Can't create SHORT order when BUY order exists.")
-        except self.error:
-            print("SHORT ERROR")
+        except Exception as e:
+            print(e)
 
     def get_orders(self, symbol: str):
         all_orders = self.all_orders()
-        return all_orders.loc[all_orders['symbol'] == symbol]
+        try:
+            return all_orders.loc[all_orders['symbol'] == symbol]
+        except KeyError:
+            return pd.DataFrame()
 
     def all_orders(self):
         orders = self.api.list_orders(limit=500)
@@ -126,8 +129,9 @@ class AlpacaBroker:
                 'market_value': float(position.market_value)
             }
             return position_info
-        except self.error:
-            print("Position does not exist")
+        except Exception as e:
+            print(e)
+            return {}
 
     def all_postions(self):
         positions = self.api.list_positions()
@@ -147,6 +151,5 @@ class AlpacaBroker:
 
 
 broker = AlpacaBroker()
-
-print(broker.short("AAPL", 10))
-print(broker.buy("AAPL", 5))
+# print(broker.short("AAPL", 10))
+print(broker.get_position("AAPL"))

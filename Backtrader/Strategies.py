@@ -236,7 +236,7 @@ class Strategy_fibonacci(bt.Strategy):
 
         # The parameters that are to be varied to optimize the model
         self.invested_amount = 10000  # The amount for which we invest
-        self.ratios = [0.618, 0.5, 0.382]  # The Fibonacci ratios
+        self.ratios = [0.382, 0.5, 0.618]  # The Fibonacci ratios
         self.invested_at_level = [False] * len(self.ratios) # We have initially no position in any stock
 
         # Variables that are needed for startup.
@@ -301,7 +301,8 @@ class Strategy_fibonacci(bt.Strategy):
                     # We calculate the Fibonacci support levels
                     high = self.highs.get(ticker)
                     low = self.lows.get(ticker)
-                    self.fibonacci_levels = [(high - low) * ratio + low for ratio in self.ratios]
+                    self.fibonacci_levels = [high - (high - low) * ratio for ratio in self.ratios]
+                    print(self.fibonacci_levels)
                     self.uptrend = True # We are in an uptrend
 
                 # We recognize the swing low

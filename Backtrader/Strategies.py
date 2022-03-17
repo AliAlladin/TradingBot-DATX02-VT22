@@ -226,8 +226,10 @@ class Strategy_fibonacci(bt.Strategy):
             # Initialization of the highs and lows for the stock 'ticker'
             self.highs[ticker] = -1
             self.lows[ticker] = float('inf')
+            '''
             self.date_high[ticker] = self.datas[0].datetime.datetime(0)
             self.date_low[ticker] = self.datas[0].datetime.datetime(0)
+            '''
 
         # The closing data of the stocks
         self.dataclose = []
@@ -237,7 +239,7 @@ class Strategy_fibonacci(bt.Strategy):
         # The parameters that are to be varied to optimize the model
         self.invested_amount = 10000  # The amount for which we invest
         self.ratios = [0.382, 0.5, 0.618]  # The Fibonacci ratios
-        self.invested_at_level = [False] * len(self.ratios) # We have initially no position in any stock
+        self.invested_at_level = [False] * len(self.ratios) # Initially no position in any stock
 
         # Variables that are needed for startup.
         self.startup = 0
@@ -302,13 +304,15 @@ class Strategy_fibonacci(bt.Strategy):
                     high = self.highs.get(ticker)
                     low = self.lows.get(ticker)
                     self.fibonacci_levels = [high - (high - low) * ratio for ratio in self.ratios]
-                    print(self.fibonacci_levels)
                     self.uptrend = True # We are in an uptrend
-
                 # We recognize the swing low
                 elif price_one_point_ago < price_two_points_ago and price_one_point_ago < price_now and price_one_point_ago < self.lows[ticker]:
                     self.lows[ticker] = price_one_point_ago # Price of the swing low
                     self.date_low[ticker] = self.datas[0].datetime.datetime(-1) # Price of the swing high
+                    # We calculate the Fibonacci resistance levels
+                    high = self.highs.get(ticker)
+                    low = self.lows.get(ticker)
+                    self.fibonacci_levels = [low + (high - low) * ratio for ratio in self.ratios]
                     self.uptrend = False # We are in a downtrend
 
                 # If we are in an uptrend, we want to buy the stocks at drawbacks (Fibonacci supports).
@@ -328,10 +332,31 @@ class Strategy_fibonacci(bt.Strategy):
                         # Sell all stocks, close the position
                         self.order = self.close(self.datas[self.dic.get(ticker)])
 
-                        # How many times have we 'bought the dip'? We close every position
+                        # How many times have we 'bought the dip'? We close every position.
                         for i in range(self.invested_at_level.count(True)):
                             self.invested_at_level[i] = False
 
                     # TODO: Should we have some kind of stop loss?
 
                 # TODO: Should we be able to short stocks if we are in a downtrend?
+                '''
+                if self.uptrend == False:
+                    # We check if we have reached the Fibonacci resistance levels
+                    for level in range(len(self.ratios)):
+                        if price_now > self.fibonacci_levels[level] and not self.invested_at_level[level]:
+                            # We have reached the level, so we short some stocks
+                            number_of_stocks = self.invested_amount / price_now
+                            self.order = self.sell(self.datas[self.dic.get(ticker)], size=number_of_stocks)
+
+                            # We do not want to buy on consecutive days, so we say that we have invested in this level
+                            self.invested_at_level[level] = True
+
+                    # WHEN TO SELL? We buy back when the stock price is at a new low again
+                    if price_now == self.lows.get(ticker) and self.invested_at_level.count(True) > 0:
+                        # Buy back all stocks, close the position
+                        self.order = self.close(self.datas[self.dic.get(ticker)])
+
+                        # How many times have we shorted the stocks? We close every position.
+                        for i in range(self.invested_at_level.count(True)):
+                            self.invested_at_level[i] = False
+                '''

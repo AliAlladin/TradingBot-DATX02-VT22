@@ -2,7 +2,7 @@ import sys
 import json
 import requests
 
-url = "https://hooks.slack.com/services/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"
+url = "___________________"
 
 
 def sendNotification(message):

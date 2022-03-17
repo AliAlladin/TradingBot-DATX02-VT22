@@ -20,13 +20,13 @@ datap = os.path.join(modpath, 'Backtrader/Pairs.txt')
 my_pair_file = open(datap, 'r')
 
 # We start without any tickers
-tickers = []  # A list of tickers
+tickers = ['A']  # A list of tickers
 pairs = []  # A list of Pairs (see Pair.py)
-dict = {}  # Dictionary to store tickers as keys and an integer value that separates the tickers.
+dict = {'A':0}  # Dictionary to store tickers as keys and an integer value that separates the tickers.
 i = 0  # A variable to work as a counter of the integer value
 
 # We go through Pairs.txt to add all tickers and Pairs
-for line in my_pair_file:
+'''for line in my_pair_file:
     stocks = line.split()
     stock1 = stocks[0]
     stock2 = stocks[1]
@@ -41,7 +41,7 @@ for line in my_pair_file:
         tickers.append(stock2)
         dict[stock2] = i
         i += 1
-
+'''
 
 # We add the data to cerebro
 for ticker in tickers:
@@ -51,8 +51,8 @@ for ticker in tickers:
     data = bt.feeds.GenericCSVData(
 
         dataname=CSV_file_path,  # Full path to csv-file
-        fromdate=datetime.datetime(2010, 8, 2, 9, 30, 00),  # Start  date
-        todate=datetime.datetime(2021, 8, 13, 16, 00, 00),  # Ending date
+        fromdate=datetime.datetime(2005, 1, 3, 9, 30, 00),  # Start  date
+        todate=datetime.datetime(2007, 1, 3, 16, 00, 00),  # Ending date
 
         nullvalue=0.0,  # Used for replacing NaN-values with 0
 
@@ -82,7 +82,7 @@ cerebro.broker.setcash(100000.0)
 
 # Add strategy to Cerebro
 # TODO: allow for strategy switching
-cerebro.addstrategy(Strategy_pairGen, dict, pairs)
+cerebro.addstrategy(Strategy_fibonacci, dict)
 
 # Set the commission - 0.1% ... divide by 100 to remove the %
 cerebro.broker.setcommission(commission=0)

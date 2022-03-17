@@ -24,7 +24,7 @@ def findPairs(stocks):
         prices = yf.download(stock,start,end)
         data[stock] = prices['Close']
     toc = time.perf_counter()
-    print('downloading data took ' , toc-tic , 'seconds')
+    print('downloading data took ', toc-tic, 'seconds')
 
 
     tic = time.perf_counter()

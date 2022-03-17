@@ -200,7 +200,6 @@ class Strategy_pairGen(bt.Strategy):
                             pair.shares_stock1 = None
                             pair.ratio = None
 
-
 class Strategy_fibonacci(bt.Strategy):
 
     # "Self" is the bar/line we are on, of the data

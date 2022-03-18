@@ -471,7 +471,7 @@ class Strategy_fibonacci2(bt.Strategy):
                             # We do not want to buy on consecutive days, so we say that we have invested in this level
                             self.invested_at_level[level] = True
 
-                    # WHEN TO SELL? We sell when the stock price is at a new high again
+                    # WHEN TO SELL? We sell when the stock price is at a new high on the period
                     if price_now == high and self.invested_at_level.count(True) > 0:
                         # Sell all stocks, close the position
                         self.order = self.close(self.datas[self.dic.get(ticker)])
@@ -482,29 +482,4 @@ class Strategy_fibonacci2(bt.Strategy):
 
                     # TODO: Should we have some kind of stop loss?
 
-                # TODO: Should we be able to short stocks if we are in a downtrend? Code below (not updated)!
-                '''
-                if self.uptrend == False:
-                    # We check if we have reached the Fibonacci resistance levels
-                    for level in range(len(self.ratios)):
-                        if price_now > self.fibonacci_levels[level] and not self.invested_at_level[level]:
-                            # We have reached the level, so we short some stocks
-                            number_of_stocks = self.invested_amount / price_now
-                            self.order = self.sell(self.datas[self.dic.get(ticker)], size=number_of_stocks)
-    
-                            # We do not want to buy on consecutive days, so we say that we have invested in this level
-                            self.invested_at_level[level] = True
-    
-                    # WHEN TO SELL? We buy back when the stock price is at a new low again
-                    if price_now == self.lows.get(ticker) and self.invested_at_level.count(True) > 0:
-                        # Buy back all stocks, close the position
-                        self.order = self.close(self.datas[self.dic.get(ticker)])
-    
-                        # How many times have we shorted the stocks? We close every position.
-                        for i in range(self.invested_at_level.count(True)):
-                            self.invested_at_level[i] = False
-                '''
-
-
-
-
+                # TODO: Should we be able to short stocks if we are in a downtrend?

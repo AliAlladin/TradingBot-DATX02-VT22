@@ -26,9 +26,9 @@ class PairsTrading:
     def subscribe(self, observer):
         self._observers.append(observer)
 
-    def notify_observers(self, *args, **kwargs):
+    def notify_observers(self, signal: dict):
         for obs in self._observers:
-            obs.notify(self, *args, **kwargs)
+            obs.notify(self, signal)
 
     def unsubscribe(self, observer):
         self._observers.remove(observer)

@@ -1,23 +1,47 @@
 import os
+import sys
+from time import sleep
 import pandas as pd
 from Algorithms import PairsTrading
-from NotificationHandler import NotificationBot
+# from Alpaca import AlpacaBroker
+# from Database import handleData
+# from NotificationHandler import NotificationBot
 
 
-class Observer:
+class StrategyObserver:
     def __init__(self, observable):
         observable.subscribe(self)
 
-    def notify(
-            self,
-            observable,
-            *args,
-            **kwargs
-    ):
-        print('Got', args, kwargs)
+    def notify(self, observable, signal: dict):
+        print(signal)
+        
+
+
+
+# def main():
+    # strategy = PairsTrading.PairsTrading()
+    # broker = AlpacaBroker.AlpacaBroker()
+    # data_provider = Data.YahooFinance()
+    # database_handler = Data.PostgresSQL()
+
+    # signalObserver = Observer(strategy)
+    # dataObserver = Observer(data_provider)
+    
+    # while True:
+    #     if broker.market_is_open():
+    #         # Do stuff
+    #         latest_price = database_handler.sqlLatest()
+    #         hist_data = data_provider.get_end_of_day(30)
+    #         strategy.run(latest_price, hist_data)
+    #         sleep(60)
+    #     else:
+    #         broker.wait_for_market_open()
+
+
 
 
 if __name__ == "__main__":
+    # main()
 
     #NotificationBot.sendNotification("Last test")
 
@@ -39,6 +63,6 @@ if __name__ == "__main__":
     strategy = PairsTrading.PairsTrading()
 
     # Initializing the observer with the subject object
-    observer = Observer(strategy)
+    observer = StrategyObserver(strategy)
 
     strategy.run(latest_price, hist_data)

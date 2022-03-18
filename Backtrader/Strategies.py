@@ -1,9 +1,14 @@
 import backtrader as bt
 import numpy as np
 import statsmodels.api as sm
+from Pair import *
 
 
 class Strategy_pairGen(bt.Strategy):
+    params = (('period', 20),
+              ('distance',2),
+              ('dic',{'A': 0, 'AA': 1}),
+              ('pairs',[Pair('A','AA')]),)
 
     # "Self" is the bar/line we are on, of the data
     def log(self, txt, dt=None):
@@ -11,17 +16,17 @@ class Strategy_pairGen(bt.Strategy):
         dt = dt or self.datas[0].datetime.date(0)
         print('%s, %s' % (dt.isoformat(), txt))
 
-    def __init__(self, dic, pairs):
-
-        self.dic = dic  # Dictionary of tickers with indices
-        self.pairs = pairs  # List of pairs
+    def __init__(self):
+        self.startcash = self.broker.getvalue()
+        self.dic = self.params.dic  # Dictionary of tickers with indices
+        self.pairs = self.params.pairs  # List of pairs
         self.myData = {}  # To store all the data we need, {'TICKER' -> Data}
-        for ticker in dic.keys():  # Initially, the values of data are just empty lists
+        for ticker in self.dic.keys():  # Initially, the values of data are just empty lists
             self.myData[ticker] = []
 
         # The parameters that are to be varied to optimize the model
-        self.distance = 3
-        self.period = 500
+        self.distance = self.params.distance
+        self.period = self.params.period
         self.invested_amount = 10000
         # The closing data of the stocks
         self.dataclose = []
@@ -80,6 +85,7 @@ class Strategy_pairGen(bt.Strategy):
 
     # The "run method", defines when to buy and sell
 
+
     def next(self):
 
         # self.log('Close, %.2f' % self.dataclose[0][0])
@@ -108,12 +114,14 @@ class Strategy_pairGen(bt.Strategy):
                     self.myData.get(pair.stock2)) - 1]
                 relevant_data_stock1.append(self.dataclose[self.dic.get(pair.stock1)][0])
                 relevant_data_stock2.append(self.dataclose[self.dic.get(pair.stock2)][0])
+                relevant_data_stock1Log=np.log10(relevant_data_stock1)
+                relevant_data_stock2Log=np.log10(relevant_data_stock2)
                 # Perform a linear regression to calculate the spread
-                result = sm.OLS(relevant_data_stock1, relevant_data_stock2).fit()
-                beta = result.params[0]
+                result = sm.OLS(relevant_data_stock1Log, sm.add_constant(relevant_data_stock2Log)).fit()
+                beta = result.params[1]
                 spread = []
                 for i in range(0, self.period):
-                    spread.append(relevant_data_stock1[i] - beta * relevant_data_stock2[i])
+                    spread.append(relevant_data_stock1Log[i] - beta * relevant_data_stock2Log[i])
 
                 # Calculation of the Z-score
                 mean = np.mean(spread)

@@ -1,6 +1,9 @@
 import datetime
 import os
 import sys  # To find out the script name (in argv[0])
+import backtrader as bt
+import backtrader.analyzers as btanalyzers
+#import qgrid
 
 import pandas as pd
 
@@ -10,6 +13,8 @@ from Pair import *
 from Strategies import *  # import our first strategy
 
 # Instantiate Cerebro engine. This is the main control center / brain
+#cerebro = bt.Cerebro()
+startcash = 100000.0
 cerebro = bt.Cerebro()
 
 # Individual os paths
@@ -41,9 +46,10 @@ for line in my_pair_file:
         tickers.append(stock2)
         dict[stock2] = i
         i += 1
-
+print(dict)
 
 todate1 = datetime.date(2021, 8, 13)
+
 # We add the data to cerebro
 for ticker in tickers:
 
@@ -52,8 +58,8 @@ for ticker in tickers:
     data = bt.feeds.GenericCSVData(
 
         dataname=CSV_file_path,  # Full path to csv-file
-        fromdate = datetime.datetime(2020, 6, 2, 9, 30, 00),  # Start  date
-        todate = datetime.datetime(2021, 8, 13, 16, 00, 00),  # Ending date
+        fromdate=datetime.datetime(2020, 12, 2, 9, 30, 00),  # Start  date
+        todate=datetime.datetime(2021, 8, 13, 16, 00, 00),  # Ending date
 
         nullvalue=0.0,  # Used for replacing NaN-values with 0
 
@@ -79,11 +85,11 @@ for ticker in tickers:
     cerebro.adddata(data)
 
 # Set starting value of portfolio
-cerebro.broker.setcash(100000.0)
+cerebro.broker.setcash(startcash)
 
 # Add strategy to Cerebro
 # TODO: allow for strategy switching
-cerebro.addstrategy(Strategy_pairGen, dic = dict, pairs = pairs, period = 30, distance = 2, todate = todate1)
+strats = cerebro.optstrategy(Strategy_pairGen, todate = todate1, distance=range(1,3), period = range(30,40,5))
 
 # Set the commission - 0.1% ... divide by 100 to remove the %
 cerebro.broker.setcommission(commission=0)
@@ -93,13 +99,57 @@ print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
 # Creates csv files with inquired data. Has to be executed before cerebro.run()
 # "out" specifies the name of the output file. It currently overwrites the same file.
-cerebro.addwriter(bt.WriterFile, csv=True, out='log.csv')
+#cerebro.addwriter(bt.WriterFile, csv=True, out='log.csv')
 
 # Core method to perform backtesting
-cerebro.run()
+#opt_runs = cerebro.run(maxcpus = 1)
 
 # Print final portfolio value
 print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
+cerebro.addsizer(bt.sizers.PercentSizer, percents=10)
+cerebro.addanalyzer(btanalyzers.SharpeRatio, _name="sharpe")
+cerebro.addanalyzer(btanalyzers.DrawDown, _name="drawdown")
+cerebro.addanalyzer(btanalyzers.Returns, _name="returns")
+
+back = cerebro.run(maxcpus = 1)
+
+
+par_list = [[x[0].params.distance,
+             x[0].params.period,
+             x[0].analyzers.returns.get_analysis()['rnorm100'],
+             x[0].analyzers.drawdown.get_analysis()['max']['drawdown'],
+             x[0].analyzers.sharpe.get_analysis()['sharperatio']
+            ] for x in back]
+par_df = pd.DataFrame(par_list, columns = ['distance', 'period', 'return', 'dd', 'sharpe'])
+#qgrid.show_grid(par_df)
+print(par_df)
+'''
+final_results_list = []
+for run in opt_runs:
+    for strategy in run:
+        value = round(strategy.broker.get_value(),2)
+        PnL = round(value - startcash,2)
+        period = strategy.params.period
+        distance = strategy.params.distance
+        final_results_list.append([period,distance,PnL])
+
+#Sort Results List
+by_period = sorted(final_results_list, key=lambda x: x[0])
+by_distance = sorted(final_results_list,key=lambda x: x[1])
+by_PnL = sorted(final_results_list, key=lambda x: x[2], reverse=True)
+
+
+#Print results
+print('Results: Ordered by period:')
+for result in by_period:
+    print('Period: {}, distance: {} PnL: {}'.format(result[0], result[1], result[2]))
+print('Results: Ordered by Distance:')
+for result in by_distance:
+    print('Period: {}, distance: {} PnL: {}'.format(result[0], result[1], result[2]))
+print('Results: Ordered by Profit:')
+for result in by_PnL:
+    print('Period: {}, distance: {} PnL: {}'.format(result[0], result[1], result[2]))
+'''
 # To plot the trades
-cerebro.plot()
+#cerebro.plot()

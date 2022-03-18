@@ -2,13 +2,15 @@ import backtrader as bt
 import numpy as np
 import statsmodels.api as sm
 from Pair import *
+import datetime
 
 
 class Strategy_pairGen(bt.Strategy):
-    params = (('period', 20),
-              ('distance',2),
+    params = (('distance',None),
+              ('period',None),
               ('dic',{'A': 0, 'AA': 1}),
-              ('pairs',[Pair('A','AA')]),)
+              ('pairs',[Pair('A','AA')]),
+              ('todate', datetime.datetime(2021, 8, 13, 16, 00, 00)),)
 
     # "Self" is the bar/line we are on, of the data
     def log(self, txt, dt=None):
@@ -27,8 +29,11 @@ class Strategy_pairGen(bt.Strategy):
         # The parameters that are to be varied to optimize the model
         self.distance = self.params.distance
         self.period = self.params.period
+        self.todate = self.params.todate
+        self.sellOf = False
+        print("initialising")
         self.invested_amount = 10000
-        # The closing data of the stocks
+        # The closing data of the stock
         self.dataclose = []
         for i in range(0, len(self.dic)):  # We add the closing data for each of all stocks
             self.dataclose.append(self.datas[i].close)
@@ -87,6 +92,9 @@ class Strategy_pairGen(bt.Strategy):
 
 
     def next(self):
+        if self.todate == self.datas[0].datetime.date(0):
+            self.sellOf = True
+            print('value: ', self.broker.getvalue())
 
         # self.log('Close, %.2f' % self.dataclose[0][0])
         # self.log('Close, %.2f' % self.dataclose[1][0])
@@ -136,7 +144,7 @@ class Strategy_pairGen(bt.Strategy):
                 # If we don't have a position in this pair
                 if not pair.isActive:
                     # We check whether the Z-score is unusually high or low (>distance or <-distance)
-                    if z_score > self.distance:
+                    if z_score > self.distance and not self.sellOf:
 
                         # High Z-score, we sell stock 1 and buy stock 2
                         # self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock1)][0])
@@ -152,7 +160,7 @@ class Strategy_pairGen(bt.Strategy):
                         pair.isActive = True
 
                     # The Z-score is unusually low, we buy stock1 and sell stock2
-                    elif z_score < -self.distance:
+                    elif z_score < -self.distance and not self.sellOf:
                         # self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock2)][0])
                         self.order = self.sell(self.datas[self.dic.get(pair.stock2)],
                                                size=shares_stock1 * current_ratio)
@@ -169,8 +177,8 @@ class Strategy_pairGen(bt.Strategy):
                 else:
                     # We previously bought the stock 1
                     if pair.long:
-
-                        if z_score > 0:
+                        if z_score > 0 or self.sellOf:
+                            print(self.sellOf)
                             # Sell stock 1 and buy back stock 2
                             # self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock1)][0])
                             self.order = self.sell(self.datas[self.dic.get(pair.stock1)], size=pair.shares_stock1)
@@ -193,8 +201,7 @@ class Strategy_pairGen(bt.Strategy):
 
 
                     else:
-
-                        if z_score < 0:
+                        if z_score < 0 or self.sellOf:
                             # Buy back stock 1 and sell stock 2
                             # self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock2)][0])
                             self.order = self.sell(self.datas[self.dic.get(pair.stock2)],
@@ -214,3 +221,5 @@ class Strategy_pairGen(bt.Strategy):
                             pair.isActive = False
                             pair.shares_stock1 = None
                             pair.ratio = None
+
+

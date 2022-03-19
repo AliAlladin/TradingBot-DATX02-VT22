@@ -3,12 +3,14 @@ import os
 import sys  # To find out the script name (in argv[0])
 
 import pandas as pd
-
+import time
 pd.options.mode.chained_assignment = None
 
 from Pair import *
 from Strategies import *  # import our first strategy
 
+
+tic = time.perf_counter()
 # Instantiate Cerebro engine. This is the main control center / brain
 cerebro = bt.Cerebro()
 
@@ -42,8 +44,9 @@ for line in my_pair_file:
         dict[stock2] = i
         i += 1
 
-
+#end date to know when we should sell of
 todate1 = datetime.date(2021, 8, 13)
+
 # We add the data to cerebro
 for ticker in tickers:
 
@@ -52,7 +55,7 @@ for ticker in tickers:
     data = bt.feeds.GenericCSVData(
 
         dataname=CSV_file_path,  # Full path to csv-file
-        fromdate = datetime.datetime(2020, 6, 2, 9, 30, 00),  # Start  date
+        fromdate = datetime.datetime(2020, 8, 13, 9, 30, 00),  # Start  date
         todate = datetime.datetime(2021, 8, 13, 16, 00, 00),  # Ending date
 
         nullvalue=0.0,  # Used for replacing NaN-values with 0
@@ -83,7 +86,7 @@ cerebro.broker.setcash(100000.0)
 
 # Add strategy to Cerebro
 # TODO: allow for strategy switching
-cerebro.addstrategy(Strategy_pairGen, dic = dict, pairs = pairs, period = 30, distance = 2, todate = todate1)
+cerebro.addstrategy(Strategy_pairGen, dic = dict, pairs = pairs, period = 35, distance = 2, todate = todate1)
 
 # Set the commission - 0.1% ... divide by 100 to remove the %
 cerebro.broker.setcommission(commission=0)
@@ -103,3 +106,5 @@ print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
 # To plot the trades
 cerebro.plot()
+toc = time.perf_counter()
+print('running backtrade took ' , toc-tic , 'seconds')

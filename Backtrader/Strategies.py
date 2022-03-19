@@ -14,12 +14,11 @@ class Strategy_pairGen(bt.Strategy):
 
     # "Self" is the bar/line we are on, of the data
     def log(self, txt, dt=None):
-        # Logging function/output for this strategy
+        # Logging function/output for this strategy{'A': 0, 'AA': 1}
         dt = dt or self.datas[0].datetime.date(0)
         print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):
-        self.startcash = self.broker.getvalue()
         self.dic = self.params.dic  # Dictionary of tickers with indices
         self.pairs = self.params.pairs  # List of pairs
         self.myData = {}  # To store all the data we need, {'TICKER' -> Data}
@@ -29,16 +28,25 @@ class Strategy_pairGen(bt.Strategy):
         # The parameters that are to be varied to optimize the model
         self.distance = self.params.distance
         self.period = self.params.period
+
+        #amount in each pair
+        self.invested_amount = 10000
+
+        #paramters to close position at end date
         self.todate = self.params.todate
         self.sellOf = False
+
+        #just for terminal
         print("initialising")
-        self.invested_amount = 10000
+
         # The closing data of the stock
         self.dataclose = []
         for i in range(0, len(self.dic)):  # We add the closing data for each of all stocks
             self.dataclose.append(self.datas[i].close)
         self.oldDate = str(self.datas[0].datetime.date(0))
         self.firstTime = True
+
+
         ''' This might be unnecessary 
         # To keep track of pending orders and buy price/commission
         self.order = None
@@ -92,6 +100,7 @@ class Strategy_pairGen(bt.Strategy):
 
 
     def next(self):
+        #check if last date so that we close positions
         if self.todate == self.datas[0].datetime.date(0):
             self.sellOf = True
             print('value: ', self.broker.getvalue())
@@ -104,8 +113,7 @@ class Strategy_pairGen(bt.Strategy):
             self.oldDate = str(self.datas[0].datetime.date(0))
             self.firstTime = False
         newPotentialDate = str(self.datas[0].datetime.date(0))
-        # print(self.oldDate)
-        # print(newPotentialDate)
+
         if newPotentialDate != self.oldDate:
             self.oldDate = newPotentialDate
             for ticker in self.myData.keys():

@@ -37,6 +37,9 @@ def acquireList():
         x=(str(filename))
         x=x.split('\'')[1]
         x=x.removesuffix('.csv')
+        if "." in x:
+            y=x.split('.')
+            x=y[0]+"-"+y[1]
         stocks.append(x)
     return stocks
 

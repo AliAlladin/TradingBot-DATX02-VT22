@@ -34,8 +34,9 @@ def acquireList():
     directory_in_str = os.path.join(modpath, 'Data/filtered_csv_data/')
     directory = os.fsencode(directory_in_str)
     for filename in os.listdir(directory):
-        x=(str(filename)).split('.')[0]
+        x=(str(filename))
         x=x.split('\'')[1]
+        x=x.removesuffix('.csv')
         stocks.append(x)
     return stocks
 

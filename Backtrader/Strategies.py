@@ -390,7 +390,7 @@ class Strategy_fibonacci2(bt.Strategy):
         self.invested_at_level = {}  # {'TICKER' -> [boolean, boolean, boolean]}
         for ticker in dic.keys():
             self.invested_at_level[ticker] = [False] * len(self.ratios)
-
+        print(len(self.dic))
         # TODO: This needs to be changed
         # The closing data of the stocks
         self.dataclose = []

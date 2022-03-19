@@ -453,7 +453,7 @@ class Strategy_fibonacci2(bt.Strategy):
 
                 elif date_low > date_high:
                     uptrend = False  # We are in a downtrend
-                    # TODO: Following line might only be useful if we can short stocks
+                    # TODO: Following line might only be useful if we can short stocks.
                     fibonacci_levels = [low + (high - low) * ratio for ratio in self.ratios]
 
                 # If we are in an uptrend, we want to buy the stocks at drawbacks (Fibonacci supports).

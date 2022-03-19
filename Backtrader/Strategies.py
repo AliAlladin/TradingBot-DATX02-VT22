@@ -374,24 +374,21 @@ class Strategy_fibonacci2(bt.Strategy):
     # Initialization of the strategy
     def __init__(self, dic):
 
-        # PARAMETERS
+        # Parameters
         self.invested_amount = 10000  # The amount for which we invest
-        self.ratios = [0.382, 0.5, 0.618]  # The Fibonacci ratios
         self.period = 10000  # Period to determine swing high and swing low
 
-        self.dic = dic  # Dictionary of tickers with indices {'TICKER' -> Index}
+        # To store data for each ticker
+        self.ratios = [0.382, 0.5, 0.618]  # The Fibonacci ratios
+        self.dic = dic  # Dictionary of tickers with indices, {'TICKER' -> Index}
         self.myData = {}  # To store all the data we need, {'TICKER' -> Data}
+        self.invested_at_level = {}  # To know if we are invested, {'TICKER' -> [boolean, boolean, boolean]}
 
         # We initialize these dictionaries
         for ticker in dic.keys():
             self.myData[ticker] = [] # To store the stock prices
+            self.invested_at_level[ticker] = [False] * len(self.ratios) # Initially not invested
 
-        # We are initially not invested in any level in any ticker
-        self.invested_at_level = {}  # {'TICKER' -> [boolean, boolean, boolean]}
-        for ticker in dic.keys():
-            self.invested_at_level[ticker] = [False] * len(self.ratios)
-        print(len(self.dic))
-        # TODO: This needs to be changed
         # The closing data of the stocks
         self.dataclose = []
         for i in range(0, len(self.dic)):  # We add the closing data for each of all stocks
@@ -441,7 +438,7 @@ class Strategy_fibonacci2(bt.Strategy):
                 high = max(relevant_data)
                 low = min(relevant_data)
 
-                # We recognize the date of swing high and swing low
+                # The date of swing high and swing low
                 date_high = np.argmax(relevant_data)
                 date_low = np.argmin(relevant_data)
 
@@ -453,8 +450,6 @@ class Strategy_fibonacci2(bt.Strategy):
 
                 elif date_low > date_high:
                     uptrend = False  # We are in a downtrend
-                    # TODO: Following line might only be useful if we can short stocks.
-                    fibonacci_levels = [low + (high - low) * ratio for ratio in self.ratios]
 
                 # If we are in an uptrend, we want to buy the stocks at drawbacks (Fibonacci supports).
                 if uptrend:
@@ -472,8 +467,7 @@ class Strategy_fibonacci2(bt.Strategy):
                     if price_now == high and self.invested_at_level.get(ticker).count(True) > 0:
                         # Sell all stocks, close the position
                         self.order = self.close(self.datas[self.dic.get(ticker)])
-
-                        # How many times have we 'bought the dip'? We close every position.
+                        # We do not longer have a position in the ticker
                         for i in range(self.invested_at_level.get(ticker).count(True)):
                             self.invested_at_level.get(ticker)[i] = False
 

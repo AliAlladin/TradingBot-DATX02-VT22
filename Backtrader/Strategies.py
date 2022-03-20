@@ -20,14 +20,14 @@ class Strategy_pairGen(bt.Strategy):
             self.myData[ticker] = []
 
         # The parameters that are to be varied to optimize the model
-        self.distance = 3
-        self.period = 500
+        self.distance = 1
+        self.period = 300
         self.invested_amount = 10000
         # The closing data of the stocks
         self.dataclose = []
         for i in range(0, len(self.dic)):  # We add the closing data for each of all stocks
             self.dataclose.append(self.datas[i].close)
-        self.oldDate = str(self.datas[0].datetime.date(0))
+        self.oldDate = ''
         self.firstTime = True
         ''' This might be unnecessary 
         # To keep track of pending orders and buy price/commission

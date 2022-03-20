@@ -24,27 +24,29 @@ def StrategyOne():
     datap = os.path.join(modpath, 'Backtrader/Pairs.txt')
     my_pair_file = open(datap, 'r')
 
-    # We start without any tickers
-    tickers = []  # A list of tickers
-    pairs = []  # A list of Pairs (see Pair.py)
-    dict = {}  # Dictionary to store tickers as keys and an integer value that separates the tickers.
-    i = 0  # A variable to work as a counter of the integer value
     endValueForEachPair=[]
+
     
     # We go through Pairs.txt to add all tickers and Pairs
     for line in my_pair_file:
-            stocks = line.split()
-            cerebro = bt.Cerebro()
-            pairs.append(Pair(stock1, stock2))
+        pairs = []  # A list of Pairs (see Pair.py)
+        tickers = []  # A list of tickers
+        dict = {}  # Dictionary to store tickers as keys and an integer value that separates the tickers.
+        i = 0  # A variable to work as a counter of the integer value
+        stocks = line.split()
+        cerebro = bt.Cerebro()
+        pairs.append(Pair(stocks[0], stocks[1]))
         for ticker in stocks:
+            dict[ticker]=i
+            i=+1
 
             CSV_file_path = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(ticker)  # Full path to csv-file
 
             data = bt.feeds.GenericCSVData(
 
                 dataname=CSV_file_path,  # Full path to csv-file
-                fromdate=datetime.datetime(2010, 8, 2, 9, 30, 00),  # Start  date
-                todate=datetime.datetime(2021, 8, 13, 16, 00, 00),  # Ending date
+                fromdate=datetime.datetime(2006, 6, 2, 9, 30, 00),  # Start  date
+                todate=datetime.datetime(2009, 6, 13, 16, 00, 00),  # Ending date
 
                 nullvalue=0.0,  # Used for replacing NaN-values with 0
 
@@ -79,6 +81,7 @@ def StrategyOne():
 
         # Print starting portfolio value
         print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
+        print(pairs[0].get_pairs())
 
         # Creates csv files with inquired data. Has to be executed before cerebro.run()
         # "out" specifies the name of the output file. It currently overwrites the same file.
@@ -91,10 +94,16 @@ def StrategyOne():
         print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
         # To plot the trades
-        cerebro.plot()
-        endValeuForEachPair.append(cerebro.broker.getvalue())
-
-
+        try: 
+            cerebro.plot()
+        except IndexError:
+            print('prob length 0')
+        endValueForEachPair.append(cerebro.broker.getvalue())
+    sum=0
+    for i in endValueForEachPair:
+        sum+=i-100000
+    print(endValueForEachPair)
+    print(sum)
 '''
     # We go through Pairs.txt to add all tickers and Pairs
     for line in my_pair_file:

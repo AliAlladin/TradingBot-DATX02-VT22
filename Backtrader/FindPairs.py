@@ -15,13 +15,12 @@ from datetime import timedelta, date
 import math
 
 def main():   
-    start = '2017-02-07'
-    end = '2020-02-08'
+    start = '2005-02-01'
+    end = '2008-02-01'
     stocks=acquireList()
     stocks=stocks[0:60]
-    print(len(stocks))
     pairs=findPairs(stocks,start,end)
-    my_pair_file = open('Data/Pairs.txt', 'w')
+    my_pair_file = open('Backtrader/Pairs.txt', 'w')
     for pair in pairs:
         stock1, stock2=pair.get_pairs()
         my_pair_file.write(stock1+" "+stock2+ "\n")
@@ -44,7 +43,6 @@ def acquireList():
     return stocks
 
 def findPairs(stocks,start,end):
-    print(stocks)
     window = 252
     data = pd.DataFrame()
     pairs = []
@@ -65,8 +63,10 @@ def findPairs(stocks,start,end):
     toc = time.perf_counter()
     # print('downloading data took ' , toc-tic , 'seconds')
     stocks=stocksNew
+    print(len(stocks))
     tic = time.perf_counter()
     for i in range(0,len(stocks)):
+        print(i)
         for j in range(i+1, len(stocks)):
             stock1data = data[stocks[i]].tolist()
             stock2data = data[stocks[j]].tolist()
@@ -77,7 +77,7 @@ def findPairs(stocks,start,end):
             beta = result.params[1]
             p1 = adfuller(stock1data-beta*stock2data)[1]
             p2 = coint(stock1data, stock2data)[1]
-            if p1 <0.001 and p2<0.01:
+            if p1 <0.01 and p2<0.01:
                 p = Pair(stocks[i],stocks[j])
                 pairs.append(p)
     toc = time.perf_counter()

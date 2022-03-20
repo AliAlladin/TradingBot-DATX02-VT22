@@ -35,17 +35,11 @@ class AlpacaBroker:
         try:
             order = self.api.submit_order(
                 symbol, target_position_size, "buy", "market", "day")
+
             print("BUY order for {} {} {}".format(order.qty,
                                                   order.symbol, order.status))
 
-            order_info = {
-                'id': order.id,
-                'symbol': order.symbol,
-                'type': order.side,
-                'qty': float(order.qty),
-                'time_stamp': order.created_at
-            }
-            return order_info
+            return order.id
         except Exception as e:
             print(e)
 
@@ -56,51 +50,28 @@ class AlpacaBroker:
             if position is not None and target_position_size <= position["qty"]:
                 order = self.api.submit_order(
                     symbol, target_position_size, "sell", "market", "day")
+
                 print("SELL order for {} {} {}".format(order.qty,
                                                        order.symbol, order.status))
 
-                order_info = {
-                    'id': order.id,
-                    'symbol': order.symbol,
-                    'type': order.side,
-                    'qty': float(order.qty),
-                    'time_stamp': order.created_at
-                }
-                return order_info
+                return order.id
             else:
                 print("Can't create SELL order. (Check symbol and target_position_size)")
         except Exception as e:
             print(e)
 
-     # Function to place a short order.
-    def short(self, symbol: str, target_position_size: float):
-        try:
-            orders = self.get_orders(symbol)
-            if orders.empty or 'buy' not in set(orders['type']):
-                order = self.api.submit_order(
-                    symbol, target_position_size, "sell", "market", "day")
-                print("SHORT order for {} {} {}".format(order.qty,
-                                                        order.symbol, order.status))
+    def get_order(self, id: str):
+        order = self.api.get_order(id)
 
-                order_info = {
-                    'id': order.id,
-                    'symbol': order.symbol,
-                    'type': "short",
-                    'qty': float(order.qty),
-                    'time_stamp': order.created_at
-                }
-                return order_info
-            else:
-                print("Can't create SHORT order when BUY order exists.")
-        except Exception as e:
-            print(e)
+        order_info = {
+            'id': order.id,
+            'symbol': order.symbol,
+            'type': order.side,
+            'qty': float(order.qty),
+            'filled_at': order.filled_at
+        }
 
-    def get_orders(self, symbol: str):
-        all_orders = self.all_orders()
-        try:
-            return all_orders.loc[all_orders['symbol'] == symbol]
-        except KeyError:
-            return pd.DataFrame()
+        return order_info
 
     def all_orders(self):
         orders = self.api.list_orders(limit=500)

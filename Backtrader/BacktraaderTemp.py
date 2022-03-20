@@ -10,7 +10,7 @@ from Pair import *
 from Strategies import *  # import our first strategy
 def main():
     StrategyOne()
-    StrategyTwo()
+    #StrategyTwo()
 
 
 def StrategyOne():
@@ -29,14 +29,14 @@ def StrategyOne():
     pairs = []  # A list of Pairs (see Pair.py)
     dict = {}  # Dictionary to store tickers as keys and an integer value that separates the tickers.
     i = 0  # A variable to work as a counter of the integer value
-
+    endValueForEachPair=[]
     
     # We go through Pairs.txt to add all tickers and Pairs
     for line in my_pair_file:
             stocks = line.split()
             cerebro = bt.Cerebro()
-            pairs.append()
-    for ticker in stocks:
+            pairs.append(Pair(stock1, stock2))
+        for ticker in stocks:
 
             CSV_file_path = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(ticker)  # Full path to csv-file
 
@@ -92,6 +92,7 @@ def StrategyOne():
 
         # To plot the trades
         cerebro.plot()
+        endValeuForEachPair.append(cerebro.broker.getvalue())
 
 
 '''

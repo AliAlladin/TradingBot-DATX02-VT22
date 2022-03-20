@@ -18,7 +18,7 @@ def main():
     start = '2017-02-07'
     end = '2020-02-08'
     stocks=acquireList()
-    ## stocks=stocks[0:60]
+    stocks=stocks[0:60]
     print(len(stocks))
     pairs=findPairs(stocks,start,end)
     my_pair_file = open('Data/Pairs.txt', 'w')
@@ -77,15 +77,9 @@ def findPairs(stocks,start,end):
             beta = result.params[1]
             p1 = adfuller(stock1data-beta*stock2data)[1]
             p2 = coint(stock1data, stock2data)[1]
-            if p1 <0.01 and p2<0.01:
+            if p1 <0.001 and p2<0.01:
                 p = Pair(stocks[i],stocks[j])
                 pairs.append(p)
-                plt.scatter(stock1data,stock2data)
-                max_x = stock2data.max()
-                min_x = stock2data.min()
-                x = np.linspace(min_x,max_x,1000)
-                y = alpha+beta * x 
-                plt.plot(y,x,'r')
     toc = time.perf_counter()
     plt.show()
     print('finding pairs took ' , toc - tic , ' seconds')

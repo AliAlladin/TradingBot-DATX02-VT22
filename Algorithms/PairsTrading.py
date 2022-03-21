@@ -11,7 +11,8 @@ pd.options.mode.chained_assignment = None  # default='warn'
 pairsFile = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Backtrader/Pairs.txt'),
                         sep=" ",
                         header=None)
-pairsFile.columns = ['T1', 'T2']  # Assigning names to the columns of the dataframe for easier access
+# Assigning names to the columns of the dataframe for easier access
+pairsFile.columns = ['T1', 'T2']
 
 '''
 This class receives a dataframe containing the latest prices for each ticker.
@@ -33,7 +34,7 @@ class PairsTrading:
     def unsubscribe(self, observer):
         self._observers.remove(observer)
 
-    def __init__(self):
+    def __init__(self, distance, period, invested_amount):
         self.pairs = pairsFile
         self.pairs['Active'] = False
         self.pairs['long'] = None
@@ -43,10 +44,9 @@ class PairsTrading:
         self._observers = []  # List of observers to be notified
 
         # The parameters that are to be varied to optimize the model
-        self.distance = 0.5
-        self.period = 500
-        self.invested_amount = 10000
-        self.trade_taken = False
+        self.distance = distance
+        self.period = period
+        self.invested_amount = invested_amount
 
     def run(self, latest_prices: pd.DataFrame, hist_prices: pd.DataFrame):
         for i in range(len(self.pairs.index)):
@@ -89,8 +89,10 @@ class PairsTrading:
             z_score = (spread[len(data_df) - 1] - mean) / std
 
             # To know how much we need to buy of each stock
-            shares_stock1 = self.invested_amount / data_df[t1][len(data_df) - 1]
-            current_ratio = data_df[t1][len(data_df) - 1] / data_df[t2][len(data_df) - 1]
+            shares_stock1 = self.invested_amount / \
+                data_df[t1][len(data_df) - 1]
+            current_ratio = data_df[t1][len(
+                data_df) - 1] / data_df[t2][len(data_df) - 1]
 
             # If we don't have a position in this pair
             if not self.pairs['Active'][i]:

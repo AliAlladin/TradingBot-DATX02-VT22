@@ -1,6 +1,5 @@
 import psycopg2
-
-from psycopg2.sql import DEFAULT
+import pandas as pd
 
 # setup databas
 DB_HOST = "abul.db.elephantsql.com"
@@ -76,3 +75,16 @@ def sqlPairs(stockTicker1: str, stockTicker2: str, standardDiv: float):
     query = query.replace('a3', str(standardDiv))
     cursor.execute(query)
     conn.commit()
+
+
+def sqlUpdatePrice(stockTicker: str, price: float):
+    query = "UPDATE Prices SET price = a1 WHERE ticker = a2"
+    query = query.replace('a1', str(price))
+    query = query.replace('a2', "\'" + stockTicker + "\'")
+    cursor.execute(query)
+    conn.commit()
+
+
+# Artin fixa detta idk vad jag gjort
+def sqlGetAllPrice():
+    sql_query = pd.read_sql_query("Select * FROM Prices")

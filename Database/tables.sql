@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS Stocks(
 CREATE TABLE IF NOT EXISTS Buy(
     id SERIAL PRIMARY KEY,
     ticker TEXT NOT NULL,
-    FOREIGN KEY (ticker) REFERENCES Stocks(ticker),
     buyTime TIMESTAMP NOT NULL,
     price DECIMAL NOT NULL,
     active TEXT NOT NULL
@@ -39,8 +38,12 @@ CREATE TABLE IF NOT EXISTS Pairs(
     stock2 TEXT,
     FOREIGN KEY (stock1) REFERENCES Stocks(ticker),
     FOREIGN KEY (stock2) REFERENCES Stocks(ticker),
-    standardDiv DECIMAL,
     CHECK (stock1 != stock2),
     PRIMARY KEY (stock1, stock2)
+);
+
+CREATE TABLE IF NOT EXISTS Prices(
+    ticker PRIMARY KEY,
+    price DECIMAL
 );
 

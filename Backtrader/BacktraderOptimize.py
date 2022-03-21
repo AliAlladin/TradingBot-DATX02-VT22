@@ -63,8 +63,8 @@ for ticker in tickers:
     data = bt.feeds.GenericCSVData(
 
         dataname=CSV_file_path,  # Full path to csv-file
-        fromdate=datetime.datetime(2008, 2, 1, 9, 30, 00),  # Start  date
-        todate=datetime.datetime(2011, 2, 1, 16, 00, 00),  # Ending date
+        fromdate=datetime.datetime(2017, 2, 1, 9, 30, 00),  # Start  date
+        todate=datetime.datetime(2021, 2, 1, 16, 00, 00),  # Ending date
 
         nullvalue=0.0,  # Used for replacing NaN-values with 0
 
@@ -95,9 +95,9 @@ cerebro.broker.setcash(startcash)
 # Add strategy to Cerebro
 # TODO: allow for strategy switching
 #end date to know when to close positions
-todate1 = datetime.date(2011, 2, 1)
+todate1 = datetime.date(2021, 2, 1)
 dis = np.linspace(2.0, 3.0, num=3)
-per = range(50,500,150)
+per = range(200,800,100)
 max = max(per)
 strats = cerebro.optstrategy(Strategy_pairGen, todate = todate1, distance= dis, period=per, maximum = max)
 

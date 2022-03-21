@@ -8,8 +8,8 @@ import datetime
 class Strategy_pairGen(bt.Strategy):
     params = (('distance',None),
               ('period',None),
-              ('dic',{'ANTM': 0, 'ARE': 1}),
-              ('pairs',[Pair('ANTM','ARE')]),
+              ('dic',{'A': 0, 'AA': 1, 'AAL': 2, 'AAP': 3, 'AAPL': 4, 'ABBV': 5, 'ABC': 6,'ABMD': 7, 'ABT':8, 'ACN': 9}),
+              ('pairs',[Pair('A','AA'),Pair('AAL','AAP'),Pair('AAPL','ABBV'),Pair('ABC','ABMD'),Pair('ABT','ACN')]),
               ('todate', datetime.datetime(2021, 8, 13, 16, 00, 00)),
               ('maximum',None),)
 
@@ -33,7 +33,7 @@ class Strategy_pairGen(bt.Strategy):
         self.maximum = self.params.maximum
 
         #amount in each pair
-        self.invested_amount = 100000
+        self.invested_amount = 20000
 
         #paramters to close position at end date
         self.todate = self.params.todate

@@ -10,7 +10,8 @@ class Strategy_pairGen(bt.Strategy):
               ('period',None),
               ('dic',{'ANTM': 0, 'ARE': 1}),
               ('pairs',[Pair('ANTM','ARE')]),
-              ('todate', datetime.datetime(2021, 8, 13, 16, 00, 00)),)
+              ('todate', datetime.datetime(2021, 8, 13, 16, 00, 00)),
+              ('maximum',None),)
 
     # "Self" is the bar/line we are on, of the data
     def log(self, txt, dt=None):
@@ -29,8 +30,10 @@ class Strategy_pairGen(bt.Strategy):
         self.distance = self.params.distance
         self.period = self.params.period
 
+        self.maximum = self.params.maximum
+
         #amount in each pair
-        self.invested_amount = 10000
+        self.invested_amount = 100000
 
         #paramters to close position at end date
         self.todate = self.params.todate
@@ -122,7 +125,7 @@ class Strategy_pairGen(bt.Strategy):
         # We go through each pair
         for pair in self.pairs:
             # We want to only look after 'period' days
-            if len(self.myData.get(pair.stock1)) > self.period:
+            if len(self.myData.get(pair.stock1)) > self.maximum:
                 # Sort to receive only data of the last 'period' days
                 relevant_data_stock1 = self.myData.get(pair.stock1)[len(self.myData.get(pair.stock1)) - self.period:len(
                     self.myData.get(pair.stock1)) - 1]

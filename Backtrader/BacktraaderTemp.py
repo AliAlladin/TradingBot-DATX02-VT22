@@ -44,8 +44,6 @@ for line in my_pair_file:
         dict[stock2] = i
         i += 1
 
-#end date to know when we should sell of
-todate1 = datetime.date(2021, 8, 13)
 
 # We add the data to cerebro
 for ticker in tickers:
@@ -86,7 +84,13 @@ cerebro.broker.setcash(100000.0)
 
 # Add strategy to Cerebro
 # TODO: allow for strategy switching
-cerebro.addstrategy(Strategy_pairGen, dic = dict, pairs = pairs, period = 350, distance = 2, todate = todate1)
+#end date to know when we should sell of
+todate1 = datetime.date(2021, 8, 13)
+
+per = 350
+dis = 2
+max = per
+cerebro.addstrategy(Strategy_pairGen, dic = dict, pairs = pairs, period = per, distance = dis, maximum = max, todate = todate1)
 
 # Set the commission - 0.1% ... divide by 100 to remove the %
 cerebro.broker.setcommission(commission=0)

@@ -8,8 +8,8 @@ import datetime
 class Strategy_pairGen(bt.Strategy):
     params = (('distance',None),
               ('period',None),
-              ('dic',{'A': 0, 'AA': 1}),
-              ('pairs',[Pair('A','AA')]),
+              ('dic',{'ANTM': 0, 'ARE': 1}),
+              ('pairs',[Pair('ANTM','ARE')]),
               ('todate', datetime.datetime(2021, 8, 13, 16, 00, 00)),)
 
     # "Self" is the bar/line we are on, of the data

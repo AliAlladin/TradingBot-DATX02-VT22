@@ -15,12 +15,12 @@ from datetime import timedelta, date
 import math
 
 def main():   
-    start = '2005-02-01'
-    end = '2008-02-01'
+    start = '2012-02-03'
+    end = '2015-02-03'
     stocks=acquireList()
-    stocks=stocks[0:60]
+    #stocks=stocks[0:30]
     pairs=findPairs(stocks,start,end)
-    my_pair_file = open('Backtrader/Pairs.txt', 'w')
+    my_pair_file = open('Pairs.txt', 'w')
     for pair in pairs:
         stock1, stock2=pair.get_pairs()
         my_pair_file.write(stock1+" "+stock2+ "\n")

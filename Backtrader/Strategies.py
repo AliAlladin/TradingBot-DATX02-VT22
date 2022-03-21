@@ -33,7 +33,7 @@ class Strategy_pairGen(bt.Strategy):
         self.maximum = self.params.maximum
 
         #amount in each pair
-        self.invested_amount = 20000
+        self.invested_amount = 10000
 
         #paramters to close position at end date
         self.todate = self.params.todate

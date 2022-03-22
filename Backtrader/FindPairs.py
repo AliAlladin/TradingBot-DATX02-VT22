@@ -17,24 +17,38 @@ import random
 
 
 def main():
-    start = '2011-01-01'
-    end = '2014-01-01'
+    start = '2011-01-07'
+    end = '2014-01-07'
     #distinctStocks()
     # tryingOut(start,end)
     stocks=acquireList()
-    stocks=stocks[0:30]
     pairs=findPairs(stocks,start,end)
     my_pair_file = open('Pairs.txt', 'w')
     for pair in pairs:
         stock1, stock2=pair.get_pairs()
         my_pair_file.write(stock1+" "+stock2+ "\n")
     my_pair_file.close()
+    print(pairs)
     pairs=acquiringPair(pairs)
+    print(pairs)
     my_pair_file = open('Pairs1.txt', 'w')
     for pair in pairs:
         stock1, stock2 = pair.get_pairs()
         my_pair_file.write(stock1 + " " + stock2 + "\n")
     my_pair_file.close()
+
+def gettingDistinctDates():
+    my_pair_file = open('Data/filtered_csv_data/A.csv', 'r')
+    distinctDates=[]
+    for i in my_pair_file:
+        j=i[0]
+        if j not in distinctDates:
+            distinctDates.append(j)
+    my_pair_file.close()
+    my_pair_file = open('DistinctDates', 'w')
+    for i in distinctDates:
+        my_pair_file.write(str(i))
+
 
 
 def acquireList():
@@ -76,15 +90,15 @@ def acquiringPair(pairs):
     newPairs = []
     for pair in pairs:
         add = True
-        stocks = pair.getpairs()
+        stocks = pair.get_pairs()
         for stock in stocks:
             if stock in distinctStocks:
                 add = False
         if add == True:
-            distinctStocks.append(stock[0])
-            distinctStocks.append(stock[1])
+            distinctStocks.append(stocks[0])
+            distinctStocks.append(stocks[1])
             newPairs.append(pair)
-
+    return newPairs
 
 def findPairs(stocks, start, end):
     window = 252
@@ -121,7 +135,7 @@ def findPairs(stocks, start, end):
             beta = result.params[1]
             p1 = adfuller(stock1data - beta * stock2data)[1]
             p2 = coint(stock1data, stock2data)[1]
-            if p1 < 0.01 and p2 < 0.01:
+            if p1 < 0.0002 and p2 < 0.0002:
                 p = Pair(stocks[i], stocks[j])
                 pairs.append(p)
     toc = time.perf_counter()
@@ -131,4 +145,4 @@ def findPairs(stocks, start, end):
     return pairs
 
 
-main()
+gettingDistinctDates()

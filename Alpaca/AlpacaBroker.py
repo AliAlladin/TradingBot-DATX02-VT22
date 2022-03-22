@@ -31,53 +31,47 @@ class AlpacaBroker:
             time.sleep(round(time_to_open))
 
     # Function to place a buy order.
-    def buy(self, symbol: str, target_position_size: float, limit_price: float):
+    def buy(self, symbol: str, target_position_size: float):
         try:
-            if target_position_size * limit_price <= self.get_balance:
-                order = self.api.submit_order(
-                    symbol, target_position_size, "buy", "limit", "day", limit_price)
-                print("BUY order for {} {} at {}$ {}".format(order.qty,
-                                                             order.symbol, order.limit_price, order.status))
+            order = self.api.submit_order(
+                symbol, target_position_size, "buy", "market", "day")
 
-                order_info = {
-                    'id': order.id,
-                    'symbol': order.symbol,
-                    'type': order.side,
-                    'qty': float(order.qty),
-                    'time_stamp': order.created_at
-                }
-                return order_info
-            else:
-                print("Can't create BUY order. (Check available balance)")
-        except self.error:
-            print("BUY ERROR")
+            print("BUY order for {} {} {}".format(order.qty,
+                                                  order.symbol, order.status))
+
+            return order.id
+        except Exception as e:
+            print(e)
 
     # Function to place a sell order.
-    def sell(self, symbol: str, target_position_size: float, limit_price: float):
+    def sell(self, symbol: str, target_position_size: float):
         try:
             position = self.get_position(symbol)
             if position is not None and target_position_size <= position["qty"]:
                 order = self.api.submit_order(
-                    symbol, target_position_size, "sell", "limit", "day", limit_price)
-                print("SELL order for {} {} at {}$ {}".format(order.qty,
-                                                              order.symbol, order.limit_price, order.status))
+                    symbol, target_position_size, "sell", "market", "day")
 
-                order_info = {
-                    'id': order.id,
-                    'symbol': order.symbol,
-                    'type': order.side,
-                    'qty': float(order.qty),
-                    'time_stamp': order.created_at
-                }
-                return order_info
+                print("SELL order for {} {} {}".format(order.qty,
+                                                       order.symbol, order.status))
+
+                return order.id
             else:
                 print("Can't create SELL order. (Check symbol and target_position_size)")
-        except self.error:
-            print("SELL ERROR")
+        except Exception as e:
+            print(e)
 
-    def get_orders(self, symbol: str):
-        all_orders = self.all_orders()
-        return all_orders[all_orders['symbol'] == symbol]
+    def get_order(self, id: str):
+        order = self.api.get_order(id)
+
+        order_info = {
+            'id': order.id,
+            'symbol': order.symbol,
+            'type': order.side,
+            'qty': float(order.qty),
+            'filled_at': order.filled_at
+        }
+
+        return order_info
 
     def all_orders(self):
         orders = self.api.list_orders(limit=500)
@@ -106,8 +100,9 @@ class AlpacaBroker:
                 'market_value': float(position.market_value)
             }
             return position_info
-        except self.error:
-            print("Position does not exist")
+        except Exception as e:
+            print(e)
+            return {}
 
     def all_postions(self):
         positions = self.api.list_positions()
@@ -127,6 +122,5 @@ class AlpacaBroker:
 
 
 broker = AlpacaBroker()
-
+# print(broker.short("AAPL", 10))
 print(broker.get_position("AAPL"))
-print(broker.get_orders("AAPL"))

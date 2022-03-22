@@ -45,8 +45,8 @@ def StrategyOne():
             data = bt.feeds.GenericCSVData(
 
                 dataname=CSV_file_path,  # Full path to csv-file
-                fromdate=datetime.datetime(2006, 6, 2, 9, 30, 00),  # Start  date
-                todate=datetime.datetime(2009, 6, 13, 16, 00, 00),  # Ending date
+                fromdate=datetime.datetime(2017, 6, 2, 9, 30, 00),  # Start  date
+                todate=datetime.datetime(2019, 6, 13, 16, 00, 00),  # Ending date
 
                 nullvalue=0.0,  # Used for replacing NaN-values with 0
 
@@ -74,7 +74,8 @@ def StrategyOne():
 
         # Add strategy to Cerebro
         # TODO: allow for strategy switching
-        cerebro.addstrategy(Strategy_pairGen, dict, pairs)
+        todate1=datetime.date(2019, 6, 13)
+        cerebro.addstrategy(Strategy_pairGen, dic=dict, pairs=pairs, distance=2, period=300, invested=10000, todate=todate1)
 
         # Set the commission - 0.1% ... divide by 100 to remove the %
         cerebro.broker.setcommission(commission=0)

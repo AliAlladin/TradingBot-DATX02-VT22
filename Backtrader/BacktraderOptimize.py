@@ -100,7 +100,7 @@ dis = np.linspace(0.5, 3.0, num=2)
 per = range(100,200,100)
 max = max(per)
 #strats = cerebro.optstrategy(Strategy_pairGen, todate = todate1, distance= dis, period=per, maximum = max,invested=100000)
-strats = cerebro.optstrategy(Strategy_fibonacci2,invested=15000,period=range(500,10000,500))
+strats = cerebro.optstrategy(Strategy_fibonacci2,invested=15000,period=range(1000,10000,3000))
 
 # Set the commission - 0.1% ... divide by 100 to remove the %
 cerebro.broker.setcommission(commission=0)

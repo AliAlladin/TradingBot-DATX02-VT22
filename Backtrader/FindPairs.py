@@ -6,80 +6,83 @@ from statsmodels.tsa.stattools import coint
 from statsmodels.tsa.stattools import adfuller
 import matplotlib.pyplot as plt
 import yfinance as yf
-from Pair2 import Pair2 as Pair
+from Pair import Pair
 import time
 from statsmodels.regression.rolling import RollingOLS
+import os
+import sys  # To find out the script name (in argv[0])
+from datetime import timedelta, date
+import math
 
-
-def findPairs(stocks):
-    print(stocks)
-    start = '2017-02-08'
-    end = '2020-02-08'
-    window = 252
-    data = pd.DataFrame()
-    pairs = []
-
-    tic = time.perf_counter()
-    for stock in stocks:
-        prices = yf.download(stock,start,end)
-        data[stock] = prices['Close']
-    toc = time.perf_counter()
-    print('downloading data took ', toc-tic, 'seconds')
-
-
-    tic = time.perf_counter()
-    for i in range(0,len(stocks)):
-        for j in range(0, len(stocks)):
-            if i > j:
-                stock1data = data[stocks[i]]
-                stock2data = data[stocks[j]]
-                '''
-                for k in range(len(stock2data)):
-                    if pd.isna(stock2data[k]) or pd.isna(stock1data[k]):
-                        print(stocks[i],stocks[j])
-                        break;'''
-                result = sm.OLS(stock2data, stock1data).fit()
-                beta = result.params[0]
-                p1 = adfuller((stock2data-beta*stock1data))[1]
-                p2 = coint(stock1data, stock2data)[1]
-                if p1 <0.05 and p2 < 0.05:
-                    p = Pair(stocks[i],stocks[j],p1,p2)
-                    pairs.append(p)
-    toc = time.perf_counter()
-    print('finding pairs took ' , toc - tic , ' seconds')
-    return pairs
-
-
-stocks_Airline = ['UAL','LUV','DAl','ALK','AAL']
-stocks_advertising = ['IPG', 'OMC']
-stocks_defence_aerospace = ['BA','GD', 'HWM', 'HII','LHX','LMT','NOC','RTX','TDY','TXT','TDG']
-stocks_logistics = ['CHRW','EXPD','FDX','UPS']
-stocks_apparel = ['NKE','PVH','RL', 'TPR', 'UAA', 'UA', 'VFC']
-stocks_application_software = ['ADBE','ANSS','ADSK','CDNS','CTXS','INTU', 'NLOK', 'ORCL','PAYC','PTC','CRM','SNPS','TYL']#,'CDAY'
-stocks_matrix = [stocks_Airline,stocks_advertising,stocks_defence_aerospace,stocks_logistics,stocks_apparel,stocks_application_software]
-stocks_all = stocks_Airline+stocks_advertising+stocks_defence_aerospace+stocks_logistics+stocks_apparel +stocks_application_software
-stocks_dj = ['AA','AAPL','AIG','AMGN','AXP','BA','BAC','C','CAT','CRM','CSCO','CVX','DD','DIS','GE','GM','GS','HD',
-             'HON','HPQ','IBM','INTC','JNJ','JPM','KO','MCD','MDLZ','MMM','MO','MRK','MSFT','NKE','PFE','PG','RTX','T','TRV','UNH','V',
-             'VZ','WBA','WMT','XOM']
-
-def run(sample):
-    myPairs = []
-    myPairs=findPairs(sample)
-    myPairsNew = []
-    i=0
-    for p in myPairs:
-        myPairsNew.append(p)
-        i += 1
-        p.printP()
-            #plt.plot(data[p.stock2]-p.beta*data[p.stock1])
-            #plt.show()
-    print('number of pairs ', i)
-    my_pair_file = open('pairs.txt', 'w')
-
-    for pair in myPairs:
-        name1,name2=pair.getStockName()
-        my_pair_file.write(name1+" "+name2+"\n")
+def main():   
+    start = '2005-02-01'
+    end = '2008-02-01'
+    stocks=acquireList()
+    stocks=stocks[0:60]
+    pairs=findPairs(stocks,start,end)
+    my_pair_file = open('Backtrader/Pairs.txt', 'w')
+    for pair in pairs:
+        stock1, stock2=pair.get_pairs()
+        my_pair_file.write(stock1+" "+stock2+ "\n")
     my_pair_file.close()
 
 
-run(stocks_apparel)
+def acquireList():
+    stocks=[]
+    modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
+    directory_in_str = os.path.join(modpath, 'Data/filtered_csv_data/')
+    directory = os.fsencode(directory_in_str)
+    for filename in os.listdir(directory):
+        x=(str(filename))
+        x=x.split('\'')[1]
+        x=x.removesuffix('.csv')
+        if "." in x:
+            y=x.split('.')
+            x=y[0]+"-"+y[1]
+        stocks.append(x)
+    return stocks
+
+def findPairs(stocks,start,end):
+    window = 252
+    data = pd.DataFrame()
+    pairs = []
+    stocksNew=[]
+    tic = time.perf_counter()
+    for i in range(0,len(stocks)):
+        prices = yf.download(stocks[i],start,end)
+        if not prices.empty:
+            firstDayForStock=prices.index[1]
+            firstDayForStock=str(firstDayForStock).split()[0]
+            lastDayForStock=prices.index[-1]
+            lastDayForStock += timedelta(days=1)
+            lastDayForStock=str(lastDayForStock).split()[0]
+            
+            if str(firstDayForStock)==start and lastDayForStock==end:
+                data[stocks[i]]=(prices['Close'])
+                stocksNew.append(stocks[i])
+    toc = time.perf_counter()
+    # print('downloading data took ' , toc-tic , 'seconds')
+    stocks=stocksNew
+    print(len(stocks))
+    tic = time.perf_counter()
+    for i in range(0,len(stocks)):
+        print(i)
+        for j in range(i+1, len(stocks)):
+            stock1data = data[stocks[i]].tolist()
+            stock2data = data[stocks[j]].tolist()
+            stock1data=np.log10(stock1data)
+            stock2data=np.log10(stock2data)
+            result = sm.OLS(stock1data,sm.add_constant(stock2data)).fit()
+            alpha=result.params[0]
+            beta = result.params[1]
+            p1 = adfuller(stock1data-beta*stock2data)[1]
+            p2 = coint(stock1data, stock2data)[1]
+            if p1 <0.01 and p2<0.01:
+                p = Pair(stocks[i],stocks[j])
+                pairs.append(p)
+    toc = time.perf_counter()
+    plt.show()
+    print('finding pairs took ' , toc - tic , ' seconds')
+    print(len(pairs))
+    return pairs
+main()

@@ -16,8 +16,8 @@ import math
 
 def main():   
 
-    start = '2012-02-03'
-    end = '2015-02-03'
+    start = '2011-01-07'
+    end = '2014-01-07'
     stocks=acquireList()
     #stocks=stocks[0:30]
     pairs=findPairs(stocks,start,end)

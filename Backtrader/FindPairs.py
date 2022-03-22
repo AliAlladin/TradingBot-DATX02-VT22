@@ -16,6 +16,7 @@ import math
 import random
 
 def main():   
+<<<<<<< HEAD
     start = '2011-01-01'
     end = '2014-01-01'
     distinctStocks()
@@ -23,8 +24,14 @@ def main():
 '''stocks=acquireList()
     ## stocks=stocks[0:60]
     print(len(stocks))
+=======
+    start = '2005-02-01'
+    end = '2008-02-01'
+    stocks=acquireList()
+    stocks=stocks[0:60]
+>>>>>>> 4e45d38cf1f828a134d65b9c83ba1969fb3f2fde
     pairs=findPairs(stocks,start,end)
-    my_pair_file = open('Data/Pairs.txt', 'w')
+    my_pair_file = open('Backtrader/Pairs.txt', 'w')
     for pair in pairs:
         stock1, stock2=pair.get_pairs()
         my_pair_file.write(stock1+" "+stock2+ "\n")
@@ -82,7 +89,6 @@ def acquiringPair(pairs):
 
 
 def findPairs(stocks,start,end):
-    print(stocks)
     window = 252
     data = pd.DataFrame()
     pairs = []
@@ -103,8 +109,10 @@ def findPairs(stocks,start,end):
     toc = time.perf_counter()
     # print('downloading data took ' , toc-tic , 'seconds')
     stocks=stocksNew
+    print(len(stocks))
     tic = time.perf_counter()
     for i in range(0,len(stocks)):
+        print(i)
         for j in range(i+1, len(stocks)):
             stock1data = data[stocks[i]].tolist()
             stock2data = data[stocks[j]].tolist()
@@ -118,12 +126,6 @@ def findPairs(stocks,start,end):
             if p1 <0.01 and p2<0.01:
                 p = Pair(stocks[i],stocks[j])
                 pairs.append(p)
-                plt.scatter(stock1data,stock2data)
-                max_x = stock2data.max()
-                min_x = stock2data.min()
-                x = np.linspace(min_x,max_x,1000)
-                y = alpha+beta * x 
-                plt.plot(y,x,'r')
     toc = time.perf_counter()
     plt.show()
     print('finding pairs took ' , toc - tic , ' seconds')

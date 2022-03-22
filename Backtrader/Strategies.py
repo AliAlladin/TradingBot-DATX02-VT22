@@ -504,3 +504,12 @@ class Strategy_fibonacci2(bt.Strategy):
                         # We do not longer have a position in the ticker
                         for i in range(self.invested_at_level.get(ticker).count(True)):
                             self.invested_at_level.get(ticker)[i] = False
+
+                # We are in a downtrend, we therefore sell to avoid losing too much money
+                if not uptrend:
+                    if price_now == low and self.invested_at_level.get(ticker).count(True) > 0:
+                        # Sell all stocks, close the position
+                        self.order = self.close(self.datas[self.dic.get(ticker)])
+                        # We do not longer have a position in the ticker
+                        for i in range(self.invested_at_level.get(ticker).count(True)):
+                            self.invested_at_level.get(ticker)[i] = False

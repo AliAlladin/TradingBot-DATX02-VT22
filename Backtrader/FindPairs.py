@@ -13,11 +13,14 @@ import os
 import sys  # To find out the script name (in argv[0])
 from datetime import timedelta, date
 import math
+import random
 
 def main():   
-    start = '2017-02-07'
-    end = '2020-02-08'
-    stocks=acquireList()
+    start = '2011-01-01'
+    end = '2014-01-01'
+    distinctStocks()
+    #tryingOut(start,end)
+'''stocks=acquireList()
     ## stocks=stocks[0:60]
     print(len(stocks))
     pairs=findPairs(stocks,start,end)
@@ -26,7 +29,7 @@ def main():
         stock1, stock2=pair.get_pairs()
         my_pair_file.write(stock1+" "+stock2+ "\n")
     my_pair_file.close()
-
+    '''
 
 def acquireList():
     stocks=[]
@@ -42,6 +45,41 @@ def acquireList():
             x=y[0]+"-"+y[1]
         stocks.append(x)
     return stocks
+
+def tryingOut(start,end):
+    stock='AIG'
+    prices = yf.download(stock,start,end)
+    print(prices)
+
+
+
+def distinctStocks():
+    my_pair_file = open('Backtrader/Pairs.txt', 'r')
+    distinctStocks=[]
+    for i in my_pair_file:
+        for j in i.split():
+            if j not in distinctStocks:
+                distinctStocks.append(j)
+    print(len(distinctStocks))
+    print(distinctStocks)
+
+def acquiringPair(pairs):
+    distinctStocks=[]
+    random.shuffle(pairs)
+    newPairs=[]
+    for pair in pairs:
+        add=True
+        stocks=pair.getpairs()
+        for stock in stocks:
+            if stock in distinctStocks:
+                add=False
+        if add==True:
+            distinctStocks.append(stock[0])
+            distinctStocks.append(stock[1])
+            newPairs.append(pair)
+
+
+
 
 def findPairs(stocks,start,end):
     print(stocks)

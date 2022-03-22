@@ -13,8 +13,8 @@ pd.options.mode.chained_assignment = None
 from Pair import *
 from optimizeStrats import *  # import our first strategy
 
-runstrat = 'fib'
-#runstrat = 'pair'
+#runstrat = 'fib'
+runstrat = 'pair'
 tic = time.perf_counter()
 
 #startcash
@@ -98,7 +98,7 @@ if runstrat == 'pair':
     # Add strategy to Cerebro
     # TODO: allow for strategy switching
     #end date to know when to close positions
-    todate1 = datetime.date(2018, 5, 1)
+    todate1 = datetime.date(2019, 5, 1)
     dis = np.linspace(0.5, 3.0, num=2)
     per = range(100,200,100)
     max = max(per)

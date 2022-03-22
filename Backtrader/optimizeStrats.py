@@ -398,7 +398,8 @@ class Strategy_fibonacci(bt.Strategy):
 class Strategy_fibonacci2(bt.Strategy):
     params = (('invested', None),
               ('period', None),
-              ('dic',{'A': 0, 'AA': 1}),)
+              ('dic',{'A': 0, 'AA': 1}),
+              ('maximum',None))
 
     # "Self" is the bar/line we are on, of the data
     def log(self, txt, dt=None):
@@ -412,6 +413,7 @@ class Strategy_fibonacci2(bt.Strategy):
         # Parameters
         self.invested_amount = self.params.invested  # The amount for which we invest
         self.period = self.params.period  # Period to determine swing high and swing low
+        self.maximum = self.params.maximum
 
         # To store data for each ticker
         self.ratios = [0.382, 0.5, 0.618]  # The Fibonacci ratios
@@ -465,7 +467,7 @@ class Strategy_fibonacci2(bt.Strategy):
             self.myData.get(ticker).append(self.dataclose[self.dic.get(ticker)][0])
 
             # We want the last 'period' of data points, stored in relevant_data
-            if len(self.myData.get(ticker)) > self.period:
+            if len(self.myData.get(ticker)) > self.maximum:
                 relevant_data = self.myData.get(ticker)[-self.period:]
 
                 # We take the prices of the current point and maximum and minimum on the period.

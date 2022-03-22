@@ -13,7 +13,8 @@ pd.options.mode.chained_assignment = None
 from Pair import *
 from optimizeStrats import *  # import our first strategy
 
-
+runstrat = 'fib'
+#runstrat = 'pair'
 tic = time.perf_counter()
 
 #startcash
@@ -92,47 +93,82 @@ for ticker in tickers:
 # Set starting value of portfolio
 cerebro.broker.setcash(startcash)
 
-# Add strategy to Cerebro
-# TODO: allow for strategy switching
-#end date to know when to close positions
-todate1 = datetime.date(2018, 5, 1)
-dis = np.linspace(0.5, 3.0, num=2)
-per = range(100,200,100)
-max = max(per)
-#strats = cerebro.optstrategy(Strategy_pairGen, todate = todate1, distance= dis, period=per, maximum = max,invested=100000)
-strats = cerebro.optstrategy(Strategy_fibonacci2,invested=15000,period=range(1000,10000,3000))
+if runstrat == 'pair':
 
-# Set the commission - 0.1% ... divide by 100 to remove the %
-cerebro.broker.setcommission(commission=0)
+    # Add strategy to Cerebro
+    # TODO: allow for strategy switching
+    #end date to know when to close positions
+    todate1 = datetime.date(2018, 5, 1)
+    dis = np.linspace(0.5, 3.0, num=2)
+    per = range(100,200,100)
+    max = max(per)
+    strats = cerebro.optstrategy(Strategy_pairGen, todate = todate1, distance= dis, period=per, maximum = max,invested=100000)
 
-# Print starting portfolio value
-print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
+    # Set the commission - 0.1% ... divide by 100 to remove the %
+    cerebro.broker.setcommission(commission=0)
 
-# Creates csv files with inquired data. Has to be executed before cerebro.run()
-# "out" specifies the name of the output file. It currently overwrites the same file.
-#cerebro.addwriter(bt.WriterFile, csv=True, out='log.csv')
+    # Print starting portfolio value
+    print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
-# Core method to perform backtesting
+    # Creates csv files with inquired data. Has to be executed before cerebro.run()
+    # "out" specifies the name of the output file. It currently overwrites the same file.
+    #cerebro.addwriter(bt.WriterFile, csv=True, out='log.csv')
 
-# Print final portfolio value
+    # Core method to perform backtesting
 
-cerebro.addsizer(bt.sizers.PercentSizer, percents=10)
-cerebro.addanalyzer(btanalyzers.SharpeRatio, _name="sharpe")
-cerebro.addanalyzer(btanalyzers.DrawDown, _name="drawdown")
-cerebro.addanalyzer(btanalyzers.Returns, _name="returns")
+    # Print final portfolio value
 
-back = cerebro.run(maxcpus = 1)
-print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
+    cerebro.addsizer(bt.sizers.PercentSizer, percents=10)
+    cerebro.addanalyzer(btanalyzers.SharpeRatio, _name="sharpe")
+    cerebro.addanalyzer(btanalyzers.DrawDown, _name="drawdown")
+    cerebro.addanalyzer(btanalyzers.Returns, _name="returns")
+
+    back = cerebro.run(maxcpus = 1)
+    print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
 
-par_list = [[x[0].params.distance,
-             x[0].params.period,
-             x[0].analyzers.returns.get_analysis()['rtot'],
-             x[0].analyzers.drawdown.get_analysis()['max']['drawdown'],
-             x[0].analyzers.sharpe.get_analysis()['sharperatio']
-            ] for x in back]
-par_df = pd.DataFrame(par_list, columns = ['distance', 'period', 'return', 'dd', 'sharpe'])
-#qgrid.show_grid(par_df)
+    par_list = [[x[0].params.distance,
+                 x[0].params.period,
+                 x[0].analyzers.returns.get_analysis()['rtot'],
+                 x[0].analyzers.drawdown.get_analysis()['max']['drawdown'],
+                 x[0].analyzers.sharpe.get_analysis()['sharperatio']
+                ] for x in back]
+    par_df = pd.DataFrame(par_list, columns = ['distance', 'period', 'return', 'dd', 'sharpe'])
+    #qgrid.show_grid(par_df)
+
+else:
+    per = range(4000, 10000, 3000)
+    max = max(per)
+    strats = cerebro.optstrategy(Strategy_fibonacci2, invested=15000, period=per,maximum = max)
+
+    cerebro.broker.setcommission(commission=0)
+
+    # Print starting portfolio value
+    print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
+
+    # Creates csv files with inquired data. Has to be executed before cerebro.run()
+    # "out" specifies the name of the output file. It currently overwrites the same file.
+    # cerebro.addwriter(bt.WriterFile, csv=True, out='log.csv')
+
+    # Core method to perform backtesting
+
+    # Print final portfolio value
+
+    cerebro.addsizer(bt.sizers.PercentSizer, percents=10)
+    cerebro.addanalyzer(btanalyzers.SharpeRatio, _name="sharpe")
+    cerebro.addanalyzer(btanalyzers.DrawDown, _name="drawdown")
+    cerebro.addanalyzer(btanalyzers.Returns, _name="returns")
+
+    back = cerebro.run(maxcpus=1)
+    print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
+
+    par_list = [[x[0].params.period,
+                 x[0].analyzers.returns.get_analysis()['rtot'],
+                 x[0].analyzers.drawdown.get_analysis()['max']['drawdown'],
+                 x[0].analyzers.sharpe.get_analysis()['sharperatio']
+                 ] for x in back]
+    par_df = pd.DataFrame(par_list, columns=['period', 'return', 'dd', 'sharpe'])
+    # qgrid.show_grid(par_df)
 print(par_df)
 toc = time.perf_counter()
 print('running optimize took ' , toc-tic , 'seconds')

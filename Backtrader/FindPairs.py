@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import statsmodels
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import coint
 from statsmodels.tsa.stattools import adfuller
@@ -8,11 +7,9 @@ import matplotlib.pyplot as plt
 import yfinance as yf
 from Pair import Pair
 import time
-from statsmodels.regression.rolling import RollingOLS
 import os
 import sys  # To find out the script name (in argv[0])
-from datetime import timedelta, date
-import math
+from datetime import timedelta
 import random
 
 
@@ -32,7 +29,7 @@ def main():
     store_pairs(pairs, 'Pairs.txt')
 
     # To get a list of pairs where a ticker only appears once
-    distinct_pairs = acquiring_distinct_pairs(pairs)
+    distinct_pairs = create_distinct_pairs(pairs)
 
     # We save these pairs in another .txt-file
     store_pairs(distinct_pairs, 'Pairs1.txt')
@@ -122,35 +119,43 @@ def find_pairs(stocks, start, end):
     return pairs
 
 
-# To store a list of pairs in txtfile
-def store_pairs(pairlist, txtfile):
+# To store a list of pairs in textfile
+def store_pairs(pairlist, textfile):
     # We open the file, write the pairs in the format "Ticker1 Ticker2" and then close it
-    file = open(txtfile, 'w')
+    file = open(textfile, 'w')
     for pair in pairlist:
         stock1, stock2 = pair.get_pairs()
         file.write(stock1 + " " + stock2 + "\n")
     file.close()
 
 
-def acquiring_distinct_pairs(pairs):
-    distinct_stocks = []
+def create_distinct_pairs(pairs):
+    # To avoid affect the pairs by alphabetic order, we shuffle the list of pairs
     random.shuffle(pairs)
-    new_pairs = []
+
+    distinct_pairs = []
+    used_stocks = []  # To keep track of which stocks we have put in our new list
+
+    # For each pair of the old list of pairs, we try to add the pair if none of the two stocks are used.
     for pair in pairs:
-        add = True
-        stocks = pair.get_pairs()
+        can_add = True  # Can we add the pair to the new list? Initially, we expect that we can.
+        stocks = pair.get_pairs()  # get_pairs gives us (stock1, stock2) # TODO: Bad name for a function?
+
         for stock in stocks:
-            if stock in distinctStocks:
-                add = False
-        if add:
-            distinct_stocks.append(stocks[0])
-            distinct_stocks.append(stocks[1])
-            new_pairs.append(pair)
-    return new_pairs
+            if stock in used_stocks:
+                can_add = False  # The stock is already in a pair, we cannot add this par
+
+        if can_add:
+            # We can add the pair, we do so and say that both stocks are already used.
+            distinct_pairs.append(pair)
+            used_stocks.append(stocks[0])
+            used_stocks.append(stocks[1])
+
+    return distinct_pairs
 
 
 # To create a .txt-file of distinct dates
-def getting_distinct_dates():
+def get_distinct_dates():
     # We open a data-file and put all dates in a .txt-file
     data_file = open('Data/filtered_csv_data/A.csv', 'r')
     distinct_dates = []  # A list to keep track of the dates
@@ -168,17 +173,19 @@ def getting_distinct_dates():
         date_file.write(str(i) + "\n")
 
 
-def distinctStocks():
+# To create a list of distinct stocks in a .txt-file of pairs. # TODO: This could probably be removed.
+def get_distinct_stocks():
+    # We open the .txt-file of pairs
     my_pair_file = open('Backtrader/Pairs.txt', 'r')
-    distinctStocks = []
-    for i in my_pair_file:
-        for j in i.split():
-            if j not in distinctStocks:
-                distinctStocks.append(j)
-    print(len(distinctStocks))
-    print(distinctStocks)
+    distinct_stocks = []
+
+    # We go through all stocks in all pairs to see if they have been used before
+    for row in my_pair_file:
+        for stock in row.split():
+            if stock not in distinct_stocks:
+                distinct_stocks.append(stock)
+
+    return distinct_stocks
 
 
-
-
-getting_distinct_dates()
+get_distinct_dates()

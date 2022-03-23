@@ -38,16 +38,18 @@ def main():
     my_pair_file.close()
 
 def gettingDistinctDates():
-    my_pair_file = open('Data/filtered_csv_data/A.csv', 'r')
+    modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
+    datap = os.path.join(modpath, 'Data/filtered_csv_data/A.csv')
+    my_pair_file = open(datap, 'r')
     distinctDates=[]
     for i in my_pair_file:
-        j=i[0]
+        j=i.split()[0]
         if j not in distinctDates:
             distinctDates.append(j)
     my_pair_file.close()
-    my_pair_file = open('DistinctDates', 'w')
+    my_pair_file = open('DistinctDates.txt', 'w')
     for i in distinctDates:
-        my_pair_file.write(str(i))
+        my_pair_file.write(str(i)+ '\n')
 
 
 

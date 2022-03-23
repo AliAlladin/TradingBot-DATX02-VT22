@@ -66,7 +66,7 @@ def StrategyOne():
 
                 openinterest=-1,  # -1 if no such column exists
                 timeframe=bt.TimeFrame.Minutes,
-                compression=60
+                #compression=60
 
             )
             cerebro.adddata(data)
@@ -75,7 +75,7 @@ def StrategyOne():
         # Add strategy to Cerebro
         # TODO: allow for strategy switching
         todate1=datetime.date(2019, 5, 1)
-        cerebro.addstrategy(Strategy_pairGen, dic=dict, pairs=pairs, distance=3, period=100, invested=10000, todate=todate1)
+        cerebro.addstrategy(Strategy_pairGen, dic=dict, pairs=pairs, distance=3, period=100, invested=100000, todate=todate1)
 
         # Set the commission - 0.1% ... divide by 100 to remove the %
         cerebro.broker.setcommission(commission=0)

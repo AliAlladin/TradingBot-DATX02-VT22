@@ -17,7 +17,7 @@ class Strategy_pairGen(bt.Strategy):
     # "Self" is the bar/line we are on, of the data
     def log(self, txt, dt=None):
         # Logging function/output for this strategy{'A': 0, 'AA': 1}
-        dt = dt or self.datas[0].datetime.date(0)
+        dt = dt or self.datas[0].datetime.datetime(0)
         print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):

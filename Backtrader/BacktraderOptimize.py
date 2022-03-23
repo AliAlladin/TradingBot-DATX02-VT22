@@ -85,7 +85,7 @@ for ticker in tickers:
 
         openinterest=-1,  # -1 if no such column exists
         timeframe=bt.TimeFrame.Minutes,
-        compression=60
+        #compression=1
 
     )
     cerebro.adddata(data)

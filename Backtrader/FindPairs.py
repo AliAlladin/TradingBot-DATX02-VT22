@@ -22,6 +22,9 @@ def main():
     # To acquire a list of stocks from our folder 'filtered_csv_data'
     stocks = acquire_stocks()
 
+    # Returns a list of distinct_stocks
+    # get_distinct_stocks()
+
     # To find pairs from a list of stocks in the period [start, end]
     pairs = find_pairs(stocks, start, end)
 
@@ -60,7 +63,6 @@ def acquire_stocks():
 
 # To find pairs in the interval [start, end]
 def find_pairs(stocks, start, end):
-    # TODO: Write an appropriate comment here
     data = pd.DataFrame()
 
     pairs = []  # An initially empty list of pairs
@@ -108,7 +110,7 @@ def find_pairs(stocks, start, end):
             p2 = coint(stock1data, stock2data)[1]
 
             # If the p-values are lower than the significance level, they are a pair
-            sig = 0.0002
+            sig = 0.45
             if p1 < sig and p2 < sig:
                 p = Pair(stocks[i], stocks[j])
                 pairs.append(p)
@@ -173,7 +175,8 @@ def get_distinct_dates():
         date_file.write(str(i) + "\n")
 
 
-# To create a list of distinct stocks in a .txt-file of pairs. # TODO: This could probably be removed.
+# TODO: This could probably be removed.
+# To create a list of distinct stocks in a .txt-file of pairs.
 def get_distinct_stocks():
     # We open the .txt-file of pairs
     my_pair_file = open('Backtrader/Pairs.txt', 'r')
@@ -188,4 +191,4 @@ def get_distinct_stocks():
     return distinct_stocks
 
 
-get_distinct_dates()
+main()

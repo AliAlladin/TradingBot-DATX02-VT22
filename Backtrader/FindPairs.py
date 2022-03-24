@@ -110,7 +110,7 @@ def find_pairs(stocks, start, end):
             p2 = coint(stock1data, stock2data)[1]
 
             # If the p-values are lower than the significance level, they are a pair
-            sig = 0.45
+            sig = 0.65
             if p1 < sig and p2 < sig:
                 p = Pair(stocks[i], stocks[j])
                 pairs.append(p)

@@ -175,7 +175,6 @@ def get_distinct_dates():
         date_file.write(str(i) + "\n")
 
 
-# TODO: This could probably be removed.
 # To create a list of distinct stocks in a .txt-file of pairs.
 def get_distinct_stocks():
     # We open the .txt-file of pairs

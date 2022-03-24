@@ -8,8 +8,8 @@ import datetime
 class Strategy_pairGen(bt.Strategy):
     params = (('distance',None),
               ('period',None),
-              ('dic',{'A': 0, 'AA': 1}),
-              ('pairs',[Pair('A','AA')]),
+              ('dic',{'AIG': 0, 'SYK': 1, 'JWN': 2, 'ODFL': 3, 'L':4, 'NTRS': 5, 'EL': 6, 'TSCO': 7, 'ADI': 8, 'HON': 9, 'SLM': 10, 'SRCL': 11, 'CCI': 12, 'EBAY': 13, 'GM': 14, 'MS': 15, 'MHK': 16, 'TRV': 17, 'CVX': 18, 'IP': 19}),
+              ('pairs',[Pair('AIG','SYK'), Pair('JWN','ODFL'),Pair('L','NTRS'),Pair('EL','TSCO'),Pair('ADI','HON'),Pair('SLM','SRCL'),Pair('CCI','EBAY'),Pair('GM','MS'),Pair('MHK','TRV'),Pair('CVX','IP')]),
               ('todate', None),
               ('maximum',None),
               ('invested',None))

@@ -15,7 +15,7 @@ import random
 
 # To find pairs in a specific interval
 def main():
-    # Date of start and end. Observe that it must be a day when the market is open
+    # Date of start and end. Observe that it must be a day when the market is open.
     start = '2011-01-07'
     end = '2014-01-07'
 

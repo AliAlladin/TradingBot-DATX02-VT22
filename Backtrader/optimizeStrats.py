@@ -121,7 +121,7 @@ class Strategy_pairGen(bt.Strategy):
         if newPotentialDate != self.oldDate:
             self.oldDate = newPotentialDate
             for ticker in self.myData.keys():
-                self.myData.get(ticker).append(self.dataclose[self.dic.get(ticker)][0])
+                self.myData.get(ticker).append(self.dataclose[self.dic.get(ticker)][-1])
 
         # We go through each pair
         for pair in self.pairs:

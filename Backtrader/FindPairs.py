@@ -17,8 +17,8 @@ import random
 
 
 def main():
-    start = '2011-01-07'
-    end = '2014-01-07'
+    start = '2014-01-07'
+    end = '2017-01-07'
     #distinctStocks()
     # tryingOut(start,end)
     stocks=acquireList()
@@ -147,4 +147,4 @@ def findPairs(stocks, start, end):
     return pairs
 
 
-gettingDistinctDates()
+main()

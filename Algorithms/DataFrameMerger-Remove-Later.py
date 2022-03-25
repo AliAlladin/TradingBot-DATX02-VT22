@@ -12,7 +12,7 @@ AA = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Al
 AMZN = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/AMZN.csv'), sep=",")
 AAPL = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/AAPL.csv'), sep=",")
 
-frames = [A.Close, AA.Close, AMZN.Close, AAPL.Close]
+frames = [A.Date, A.Close, AA.Close, AMZN.Close, AAPL.Close]
 
 result = pd.concat(frames)
 # display(result)
@@ -20,7 +20,7 @@ data_df = pd.concat(
     frames,
     axis=1,
     join='inner',
-    keys=['A', 'AA', 'AMZN', 'AAPL'],
+    keys=['Date','A', 'AA', 'AMZN', 'AAPL'],
 )
 
 data_df.to_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/hist_data.csv'), index=False, )

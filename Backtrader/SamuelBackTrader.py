@@ -14,14 +14,12 @@ def main():
 
 
 def StrategyOne():
-    # Instantiate Cerebro engine. This is the main control center / brain
-    cerebro = bt.Cerebro()
+    strat='Strategy_pairGen'
+    cerebro = bt.Cerebro() # Instantiate Cerebro engine. This is the main control center / brain
 
-    # Individual os paths
-    modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
+    modpath = os.path.dirname(os.path.dirname(sys.argv[0])) # Individual os paths
 
-    # The data of pairs comes from Pairs.txt which we read
-    datap = os.path.join(modpath, 'Backtrader/Pairs.txt')
+    datap = os.path.join(modpath, 'Backtrader/Pairs.txt') # The data of pairs comes from Pairs.txt which we read
     my_pair_file = open(datap, 'r')
 
     endValueForEachPair=[]
@@ -30,49 +28,24 @@ def StrategyOne():
     # We go through Pairs.txt to add all tickers and Pairs
     for line in my_pair_file:
         pairs = []  # A list of Pairs (see Pair.py)
-        tickers = []  # A list of tickers
-        dict = {}  # Dictionary to store tickers as keys and an integer value that separates the tickers.
-        i = 0  # A variable to work as a counter of the integer value
         stocks = line.split()
         cerebro = bt.Cerebro()
         pairs.append(Pair(stocks[0], stocks[1]))
 
         for ticker in stocks:
             add_data(ticker,cerebro)
-        cerebro.broker.setcash(100000.0)
-
-        # Add strategy to Cerebro
-        todate1=datetime.date(2019, 5, 1)
-        cerebro.addstrategy(Strategy_pairGen, dic=dict, pairs=pairs, distance=3, period=100, invested=100000, todate=todate1)
-
-        # Set the commission - 0.1% ... divide by 100 to remove the %
-        cerebro.broker.setcommission(commission=0)
-
-        # Print starting portfolio value
-        print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
-        print(pairs[0].get_pairs())
-
-        # Creates csv files with inquired data. Has to be executed before cerebro.run()
-        # "out" specifies the name of the output file. It currently overwrites the same file.
-        cerebro.addwriter(bt.WriterFile, csv=True, out='log.csv')
-
-        # Core method to perform backtesting
-        cerebro.run()
-
-        # Print final portfolio value
-        print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
-
-        # To plot the trades
-        try: 
-            cerebro.plot()
-        except IndexError:
-            print('prob length 0')
-        endValueForEachPair.append(cerebro.broker.getvalue())
+        endValueForEachPair.append(run(cerebro,strat))
     total_portfolio_value=sum(endValueForEachPair)-len(endValueForEachPair)*100000
 
 def Strategy2():
-    print('hej')
-
+    endValueForEachStock=[]
+    strat='Strategy_fibonacci'
+    my_stock_file = open('Stocks.txt', 'r')
+    cerebro = bt.Cerebro()
+    for stock in my_stock_file:
+        add_data(cerebro, stock)
+        endValueForEachStock.append(run(cerebro, strat))
+    total_portfolio_value=sum(endValueForEachStock)-len(endValueForEachStock)*100000
 
 def add_data(stock,cerebro):
     modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
@@ -126,5 +99,24 @@ def creating_file_with_stocks():
         my_pair_file.write(i+ "\n")
     my_pair_file.close()
 
+def run(cerebro, strat):
+    cerebro.broker.setcash(100000.0)
+    todate1=datetime.date(2019, 5, 1)
+    cerebro.addstrategy(Strategy_pairGen, dic=dict, pairs=pairs, distance=3, period=100, invested=100000, todate=todate1)
+    cerebro.broker.setcommission(commission=0)  # Set the commission - 0.1% ... divide by 100 to remove the %
 
-#main()
+    print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue()) # Print starting portfolio value
+
+    # Creates csv files with inquired data. Has to be executed before cerebro.run()
+    # "out" specifies the name of the output file. It currently overwrites the same file.
+    cerebro.addwriter(bt.WriterFile, csv=True, out='log.csv')
+
+    cerebro.run() # Core method to perform backtesting
+    print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue()) # Print final portfolio value
+
+    try: 
+        cerebro.plot() # To plot the trades
+    except IndexError:
+        print('prob length 0')
+    return cerebro.broker.getvalue()
+main()

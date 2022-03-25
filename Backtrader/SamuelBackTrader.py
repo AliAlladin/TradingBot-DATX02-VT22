@@ -1,11 +1,8 @@
 import datetime
 import os
 import sys  # To find out the script name (in argv[0])
-
 import pandas as pd
-
 pd.options.mode.chained_assignment = None
-
 from Pair import *
 from Strategies import *  # import our first strategy
 def main():
@@ -102,8 +99,11 @@ def creating_file_with_stocks():
 def run(cerebro, strat):
     cerebro.broker.setcash(100000.0)
     todate1=datetime.date(2019, 5, 1)
-    cerebro.addstrategy(Strategy_pairGen, dic=dict, pairs=pairs, distance=3, period=100, invested=100000, todate=todate1)
     cerebro.broker.setcommission(commission=0)  # Set the commission - 0.1% ... divide by 100 to remove the %
+    if strat=='Strategy_pairGen':
+        cerebro.addstrategy(strat, distance=3, period=100, invested=100000, todate=todate1)
+    else:
+        cerebro.addstrategy(Strategy_fibonacci, distance=3, period=100, invested=100000, todate=todate1)
 
     print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue()) # Print starting portfolio value
 
@@ -119,4 +119,5 @@ def run(cerebro, strat):
     except IndexError:
         print('prob length 0')
     return cerebro.broker.getvalue()
+
 main()

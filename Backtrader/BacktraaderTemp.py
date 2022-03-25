@@ -156,4 +156,29 @@ def Strategy2():
     print('hej')
 
 
-main()
+
+
+def creating_file_with_stocks():
+    stocks = []
+    modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
+    directory_in_str = os.path.join(modpath, 'Data/filtered_csv_data/')
+    directory = os.fsencode(directory_in_str)
+    for filename in os.listdir(directory):
+        x = (str(filename))
+        x = x.split('\'')[1]
+        x = x.removesuffix('.csv')
+        if "." in x:
+            y = x.split('.')
+            x = y[0] + "-" + y[1]
+        stocks.append(x)
+    my_pair_file = open('Stocks.txt', 'w')
+    for i in stocks:  
+        my_pair_file.write(i+ "\n")
+    my_pair_file.close()
+
+
+
+
+creating_file_with_stocks()
+
+#main()

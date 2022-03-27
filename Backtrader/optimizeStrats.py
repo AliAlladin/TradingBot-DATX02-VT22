@@ -8,8 +8,8 @@ import datetime
 class Strategy_pairGen(bt.Strategy):
     params = (('distance',None),
               ('period',None),
-              ('dic',{'AIG': 0, 'SYK': 1, 'JWN': 2, 'ODFL': 3, 'L':4, 'NTRS': 5, 'EL': 6, 'TSCO': 7, 'ADI': 8, 'HON': 9, 'SLM': 10, 'SRCL': 11, 'CCI': 12, 'EBAY': 13, 'GM': 14, 'MS': 15, 'MHK': 16, 'TRV': 17, 'CVX': 18, 'IP': 19}),
-              ('pairs',[Pair('AIG','SYK'), Pair('JWN','ODFL'),Pair('L','NTRS'),Pair('EL','TSCO'),Pair('ADI','HON'),Pair('SLM','SRCL'),Pair('CCI','EBAY'),Pair('GM','MS'),Pair('MHK','TRV'),Pair('CVX','IP')]),
+              ('dic',{'AYI': 0, 'FBHS': 1, 'APD': 2, 'DLX': 3, 'HON':4, 'SYK': 5, 'CLX': 6, 'DISCA': 7, 'ALLE': 8, 'AOS': 9, 'D': 10, 'UPS': 11, 'LLY': 12, 'TEX': 13, 'ANSS': 14, 'HOLX': 15, 'FLS': 16, 'RYAAY': 17, 'AMP': 18, 'DISH': 19}),
+              ('pairs',[Pair('AYI','FBHS'), Pair('APD','DLX'),Pair('HON','SYK'),Pair('CLX','DISCA'),Pair('ALLE','AOS'),Pair('D','UPS'),Pair('LLY','TEX'),Pair('ANSS','HOLX'),Pair('FLS','RYAAY'),Pair('AMP','DISH')]),
               ('todate', None),
               ('maximum',None),
               ('invested',None))

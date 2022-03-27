@@ -12,13 +12,15 @@ from statsmodels.regression.rolling import RollingOLS
 import os
 import sys  # To find out the script name (in argv[0])
 from datetime import timedelta, date
+import datetime
+
 import math
 import random
 
 
 def main():
-    start = '2014-01-07'
-    end = '2017-01-07'
+    start = '2019-03-22'
+    end = '2022-03-22'
     #distinctStocks()
     # tryingOut(start,end)
     stocks=acquireList()
@@ -146,5 +148,37 @@ def findPairs(stocks, start, end):
     print(len(pairs))
     return pairs
 
+def in_csv_file(start):
 
-main()
+    my_pair_file = open('Pairs.txt', 'r')
+    priority_list=[]
+    not_priority=[]
+    for i in my_pair_file:
+        priority=True
+        x=i.split()
+        for j in x:
+            modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
+            datap = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(j)
+            csv_file = open(datap, 'r')
+            a=csv_file.readlines()[1]
+            date=a.split()[0]
+            date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+            if date>start:
+                priority=False
+            csv_file.close()
+
+        if priority:
+            priority_list.append(Pair(x[0], x[1]))
+        else:
+            not_priority.append(Pair(x[0], x[1]))
+    priority_list = acquiringPair(priority_list)
+    not_priority = acquiringPair(not_priority)
+    my_pair_file.close()
+    my_pair_file = open('Pairs2.txt', 'w')
+    total_list=priority_list+not_priority
+    for i in total_list:
+        stock1 , stock2 = i.get_pairs()
+        my_pair_file.write(stock1+ ' '+ stock2 +'\n')
+
+start=datetime.date(2014, 6, 9)
+in_csv_file(start)

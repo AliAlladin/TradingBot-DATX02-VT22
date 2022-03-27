@@ -20,20 +20,17 @@ def main():
     start = '2011-01-07'
     end = '2014-01-07'
 
-    # To acquire a list of stocks from our folder 'filtered_csv_data'
-    stocks = acquire_stocks()
+    stocks = acquire_stocks() # To acquire a list of stocks from our folder 'filtered_csv_data'
 
     # Returns a list of distinct_stocks
     # get_distinct_stocks()
 
-    # To find pairs from a list of stocks in the period [start, end]
-    pairs = find_pairs(stocks, start, end)
+    pairs = find_pairs(stocks, start, end) # To find pairs from a list of stocks in the period [start, end]
 
     # To write all the pairs in a .txt-file
     store_pairs(pairs, 'Pairs.txt')
 
-    # To get a list of pairs where a ticker only appears once
-    distinct_pairs = create_distinct_pairs(pairs)
+    distinct_pairs = create_distinct_pairs(pairs) # To get a list of pairs where a ticker only appears once
 
     # We save these pairs in another .txt-file
     store_pairs(distinct_pairs, 'Pairs1.txt')

@@ -11,6 +11,7 @@ import os
 import sys  # To find out the script name (in argv[0])
 from datetime import timedelta
 import random
+import datetime
 
 
 # To find pairs in a specific interval
@@ -190,4 +191,36 @@ def get_distinct_stocks():
     return distinct_stocks
 
 
-main()
+
+def in_csv_file(start):
+
+    my_pair_file = open('Backtrader/Pairs.txt', 'r')
+    priority_list=[]
+    not_priority=[]
+    for i in my_pair_file:
+        priority=True
+        x=i.split()
+        for j in x:        
+            modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
+            datap = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(j)
+            csv_file = open(datap, 'r')
+            a=csv_file.readlines()[1]
+            date=a.split()[0]
+            date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+            if date>start:
+                priority=False
+            csv_file.close()
+
+        if priority:
+            priority_list.append(x[0]+" "+x[1])
+        else:
+            not_priority.append(x[0]+" "+x[1])  
+    my_pair_file.close()
+    my_pair_file = open('Pairs2.txt', 'w')
+    total_list=priority_list+not_priority
+    for i in total_list:
+        my_pair_file.write(i)
+
+start=datetime.date(2010, 1, 1)
+in_csv_file(start)
+

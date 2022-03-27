@@ -4,7 +4,7 @@ import sys  # To find out the script name (in argv[0])
 import pandas as pd
 pd.options.mode.chained_assignment = None
 from Pair import *
-from Strategies import *  # import our first strategy
+from samuelStrategy import *  # import our first strategy
 def main():
     StrategyOne()
     #StrategyTwo()
@@ -33,15 +33,16 @@ def StrategyOne():
             add_data(ticker,cerebro)
         endValueForEachPair.append(run(cerebro,strat))
     total_portfolio_value=sum(endValueForEachPair)-len(endValueForEachPair)*100000
+    print(total_portfolio_value)
 
 def Strategy2():
     endValueForEachStock=[]
     strat='Strategy_fibonacci'
     my_stock_file = open('Stocks.txt', 'r')
-    cerebro = bt.Cerebro()
     for stock in my_stock_file:
+        cerebro = bt.Cerebro()
         add_data(cerebro, stock)
-        endValueForEachStock.append(run(cerebro, strat))
+        run(cerebro, strat)
     total_portfolio_value=sum(endValueForEachStock)-len(endValueForEachStock)*100000
 
 def add_data(stock,cerebro):
@@ -51,7 +52,7 @@ def add_data(stock,cerebro):
     data = bt.feeds.GenericCSVData(
 
         dataname=CSV_file_path,  # Full path to csv-file
-        fromdate=datetime.datetime(2017, 4, 1, 9, 30, 00),  # Start  date
+        fromdate=datetime.datetime(2015, 9, 1, 9, 30, 00),  # Start  date
         todate=datetime.datetime(2019, 5, 1, 16, 00, 00),  # Ending date
 
         nullvalue=0.0,  # Used for replacing NaN-values with 0
@@ -101,9 +102,10 @@ def run(cerebro, strat):
     todate1=datetime.date(2019, 5, 1)
     cerebro.broker.setcommission(commission=0)  # Set the commission - 0.1% ... divide by 100 to remove the %
     if strat=='Strategy_pairGen':
-        cerebro.addstrategy(strat, distance=3, period=100, invested=100000, todate=todate1)
+        todate1=datetime.date(2019, 5, 1)
+        cerebro.addstrategy(Strategy_pairGen, distance=1, period=500, invested=10000, todate=todate1,stock1='A', stock2='AA')
     else:
-        cerebro.addstrategy(Strategy_fibonacci, distance=3, period=100, invested=100000, todate=todate1)
+        cerebro.addstrategy(strat, distance=3, period=100, invested=100000, todate=todate1)
 
     print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue()) # Print starting portfolio value
 

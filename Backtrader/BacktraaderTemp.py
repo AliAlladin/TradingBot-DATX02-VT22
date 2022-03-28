@@ -156,8 +156,6 @@ def Strategy2():
     print('hej')
 
 
-
-
 def creating_file_with_stocks():
     stocks = []
     modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
@@ -179,6 +177,6 @@ def creating_file_with_stocks():
 
 
 
-creating_file_with_stocks()
+#creating_file_with_stocks()
 
-#main()
+main()

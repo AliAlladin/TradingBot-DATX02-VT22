@@ -1,5 +1,4 @@
 import psycopg2
-import pandas as pd
 
 # setup databas
 DB_HOST = "abul.db.elephantsql.com"
@@ -82,9 +81,9 @@ def sqlUpdatePrice(stockTicker: str, price: float):
     cursor.execute(query)
     conn.commit()
 
+
 def sqlGetAllPrice():
     postgreSQL_select_Query = "select * from Prices"
     cursor.execute(postgreSQL_select_Query)
     print("Selecting rows from prices table using cursor.fetchall")
     return cursor.fetchall()
-

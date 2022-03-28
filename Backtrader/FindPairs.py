@@ -217,18 +217,15 @@ def in_csv_file(start):
             csv_file.close()
 
         if priority:
-            priority_list.append(stocks[0] + " " + stocks[1])
+            priority_list.append(Pair(stocks[0], stocks[1]))
         else:
-            not_priority.append(stocks[0] + " " + stocks[1])
+            not_priority.append(Pair(stocks[0], stocks[1]))
 
     my_pair_file.close()
 
-    # We write the sorted list to a .txt-file
-    sorted_file = open('Pairs2.txt', 'w')
+    # We write the sorted list of pairs to a .txt-file
     total_list = priority_list + not_priority
-    for pair in total_list:
-        sorted_file.write(pair)
-    sorted_file.close()
+    store_pairs(total_list, 'Pairs2.txt')
 
 
 start_time = datetime.date(2010, 1, 1)

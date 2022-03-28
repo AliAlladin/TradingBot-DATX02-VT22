@@ -7,7 +7,8 @@ Assuming that the input data consists of 1 dataframe w/ the columns: "Date" and 
 respective closing prices for each date
 '''
 
-market_data = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/hist_data.csv'))
+# This data is to be provided by the database.
+market_data = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/tempData.csv'))
 
 
 class FibonacciStrategy:
@@ -41,33 +42,14 @@ class FibonacciStrategy:
         for col in self.invested_levels.columns:
             self.invested_levels[col].values[:] = False
 
-    def go(self):
-
-        # for level in self.ratios:
-        # print(level)
-
-        # print(self.invested_levels)
-
-        # print(self.invested_levels.loc[0.5]['A'])
-
-        # self.invested_levels.loc[0.5]['A'] = True
-
-        # print(self.invested_levels)
-
-        # for m in range(len(self.ratios)):
-        # ratio = self.ratios[m]
-        # print(ratio)
-
-        relevantData = self.data[['Date', 'A']][-self.period:].copy()
-        #print(new)
-
     def run(self):
+        fibonacci_levels = []
         uptrend = False
 
-        for i in range(len(self.data - 1)):
+        for i in range(1, (len(self.data.columns))):
 
             # Extracts ticker data for a specific period into a dataframe
-            relevantData = self.data[['Date', 'A']][-self.period:].copy()
+            relevantData = self.data[['Date', self.data.columns[i]]][-self.period:].copy()
             ticker = relevantData.columns[1]
 
             price_now = relevantData.iloc[-1, 1]  # Latest data point/closing price
@@ -85,7 +67,7 @@ class FibonacciStrategy:
 
             # If we are in an uptrend, we want to buy the stocks at drawbacks (Fibonacci supports).
             if uptrend:
-                for m in range(len(self.ratios)):
+                for m in range(len(self.ratios) - 1):
 
                     ratio = self.ratios[m]
 
@@ -102,7 +84,7 @@ class FibonacciStrategy:
                         # We do not want to buy on consecutive days, so we say that we have invested at this level
                         self.invested_levels.loc[ratio][ticker] = True
 
-                # WHEN TO SELL? We sell when the stock price is at a new high on the period
+                # We sell when the stock price is at a new high on the period
                 if price_now == date_high[1]:
                     if True in self.invested_levels.values:
                         # Sell all stocks, close the position
@@ -112,7 +94,8 @@ class FibonacciStrategy:
                         })
 
                         # We do no longer have a position in the ticker
-                        self.invested_levels.loc[0] = [False for _ in range(len(self.ratios))]
+                        for n in range(len(self.ratios)):
+                            self.invested_levels.loc[self.ratios[n]][ticker] = False
 
             if not uptrend:
                 if price_now == date_low[1]:
@@ -124,11 +107,10 @@ class FibonacciStrategy:
                         })
 
                         # We do no longer have a position in the ticker
-                        self.invested_levels.loc[0] = [False for _ in range(len(self.ratios))]
+                        for n in range(len(self.ratios)):
+                            self.invested_levels.loc[self.ratios[n]][ticker] = False
 
 
-# --------------------------------------
-
+# ----------------------------------------------------------------------------------------------------------------------
 k = FibonacciStrategy(market_data)
-k.go()
-# k.run()
+k.run()

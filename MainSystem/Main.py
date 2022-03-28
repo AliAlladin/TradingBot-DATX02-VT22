@@ -47,7 +47,7 @@ def main():
             latest_price = pd.DataFrame({'Symbol': ['AMZN', 'AA', 'AAPL', 'A'], 'Price': [
                                         2837.06, 73.50, 150.62, 127.58]})
             hist_data = pd.read_csv(os.path.join(os.path.dirname(
-                os.path.dirname(sys.argv[0])), 'Data/hist_data.csv'))
+                os.path.dirname(sys.argv[0])), 'Data/tempData.csv'))
             # ----------------------------------------------------------------------------------------------------------------------
 
             strategy.run(latest_price, hist_data)
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
     # # Queried historical daily bar data
     # hist_data = pd.read_csv(os.path.join(os.path.dirname(
-    #     os.path.dirname(sys.argv[0])), 'Data/hist_data.csv'))
+    #     os.path.dirname(sys.argv[0])), 'Data/tempData.csv'))
     # # ----------------------------------------------------------------------------------------------------------------------
 
     # '''

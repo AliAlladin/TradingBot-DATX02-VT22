@@ -42,7 +42,7 @@ def Strategy2():
     for stock in my_stock_file:
         cerebro = bt.Cerebro()
         add_data(cerebro, stock)
-        run(cerebro, strat)
+        endValueForEachStock.append(run(cerebro, strat))
     total_portfolio_value=sum(endValueForEachStock)-len(endValueForEachStock)*100000
 
 def add_data(stock,cerebro):

@@ -49,8 +49,7 @@ def insertAndCommitQuery(stockTicker: str, price: float, query: str):
 
 
 def sqlBuy(stockTicker: str, price: float):
-    query = "INSERT INTO Buy VALUES (DEFAULT,a1,current_timestamp ,a2,a3)"
-    query = query.replace('a3', "\'" + 'Active ' + "\'")
+    query = "INSERT INTO Buy VALUES (DEFAULT,a1,current_timestamp ,a2)"
     insertAndCommitQuery(stockTicker, price, query)
 
 
@@ -62,8 +61,7 @@ def sqlSell(stockTicker: str, price: float):
 
 # inserts into blank
 def sqlBlank(stockTicker: str, price: float):
-    query = "INSERT INTO Blank VALUES (DEFAULT,a1,current_timestamp ,a2,a3)"
-    query = query.replace('a3', "\'" + 'Active ' + "\'")
+    query = "INSERT INTO Blank VALUES (DEFAULT,a1,current_timestamp ,a2)"
     insertAndCommitQuery(stockTicker, price, query)
 
 
@@ -84,7 +82,9 @@ def sqlUpdatePrice(stockTicker: str, price: float):
     cursor.execute(query)
     conn.commit()
 
-
-# Artin fixa detta idk vad jag gjort
 def sqlGetAllPrice():
-    sql_query = pd.read_sql_query("Select * FROM Prices")
+    postgreSQL_select_Query = "select * from Prices"
+    cursor.execute(postgreSQL_select_Query)
+    print("Selecting rows from prices table using cursor.fetchall")
+    return cursor.fetchall()
+

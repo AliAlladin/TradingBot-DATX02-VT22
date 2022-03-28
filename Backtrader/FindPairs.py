@@ -104,7 +104,7 @@ def find_pairs(stocks, start, end):
             beta = result.params[1]
 
             # We make use of the Augmented Dickey-Fuller test to check for co-integration.
-            p1 = adfuller(stock1data - beta * stock2data)[1]  # TODO: [1] might be unnecessary
+            p1 = adfuller(stock1data - beta * stock2data)[1]
             p2 = coint(stock1data, stock2data)[1]
 
             # If the p-values are lower than the significance level, they are a pair
@@ -114,7 +114,7 @@ def find_pairs(stocks, start, end):
                 pairs.append(p)
     toc = time.perf_counter()
 
-    plt.show()  # TODO: To show the regressions, might be removed
+    plt.show()
     print('finding pairs took ', toc - tic, ' seconds')
     return pairs
 
@@ -162,7 +162,7 @@ def get_distinct_dates():
 
     # Looping through the data file and append our distinct dates
     for row in data_file:
-        date = row[0]  # TODO: Does this really give the date and not the datetime?
+        date = row[0]
         if date not in distinct_dates:
             distinct_dates.append(date)
     data_file.close()
@@ -188,36 +188,45 @@ def get_distinct_stocks():
     return distinct_stocks
 
 
-
+# To check if the files contain the correct starting time.
+# The function will store the pairs as [priority, not priority] where priority is a list of stocks with the
+# correct start date
 def in_csv_file(start):
 
     my_pair_file = open('Backtrader/Pairs.txt', 'r')
-    priority_list=[]
-    not_priority=[]
-    for i in my_pair_file:
-        priority=True
-        x=i.split()
-        for j in x:        
+    priority_list = []
+    not_priority = []
+
+    for pair in my_pair_file:
+        priority = True  # We assume that the date exists
+        stocks = pair.split()
+        for j in stocks:
+            # The path to find the stock
             modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
             datap = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(j)
+
+            # We open the stocks file and read the second line, which contains the first date.
             csv_file = open(datap, 'r')
-            a=csv_file.readlines()[1]
-            date=a.split()[0]
+            line = csv_file.readlines()[1]
+            date = line.split()[0]
             date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
-            if date>start:
-                priority=False
+
+            # If the start of the .csv-file is later than our starting point for a stock, the pair is not prioritized
+            if date > start:
+                priority = False
             csv_file.close()
 
         if priority:
-            priority_list.append(x[0]+" "+x[1])
+            priority_list.append(Pair(stocks[0], stocks[1]))
         else:
-            not_priority.append(x[0]+" "+x[1])  
+            not_priority.append(Pair(stocks[0], stocks[1]))
+
     my_pair_file.close()
-    my_pair_file = open('Pairs2.txt', 'w')
-    total_list=priority_list+not_priority
-    for i in total_list:
-        my_pair_file.write(i)
 
-start=datetime.date(2010, 1, 1)
-in_csv_file(start)
+    # We write the sorted list of pairs to a .txt-file
+    total_list = priority_list + not_priority
+    store_pairs(total_list, 'Pairs2.txt')
 
+
+start_time = datetime.date(2010, 1, 1)
+in_csv_file(start_time)

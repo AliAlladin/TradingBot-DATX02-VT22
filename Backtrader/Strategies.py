@@ -11,7 +11,7 @@ class Strategy_pairGen(bt.Strategy):
               ('dic', None),
               ('pairs', None),
               ('todate', None),
-              ('invested',None),)
+              ('invested', None),)
 
 
     # "Self" is the bar/line we are on, of the data

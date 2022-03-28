@@ -3,7 +3,7 @@ import os
 import sys  # To find out the script name (in argv[0])
 
 import pandas as pd
-
+import random
 pd.options.mode.chained_assignment = None
 
 from Pair import *
@@ -164,19 +164,19 @@ def StrategyTwo():
     my_pair_file = open(datap, 'r')
 
     endValueForEachPair=[]
-
+    dic={}
+    dic['A']=0
+    dic['AA']=1
     
     # We go through Pairs.txt to add all tickers and Pairs
     for line in my_pair_file:
         stock=line.split()[0]
-        dic={}
-        dic[stock]=0
         CSV_file_path = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(stock)  # Full path to csv-file
         data = bt.feeds.GenericCSVData(
 
             dataname=CSV_file_path,  # Full path to csv-file
-            fromdate=datetime.datetime(2013, 4, 1, 9, 30, 00),  # Start  date
-            todate=datetime.datetime(2016, 5, 1, 16, 00, 00),  # Ending date
+            fromdate=datetime.datetime(2018, 4, 1, 9, 30, 00),  # Start  date
+            todate=datetime.datetime(2020, 5, 1, 16, 00, 00),  # Ending date
 
             nullvalue=0.0,  # Used for replacing NaN-values with 0
 
@@ -200,34 +200,34 @@ def StrategyTwo():
 
         )
         cerebro.adddata(data)
-        cerebro.broker.setcash(100000.0)
+    cerebro.broker.setcash(100000.0)
 
         # Add strategy to Cerebro
         # TODO: allow for strategy switching
-        cerebro.addstrategy(Strategy_fibonacci2, dic=dic, period=30, invested=1000)
+    cerebro.addstrategy(Strategy_fibonacci2, dic=dic, period=60, invested=1000, max=60)
 
         # Set the commission - 0.1% ... divide by 100 to remove the %
-        cerebro.broker.setcommission(commission=0)
+    cerebro.broker.setcommission(commission=0)
 
         # Print starting portfolio value
-        print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
+    print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
         # Creates csv files with inquired data. Has to be executed before cerebro.run()
         # "out" specifies the name of the output file. It currently overwrites the same file.
-        cerebro.addwriter(bt.WriterFile, csv=True, out='log.csv')
+    cerebro.addwriter(bt.WriterFile, csv=True, out='log.csv')
 
         # Core method to perform backtesting
-        cerebro.run()
+    cerebro.run()
 
         # Print final portfolio value
-        print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
+    print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
-        # To plot the trades
-        try: 
-            cerebro.plot()
-        except IndexError:
-            print('prob length 0')
-        endValueForEachPair.append(cerebro.broker.getvalue())
+    # To plot the trades
+    try: 
+        cerebro.plot()
+    except IndexError:
+        print('prob length 0')
+    endValueForEachPair.append(cerebro.broker.getvalue())
     sum=0
     for i in endValueForEachPair:
         sum+=i-100000
@@ -262,15 +262,14 @@ def creating_file_with_stocks(start):
         else:
             not_priority_stocks.append(x)
 
-    stocks=priority_stocks+not_priority_stocks
+    stocks=random.shuffle(priority_stocks)+random.shuffle(not_priority_stocks)
     my_pair_file = open('Stocks.txt', 'w')
     for i in stocks:  
         my_pair_file.write(i+ "\n")
     my_pair_file.close()
 
 
-
-
-#creating_file_with_stocks()
+# start=datetime.date(2013, 11, 1)
+# creating_file_with_stocks()
 
 main()

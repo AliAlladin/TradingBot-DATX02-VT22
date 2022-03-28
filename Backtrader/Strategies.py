@@ -400,7 +400,8 @@ class Strategy_fibonacci(bt.Strategy):
 class Strategy_fibonacci2(bt.Strategy):
     params = (('invested', None),
               ('period', None),
-              ('dic',None),)
+              ('dic',None),
+              ('max',None),)
 
     # "Self" is the bar/line we are on, of the data
     def log(self, txt, dt=None):
@@ -415,7 +416,7 @@ class Strategy_fibonacci2(bt.Strategy):
         self.invested_amount = self.params.invested  # The amount for which we invest
         self.period = self.params.period  # Period to determine swing high and swing low
         self.dic = self.params.dic  # Dictionary of tickers with indices, {'TICKER' -> Index}
-
+        self.max=self.params.max
         # To store data for each ticker
         self.ratios = [0.382, 0.5, 0.618]  # The Fibonacci ratios
         self.myData = {}  # To store all the data we need, {'TICKER' -> Data}
@@ -423,7 +424,6 @@ class Strategy_fibonacci2(bt.Strategy):
 
 
         self.indexChangeOfDay=[]
-        self.indexChangeOfDay.append(0)
         self.numberOfDays=30
         self.oldDate=str(self.datas[0].datetime.date(0))
 
@@ -471,17 +471,15 @@ class Strategy_fibonacci2(bt.Strategy):
 
         newPotentialDate = str(self.datas[0].datetime.date(0))
 
+        if newPotentialDate != self.oldDate:
+            self.oldDate = newPotentialDate
+            self.indexChangeOfDay.append(len(self.myData.get('A')))
         # Loop through of all tickers, the following is done for all of them
         for ticker in self.dic.keys():
-            
-            if newPotentialDate != self.oldDate:
-                self.oldDate = newPotentialDate
-                self.indexChangeOfDay.append(len(self.myData.get(ticker)))
-            
             self.myData.get(ticker).append(self.dataclose[self.dic.get(ticker)][0])
 
             # We want the last 'period' of data points, stored in relevant_data
-            if len(self.indexChangeOfDay) >= self.period:
+            if len(self.indexChangeOfDay) >= self.max:
                 rightDays=self.indexChangeOfDay[len(self.indexChangeOfDay)-self.period]
                 relevant_data = self.myData.get(ticker)[rightDays:]
 

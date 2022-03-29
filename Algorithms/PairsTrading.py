@@ -1,6 +1,6 @@
 import os
 import sys
-
+from MainSystem.test import *
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
@@ -29,6 +29,7 @@ class PairsTrading:
 
     def __init__(self, pairs, distance, period, invested_amount):
         self.pairs = pairs
+        self.pairs.columns = ['T1', 'T2']
         self.pairs['Active'] = False
         self.pairs['long'] = None
         self.pairs['ratio'] = None
@@ -48,6 +49,8 @@ class PairsTrading:
             t1 = self.pairs['T1'][i]  # Ticker symbol
             t2 = self.pairs['T2'][i]  # Ticker symbol
 
+            print(latest_prices)
+
             # Minute data for ticker
             tick1 = latest_prices.loc[latest_prices['Symbol'] == t1]
             # Minute data for ticker
@@ -66,9 +69,8 @@ class PairsTrading:
             )
 
             # Update the last row with the minute data
-            #data_df.iloc[-1] = [tick1.iat[0, 1], tick2.iat[0, 1]]
             print(data_df)
-            data_df.append([tick1.iat[0, 1], tick2.iat[0, 1]])
+            data_df.iloc[-1] = [tick1.iat[0, 1], tick2.iat[0, 1]]
             print(data_df)
 
             # Perform a linear regression to calculate the spread
@@ -207,3 +209,19 @@ class PairsTrading:
                         self.pairs['ratio'][i] = None
                         self.pairs['shares_stock1'][i] = None
                         self.pairs['Active'][i] = False
+
+
+pairs = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Backtrader/Pairs.txt'),
+                    sep=" ",
+                    header=None)
+
+k = PairsTrading(pairs, 0.5, 500, 10000)
+
+latest_price = pd.DataFrame({'Symbol': ['AMZN', 'AA', 'AAPL', 'A'], 'Price': [2837.06, 73.50, 150.62, 127.58]})
+hist_data = end_of_day(['AMZN', 'AA', 'AAPL', 'A'], 30)
+
+print(pairs)
+print(latest_price)
+print(hist_data)
+
+k.run(latest_price, hist_data)

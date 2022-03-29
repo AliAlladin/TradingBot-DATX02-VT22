@@ -88,3 +88,4 @@ class DatabaseHandler:
         postgreSQL_select_Query = "select * from Prices"
         self.cursor.execute(postgreSQL_select_Query)
         return pd.DataFrame.from_records(self.cursor.fetchall(), columns=['Symbol', 'Price'])
+

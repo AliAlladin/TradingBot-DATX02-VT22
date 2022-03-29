@@ -1,6 +1,3 @@
-import os
-import sys
-from MainSystem.test import *
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
@@ -51,9 +48,8 @@ class PairsTrading:
 
             print(latest_prices)
 
-            # Minute data for ticker
+            # Latest minute data for ticker. Only 1 data point.
             tick1 = latest_prices.loc[latest_prices['Symbol'] == t1]
-            # Minute data for ticker
             tick2 = latest_prices.loc[latest_prices['Symbol'] == t2]
 
             '''
@@ -61,12 +57,7 @@ class PairsTrading:
             By default, the Alpaca API will return today's candle even though it is not closed. This is incomplete.
             We update the last row later.
             '''
-            data_df = pd.concat(
-                [hist_prices[t1], hist_prices[t2]],
-                axis=1,
-                join='inner',
-                keys=[t1, t2],
-            )
+            data_df = pd.concat([hist_prices[t1], hist_prices[t2]], axis=1, join='inner', keys=[t1, t2], )
 
             # Update the last row with the minute data
             print(data_df)
@@ -87,10 +78,8 @@ class PairsTrading:
             z_score = (spread[len(data_df) - 1] - mean) / std
 
             # To know how much we need to buy of each stock
-            shares_stock1 = self.invested_amount / \
-                data_df[t1][len(data_df) - 1]
-            current_ratio = data_df[t1][len(
-                data_df) - 1] / data_df[t2][len(data_df) - 1]
+            shares_stock1 = self.invested_amount / data_df[t1][len(data_df) - 1]
+            current_ratio = data_df[t1][len(data_df) - 1] / data_df[t2][len(data_df) - 1]
 
             # If we don't have a position in this pair
             if not self.pairs['Active'][i]:
@@ -99,22 +88,11 @@ class PairsTrading:
                     # High Z-score, we sell stock 1 and buy stock 2
 
                     # Send sell signal to main
-                    # self.notify_observers("SELL {} {}".format(shares_stock1, self.pairs['T1'][i]))
-
-                    self.notify_observers({
-                        "signal" : "SELL",
-                        "symbol" : self.pairs['T1'][i],
-                        "volume" : shares_stock1
-                    })
+                    self.notify_observers({"signal": "SELL", "symbol": self.pairs['T1'][i], "volume": shares_stock1})
 
                     # Send buy signal to main
-                    # self.notify_observers("BUY {} {}".format(shares_stock1 * current_ratio, self.pairs['T2'][i]))
-
-                    self.notify_observers({
-                        "signal" : "BUY",
-                        "symbol" : self.pairs['T2'][i],
-                        "volume" : shares_stock1 * current_ratio
-                    })
+                    self.notify_observers(
+                        {"signal": "BUY", "symbol": self.pairs['T2'][i], "volume": shares_stock1 * current_ratio})
 
                     # Description of our position
                     self.pairs['long'][i] = False
@@ -126,22 +104,11 @@ class PairsTrading:
                 elif z_score < -self.distance:
 
                     # Send buy signal to main
-                    # self.notify_observers("BUY {} {}".format(shares_stock1, self.pairs['T1'][i]))
-
-                    self.notify_observers({
-                        "signal" : "BUY",
-                        "symbol" : self.pairs['T1'][i],
-                        "volume" : shares_stock1
-                    })
+                    self.notify_observers({"signal": "BUY", "symbol": self.pairs['T1'][i], "volume": shares_stock1})
 
                     # Send sell signal to main
-                    # self.notify_observers("SELL {} {}".format(shares_stock1 * current_ratio, self.pairs['T2'][i]))
-
-                    self.notify_observers({
-                        "signal" : "SELL",
-                        "symbol" : self.pairs['T2'][i],
-                        "volume" : shares_stock1 * current_ratio
-                    })
+                    self.notify_observers(
+                        {"signal": "SELL", "symbol": self.pairs['T2'][i], "volume": shares_stock1 * current_ratio})
 
                     # Description of our position
                     self.pairs['long'][i] = True
@@ -157,24 +124,12 @@ class PairsTrading:
                         # Sell stock 1 and buy back stock 2
 
                         # Send sell signal to main
-                        # self.notify_observers("SELL {} {}".format(self.pairs['shares_stock1'][i], self.pairs['T1'][i]))
-
-                        self.notify_observers({
-                            "signal" : "SELL",
-                            "symbol" : self.pairs['T1'][i],
-                            "volume" : self.pairs['shares_stock1'][i]
-                        })
+                        self.notify_observers(
+                            {"signal": "SELL", "symbol": self.pairs['T1'][i], "volume": self.pairs['shares_stock1'][i]})
 
                         # Send buy signal to main
-                        # self.notify_observers("BUY {} {}".format(self.pairs['shares_stock1'][i] * self.pairs['ratio'][i], self.pairs['T2'][i]))
-
-                        self.notify_observers({
-                            "signal" : "BUY",
-                            "symbol" : self.pairs['T2'][i],
-                            "volume" : self.pairs['shares_stock1'][i] * self.pairs['ratio'][i]
-                        })
-
-                        # Calculating the profit of the pairs trading
+                        self.notify_observers({"signal": "BUY", "symbol": self.pairs['T2'][i],
+                            "volume": self.pairs['shares_stock1'][i] * self.pairs['ratio'][i]})
 
                         # We close the position in the pair
                         self.pairs['ratio'][i] = None
@@ -186,27 +141,14 @@ class PairsTrading:
                         # Buy back stock 1 and sell stock 2
 
                         # Send buy signal to main
-                        # self.notify_observers("BUY {} {}".format(self.pairs['shares_stock1'][i], self.pairs['T1'][i]))
-
-                        self.notify_observers({
-                            "signal" : "BUY",
-                            "symbol" : self.pairs['T1'][i],
-                            "volume" : self.pairs['shares_stock1'][i]
-                        })
+                        self.notify_observers(
+                            {"signal": "BUY", "symbol": self.pairs['T1'][i], "volume": self.pairs['shares_stock1'][i]})
 
                         # Send sell signal to main
-                        # self.notify_observers("SELL {} {}".format(self.pairs['shares_stock1'][i] * self.pairs['ratio'][i], self.pairs['T2'][i]))
-
-                        self.notify_observers({
-                            "signal" : "SELL",
-                            "symbol" : self.pairs['T2'][i],
-                            "volume" : self.pairs['shares_stock1'][i] * self.pairs['ratio'][i]
-                        })
-
-                        # Calculating the profit of the pairs trading
+                        self.notify_observers({"signal": "SELL", "symbol": self.pairs['T2'][i],
+                            "volume": self.pairs['shares_stock1'][i] * self.pairs['ratio'][i]})
 
                         # We close the position in the pair
                         self.pairs['ratio'][i] = None
                         self.pairs['shares_stock1'][i] = None
                         self.pairs['Active'][i] = False
-

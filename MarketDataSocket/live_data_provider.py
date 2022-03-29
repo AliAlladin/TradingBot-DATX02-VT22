@@ -91,13 +91,17 @@ def accessLiveData():
     dataLock.release()
     return returnData
 
+i = 0
 
 # Everytime a new datapoint gets acquired by the websocket this method is run and sends it to its observers.
 def on_new_msg(ws, msg):
+    global i
+    i += 1
     # This is locked, only when the market is closed
     if not sleepLock.locked():
         df = pd.DataFrame(
             data={
+                'callNumber': [i],
                 'ticker': [msg['id']],
                 'price': [msg['price']],
                 'timestamp': [fix_time(msg['timestamp'])]

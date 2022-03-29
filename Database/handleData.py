@@ -1,4 +1,5 @@
 import psycopg2
+import pandas as pd
 
 
 class DatabaseHandler:
@@ -15,8 +16,18 @@ class DatabaseHandler:
 
         print("Database Connected Successfully")
 
-        # Tables
         cursor = self.conn.cursor()
+
+        # drop
+        '''
+        sql = open('drop.sql', 'r')
+        cursor.execute(sql.read())
+        self.conn.commit()
+        print("drop table")
+
+        '''
+
+        # Tables
         sql = open('tables.sql', 'r')
         cursor.execute(sql.read())
         self.conn.commit()
@@ -26,8 +37,15 @@ class DatabaseHandler:
         sql = open('views.sql', 'r')
         cursor.execute(sql.read())
         self.conn.commit()
-
         print("views created")
+
+        '''
+        # insert
+        sql = open('inserts.sql', 'r')
+        cursor.execute(sql.read())
+        self.conn.commit()
+        print("insert created")
+        '''
 
     def insertAndCommitQuery(self, stockTicker: str, price: float, query: str):
         query = query.replace('a1', "\'" + stockTicker + "\'")
@@ -68,8 +86,5 @@ class DatabaseHandler:
     def sqlGetAllPrice(self):
         postgreSQL_select_Query = "select * from Prices"
         self.cursor.execute(postgreSQL_select_Query)
-        print("Selecting rows from prices table using cursor.fetchall")
-        return self.cursor.fetchall()
+        return pd.DataFrame.from_records(self.cursor.fetchall(), columns=['Symbol', 'Price'])
 
-
-DatabaseHandler()

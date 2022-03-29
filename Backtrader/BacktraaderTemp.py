@@ -45,8 +45,8 @@ def StrategyOne():
             data = bt.feeds.GenericCSVData(
 
                 dataname=CSV_file_path,  # Full path to csv-file
-                fromdate=datetime.datetime(2006, 6, 2, 9, 30, 00),  # Start  date
-                todate=datetime.datetime(2009, 6, 13, 16, 00, 00),  # Ending date
+                fromdate=datetime.datetime(2013, 4, 1, 9, 30, 00),  # Start  date
+                todate=datetime.datetime(2016, 5, 1, 16, 00, 00),  # Ending date
 
                 nullvalue=0.0,  # Used for replacing NaN-values with 0
 
@@ -66,7 +66,7 @@ def StrategyOne():
 
                 openinterest=-1,  # -1 if no such column exists
                 timeframe=bt.TimeFrame.Minutes,
-                compression=60
+                #compression=60
 
             )
             cerebro.adddata(data)
@@ -74,7 +74,8 @@ def StrategyOne():
 
         # Add strategy to Cerebro
         # TODO: allow for strategy switching
-        cerebro.addstrategy(Strategy_pairGen, dict, pairs)
+        todate1=datetime.date(2019, 5, 1)
+        cerebro.addstrategy(Strategy_pairGen, dic=dict, pairs=pairs, distance=1, period=600, invested=100000, todate=todate1)
 
         # Set the commission - 0.1% ... divide by 100 to remove the %
         cerebro.broker.setcommission(commission=0)
@@ -155,4 +156,29 @@ def Strategy2():
     print('hej')
 
 
-main()
+
+
+def creating_file_with_stocks():
+    stocks = []
+    modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
+    directory_in_str = os.path.join(modpath, 'Data/filtered_csv_data/')
+    directory = os.fsencode(directory_in_str)
+    for filename in os.listdir(directory):
+        x = (str(filename))
+        x = x.split('\'')[1]
+        x = x.removesuffix('.csv')
+        if "." in x:
+            y = x.split('.')
+            x = y[0] + "-" + y[1]
+        stocks.append(x)
+    my_pair_file = open('Stocks.txt', 'w')
+    for i in stocks:  
+        my_pair_file.write(i+ "\n")
+    my_pair_file.close()
+
+
+
+
+creating_file_with_stocks()
+
+#main()

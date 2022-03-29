@@ -210,18 +210,3 @@ class PairsTrading:
                         self.pairs['shares_stock1'][i] = None
                         self.pairs['Active'][i] = False
 
-
-pairs = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Backtrader/Pairs.txt'),
-                    sep=" ",
-                    header=None)
-
-k = PairsTrading(pairs, 0.5, 500, 10000)
-
-latest_price = pd.DataFrame({'Symbol': ['AMZN', 'AA', 'AAPL', 'A'], 'Price': [2837.06, 73.50, 150.62, 127.58]})
-hist_data = end_of_day(['AMZN', 'AA', 'AAPL', 'A'], 30)
-
-print(pairs)
-print(latest_price)
-print(hist_data)
-
-k.run(latest_price, hist_data)

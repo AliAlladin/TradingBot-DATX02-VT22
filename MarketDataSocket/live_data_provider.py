@@ -109,7 +109,7 @@ def on_new_msg(ws, msg):
         )
         send_data(df)
 
-        print(df.T.to_string() + "\n")
+       # print(df.T.to_string() + "\n")
 
     else:
         sleepLock.acquire()

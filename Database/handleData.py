@@ -24,7 +24,7 @@ class DatabaseHandler:
         cursor.execute(sql.read())
         self.conn.commit()
         print("drop table")
-        '''
+        
 
         # Tables
         sql = open('tables.sql', 'r')
@@ -38,7 +38,7 @@ class DatabaseHandler:
         self.conn.commit()
         print("views created")
 
-        '''
+        
         # insert
         sql = open('inserts.sql', 'r')
         cursor.execute(sql.read())
@@ -80,7 +80,8 @@ class DatabaseHandler:
         query = "INSERT INTO Prices (ticker, price) VALUES(a2, a1) ON CONFLICT (ticker) DO UPDATE SET price = a1 " \
                 "WHERE Prices.ticker = a2 "
         query = query.replace('a1', str(price))
-        query = query.replace('a2', "\'" + stockTicker + "\'")
+        print(stockTicker)
+        query = query.replace('a2', "\'" + str(stockTicker) + "\'")
         self.cursor.execute(query)
         self.conn.commit()
 

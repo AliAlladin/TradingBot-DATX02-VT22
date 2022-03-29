@@ -1,3 +1,4 @@
+import time
 from time import sleep
 from Algorithms import PairsTrading
 from Alpaca import AlpacaBroker
@@ -36,10 +37,12 @@ class DataObserver:
         observable.subscribe(self)
 
     def notify(self, update):
-        database_handler.sqlUpdatePrice(stockTicker=update['ticker'], price=update['price'])
+        database_handler.sqlUpdatePrice(update['ticker'][0], update['price'][0])
 
 
 def main():
+    print("TEST")
+
     pairs = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Backtrader/Pairs.txt'),
                         sep=" ",
                         header=None)
@@ -52,15 +55,18 @@ def main():
     global strategy
     strategy = PairsTrading.PairsTrading(pairs, 0.5, 500, 10000)
 
-    global data_provider
-    data_provider = live_data_provider.liveDataStream(1, "pairs_data")
-    data_provider.start()   # Start live-data thread
-
     global database_handler
     database_handler = handleData.DatabaseHandler()
 
+    global data_provider
+    data_provider = live_data_provider.liveDataStream(1, "pairs_data")
+    DataObserver(data_provider)  # Add data observer
+    data_provider.start()   # Start live-data thread
+
+
+
+
     strategy_observer = StrategyObserver(strategy)  # Add strategy observer
-    dataObserver = DataObserver(data_provider)  # Add data observer
 
     tickers = set()
     for i in range(len(pairs.index)):

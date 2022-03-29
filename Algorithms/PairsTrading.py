@@ -7,13 +7,6 @@ import statsmodels.api as sm
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
-# Convert Pairs.txt to a dataframe
-pairsFile = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Backtrader/Pairs.txt'),
-                        sep=" ",
-                        header=None)
-# Assigning names to the columns of the dataframe for easier access
-pairsFile.columns = ['T1', 'T2']
-
 '''
 This class receives a dataframe containing the latest prices for each ticker.
 It will go through each ticker, find its pair and perform the strategy on that pair in order
@@ -34,8 +27,8 @@ class PairsTrading:
     def unsubscribe(self, observer):
         self._observers.remove(observer)
 
-    def __init__(self, distance, period, invested_amount):
-        self.pairs = pairsFile
+    def __init__(self, pairs, distance, period, invested_amount):
+        self.pairs = pairs
         self.pairs['Active'] = False
         self.pairs['long'] = None
         self.pairs['ratio'] = None

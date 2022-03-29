@@ -66,7 +66,10 @@ class PairsTrading:
             )
 
             # Update the last row with the minute data
-            data_df.iloc[-1] = [tick1.iat[0, 1], tick2.iat[0, 1]]
+            #data_df.iloc[-1] = [tick1.iat[0, 1], tick2.iat[0, 1]]
+            print(data_df)
+            data_df.append([tick1.iat[0, 1], tick2.iat[0, 1]])
+            print(data_df)
 
             # Perform a linear regression to calculate the spread
             result = sm.OLS(data_df[t1], data_df[t2]).fit()

@@ -18,13 +18,12 @@ class DatabaseHandler:
 
         cursor = self.conn.cursor()
 
-        # drop
         '''
+        # drop
         sql = open('drop.sql', 'r')
         cursor.execute(sql.read())
         self.conn.commit()
         print("drop table")
-
         '''
 
         # Tables
@@ -47,25 +46,26 @@ class DatabaseHandler:
         print("insert created")
         '''
 
-    def insertAndCommitQuery(self, stockTicker: str, price: float, query: str):
+    def insertAndCommitQuery(self, stockTicker: str, price: float, volume: float, query: str):
         query = query.replace('a1', "\'" + stockTicker + "\'")
         query = query.replace('a2', str(price))
+        query = query.replace('a3', str(volume))
         self.cursor.execute(query)
         self.conn.commit()
 
-    def sqlBuy(self, stockTicker: str, price: float):
-        query = "INSERT INTO Buy VALUES (DEFAULT,a1,current_timestamp ,a2)"
-        self.insertAndCommitQuery(stockTicker, price, query)
+    def sqlBuy(self, stockTicker: str, price: float, volume: float):
+        query = "INSERT INTO Buy VALUES (DEFAULT,a1,current_timestamp ,a2,a3)"
+        self.insertAndCommitQuery(stockTicker, price, volume, query)
 
     # inserts into sell
-    def sqlSell(self, stockTicker: str, price: float):
-        query = "INSERT INTO Sell VALUES (DEFAULT,a1,current_timestamp ,a2)"
-        self.insertAndCommitQuery(stockTicker, price, query)
+    def sqlSell(self, stockTicker: str, price: float, volume: float):
+        query = "INSERT INTO Sell VALUES (DEFAULT,a1,current_timestamp ,a2,a3)"
+        self.insertAndCommitQuery(stockTicker, price, volume, query)
 
     # inserts into blank
-    def sqlShort(self, stockTicker: str, price: float):
-        query = "INSERT INTO Short VALUES (DEFAULT,a1,current_timestamp ,a2)"
-        self.insertAndCommitQuery(stockTicker, price, query)
+    def sqlShort(self, stockTicker: str, price: float, volume: float):
+        query = "INSERT INTO Short VALUES (DEFAULT,a1,current_timestamp ,a2,a3)"
+        self.insertAndCommitQuery(stockTicker, price, volume, query)
 
     # inserts into pairs
     def sqlPairs(self, stockTicker1: str, stockTicker2: str, standardDiv: float):
@@ -77,7 +77,8 @@ class DatabaseHandler:
         self.conn.commit()
 
     def sqlUpdatePrice(self, stockTicker: str, price: float):
-        query = "INSERT INTO Prices VALUES(a1, a2) ON CONFLICT ticker UPDATE SET price = a1 WHERE ticker = a2"
+        query = "INSERT INTO Prices (ticker, price) VALUES(a2, a1) ON CONFLICT (ticker) DO UPDATE SET price = a1 " \
+                "WHERE Prices.ticker = a2 "
         query = query.replace('a1', str(price))
         query = query.replace('a2', "\'" + stockTicker + "\'")
         self.cursor.execute(query)
@@ -87,4 +88,3 @@ class DatabaseHandler:
         postgreSQL_select_Query = "select * from Prices"
         self.cursor.execute(postgreSQL_select_Query)
         return pd.DataFrame.from_records(self.cursor.fetchall(), columns=['Symbol', 'Price'])
-

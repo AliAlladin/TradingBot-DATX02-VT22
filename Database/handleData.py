@@ -15,75 +15,58 @@ conn = psycopg2.connect(
     port=DB_PORT
 )
 
-print("Database Connected Successfully")
+class DatabaseHandler:
+    def __init__(self):
+        self.conn = psycopg2.connect(
+            database=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT
+        )
 
-# Tables
-cursor = conn.cursor()
-sql = open('tables.sql', 'r')
-cursor.execute(sql.read())
-conn.commit()
+        self.cursor = self.conn.cursor()
 
-print("table created")
+        print("Database Connected Successfully")
 
-# Views
-sql = open('views.sql', 'r')
-cursor.execute(sql.read())
-conn.commit()
+    def insertAndCommitQuery(stockTicker: str, price: float, query: str):
+        query = query.replace('a1', "\'" + stockTicker + "\'")
+        query = query.replace('a2', str(price))
+        cursor.execute(query)
+        conn.commit()
 
-print("views created")
+    def sqlBuy(self, stockTicker: str, price: float):
+        query = "INSERT INTO Buy VALUES (DEFAULT,a1,current_timestamp ,a2)"
+        self.insertAndCommitQuery(stockTicker, price, query)
 
-# Setup Triggers
-sql = open('triggers.sql', 'r')
-cursor.execute(sql.read())
-conn.commit()
+    # inserts into sell
+    def sqlSell(self, stockTicker: str, price: float):
+        query = "INSERT INTO Sell VALUES (DEFAULT,a1,current_timestamp ,a2)"
+        self.insertAndCommitQuery(stockTicker, price, query)
 
-print("triggers created")
+    # inserts into blank
+    def sqlBlank(self, stockTicker: str, price: float):
+        query = "INSERT INTO Blank VALUES (DEFAULT,a1,current_timestamp ,a2)"
+        self.insertAndCommitQuery(stockTicker, price, query)
 
+    # inserts into pairs
+    def sqlPairs(self, stockTicker1: str, stockTicker2: str, standardDiv: float):
+        query = "INSERT INTO Sell VALUES (a1 ,a2, a3)"
+        query = query.replace('a1', "\'" + stockTicker1 + "\'")
+        query = query.replace('a2', "\'" + stockTicker2 + "\'")
+        query = query.replace('a3', str(standardDiv))
+        cursor.execute(query)
+        self.conn.commit()
 
-def insertAndCommitQuery(stockTicker: str, price: float, query: str):
-    query = query.replace('a1', "\'" + stockTicker + "\'")
-    query = query.replace('a2', str(price))
-    cursor.execute(query)
-    conn.commit()
+    def sqlUpdatePrice(self, stockTicker: str, price: float):
+        query = "UPDATE Prices SET price = a1 WHERE ticker = a2"
+        query = query.replace('a1', str(price))
+        query = query.replace('a2', "\'" + stockTicker + "\'")
+        cursor.execute(query)
+        self.conn.commit()
 
-
-def sqlBuy(stockTicker: str, price: float):
-    query = "INSERT INTO Buy VALUES (DEFAULT,a1,current_timestamp ,a2)"
-    insertAndCommitQuery(stockTicker, price, query)
-
-
-# inserts into sell
-def sqlSell(stockTicker: str, price: float):
-    query = "INSERT INTO Sell VALUES (DEFAULT,a1,current_timestamp ,a2)"
-    insertAndCommitQuery(stockTicker, price, query)
-
-
-# inserts into blank
-def sqlBlank(stockTicker: str, price: float):
-    query = "INSERT INTO Blank VALUES (DEFAULT,a1,current_timestamp ,a2)"
-    insertAndCommitQuery(stockTicker, price, query)
-
-
-# inserts into pairs
-def sqlPairs(stockTicker1: str, stockTicker2: str, standardDiv: float):
-    query = "INSERT INTO Sell VALUES (a1 ,a2, a3)"
-    query = query.replace('a1', "\'" + stockTicker1 + "\'")
-    query = query.replace('a2', "\'" + stockTicker2 + "\'")
-    query = query.replace('a3', str(standardDiv))
-    cursor.execute(query)
-    conn.commit()
-
-
-def sqlUpdatePrice(stockTicker: str, price: float):
-    query = "UPDATE Prices SET price = a1 WHERE ticker = a2"
-    query = query.replace('a1', str(price))
-    query = query.replace('a2', "\'" + stockTicker + "\'")
-    cursor.execute(query)
-    conn.commit()
-
-
-def sqlGetAllPrice():
-    postgreSQL_select_Query = "select * from Prices"
-    cursor.execute(postgreSQL_select_Query)
-    print("Selecting rows from prices table using cursor.fetchall")
-    return cursor.fetchall()
+    def sqlGetAllPrice(self):
+        postgreSQL_select_Query = "select * from Prices"
+        cursor.execute(postgreSQL_select_Query)
+        print("Selecting rows from prices table using cursor.fetchall")
+        return cursor.fetchall()

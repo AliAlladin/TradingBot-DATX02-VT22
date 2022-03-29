@@ -19,12 +19,12 @@ class StrategyObserver:
             while broker.get_order(order_id)['filled_at'] is not None:  # Wait for order to be filled
                 continue
 
-            handleData.sqlBuy(signal['symbol'], 0)  # TODO Get current price of ticker
+            database_handler.sqlBuy(signal['symbol'], 0)  # TODO Get current price of ticker
         elif signal['signal'] == "SELL":
             order_id = broker.sell(signal['symbol'], signal['volume'])  # Send sell order to broker
             while broker.get_order(order_id)['filled_at'] is not None:  # Wait for order to be filled
                 continue
-            handleData.sqlSell(signal['symbol'], 0)  # TODO Get current price of ticker
+            database_handler.sqlSell(signal['symbol'], 0)  # TODO Get current price of ticker
 
         order = broker.get_order(order_id)
         message = "{} {} {} at {}".format(order['type'], order['symbol'], order['qty'], 0)  # TODO Get current price of ticker
@@ -35,8 +35,8 @@ class DataObserver:
     def __init__(self, observable):
         observable.subscribe(self)
 
-    def notify(self, observable, update):
-        handleData.sqlUpdatePrice(stockTicker=update['ticker'], price=update['price'])
+    def notify(self, update):
+        database_handler.sqlUpdatePrice(stockTicker=update['ticker'], price=update['price'])
 
 
 def main():
@@ -56,6 +56,9 @@ def main():
     data_provider = live_data_provider.liveDataStream(1, "pairs_data")
     data_provider.start()   # Start live-data thread
 
+    global database_handler
+    database_handler = handleData.DatabaseHandler()
+
     strategy_observer = StrategyObserver(strategy)  # Add strategy observer
     dataObserver = DataObserver(data_provider)  # Add data observer
 
@@ -68,12 +71,12 @@ def main():
 
     while True:
         if broker.market_is_open():
-            latest_price = handleData.sqlGetAllPrice()  # Get latest prices from database
+            latest_price = database_handler.sqlGetAllPrice()  # Get latest prices from database
             strategy.run(latest_price, hist_data)   # Run strategy
             sleep(60)   # Wait one minute
         else:
             # NotificationBot.sendNotification(broker.all_postions()) # Send notification of current positions and account valu
-            live_data_provider.onClose()    # Lock live-data thread
+            live_data_provider.marketClosed()    # Lock live-data thread
             broker.wait_for_market_open()   # Send program to sleep until market opens.
             live_data_provider.marketOpen() # Unlock live-data thread
             hist_data = test.end_of_day(list(tickers), 30)  # Update historic data

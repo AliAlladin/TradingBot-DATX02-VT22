@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS Pairs(
 );
 
 CREATE TABLE IF NOT EXISTS Prices(
-    ticker PRIMARY KEY,
+    ticker TEXT PRIMARY KEY,
     price DECIMAL
 );
 

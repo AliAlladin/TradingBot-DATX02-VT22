@@ -16,7 +16,7 @@ def StrategyOne():
 
     modpath = os.path.dirname(os.path.dirname(sys.argv[0])) # Individual os paths
 
-    datap = os.path.join(modpath, 'Backtrader/Pairs.txt') # The data of pairs comes from Pairs.txt which we read
+    datap = os.path.join(modpath, 'Backtrader/Pairs1.txt') # The data of pairs comes from Pairs.txt which we read
     my_pair_file = open(datap, 'r')
 
     endValueForEachPair=[]
@@ -52,7 +52,7 @@ def add_data(stock,cerebro):
     data = bt.feeds.GenericCSVData(
 
         dataname=CSV_file_path,  # Full path to csv-file
-        fromdate=datetime.datetime(2015, 9, 1, 9, 30, 00),  # Start  date
+        fromdate=datetime.datetime(2014, 9, 1, 9, 30, 00),  # Start  date
         todate=datetime.datetime(2019, 5, 1, 16, 00, 00),  # Ending date
 
         nullvalue=0.0,  # Used for replacing NaN-values with 0
@@ -103,9 +103,9 @@ def run(cerebro, strat):
     cerebro.broker.setcommission(commission=0)  # Set the commission - 0.1% ... divide by 100 to remove the %
     if strat=='Strategy_pairGen':
         todate1=datetime.date(2019, 5, 1)
-        cerebro.addstrategy(Strategy_pairGen, distance=1, period=500, invested=10000, todate=todate1,stock1='A', stock2='AA')
+        cerebro.addstrategy(Strategy_pairGen, distance=3, period=400, invested=10000, todate=todate1,stock1='A', stock2='AA')
     else:
-        cerebro.addstrategy(strat, distance=3, period=100, invested=100000, todate=todate1)
+        cerebro.addstrategy(strat, distance=2.5, period=100, invested=100000, todate=todate1)
 
     print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue()) # Print starting portfolio value
 
@@ -116,8 +116,9 @@ def run(cerebro, strat):
     cerebro.run() # Core method to perform backtesting
     print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue()) # Print final portfolio value
 
-    try: 
-        cerebro.plot() # To plot the trades
+    try:
+        print('hej')
+        #cerebro.plot() # To plot the trades
     except IndexError:
         print('prob length 0')
     return cerebro.broker.getvalue()

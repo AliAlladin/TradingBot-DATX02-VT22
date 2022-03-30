@@ -13,49 +13,48 @@ pd.options.mode.chained_assignment = None
 from Pair import *
 from optimizeStrats import *  # import our first strategy
 
-#runstrat = 'fib'
-runstrat = 'pair'
+runstrat = 'fib'
+#runstrat = 'pair'
 tic = time.perf_counter()
 
-#startcash
 startcash = 100000.0
 
 # Instantiate Cerebro engine. This is the main control center / brain
-
 cerebro = bt.Cerebro()
 
 # Individual os paths
 modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
+if runstrat == 'pair':
+    # The data of pairs comes from Pairs.txt which we read
+    datap = os.path.join(modpath, 'Backtrader/Pairs.txt')
+    my_pair_file = open(datap, 'r')
 
-# The data of pairs comes from Pairs.txt which we read
-datap = os.path.join(modpath, 'Backtrader/Pairs.txt')
-my_pair_file = open(datap, 'r')
+    # We start without any tickers
+    tickers = []  # A list of tickers
+    pairs = []  # A list of Pairs (see Pair.py)
+    dict = {}  # Dictionary to store tickers as keys and an integer value that separates the tickers.
+    i = 0  # A variable to work as a counter of the integer value
 
-# We start without any tickers
-tickers = []  # A list of tickers
-pairs = []  # A list of Pairs (see Pair.py)
-dict = {}  # Dictionary to store tickers as keys and an integer value that separates the tickers.
-i = 0  # A variable to work as a counter of the integer value
+    # We go through Pairs.txt to add all tickers and Pairs
+    for line in my_pair_file:
+        stocks = line.split()
+        stock1 = stocks[0]
+        stock2 = stocks[1]
+        pairs.append(Pair(stock1, stock2))
 
-# We go through Pairs.txt to add all tickers and Pairs
-for line in my_pair_file:
-    stocks = line.split()
-    stock1 = stocks[0]
-    stock2 = stocks[1]
-    pairs.append(Pair(stock1, stock2))
+        # If the stock is not added into the list of tickers, we do it.
+        if stock1 not in tickers:
+            tickers.append(stock1)
+            dict[stock1] = i
+            i += 1
+        if stock2 not in tickers:
+            tickers.append(stock2)
+            dict[stock2] = i
+            i += 1
 
-    # If the stock is not added into the list of tickers, we do it.
-    if stock1 not in tickers:
-        tickers.append(stock1)
-        dict[stock1] = i
-        i += 1
-    if stock2 not in tickers:
-        tickers.append(stock2)
-        dict[stock2] = i
-        i += 1
-
-
-
+else:
+    tickers = ['SBUX', 'FLEX', 'GS', 'NSWA', 'TRMB', 'WYNN', 'VIAV', 'HON', 'FLR', 'AJG', 'CVS', 'HRB', 'TGNA', 'MSCI',
+            'TRV', 'COF', 'HUM', 'AON', 'GRMN', 'BUD']
 # We add the data to cerebro
 for ticker in tickers:
 
@@ -64,8 +63,8 @@ for ticker in tickers:
     data = bt.feeds.GenericCSVData(
 
         dataname=CSV_file_path,  # Full path to csv-file
-        fromdate=datetime.datetime(2014, 6, 9, 9, 30, 00),  # Start  date
-        todate=datetime.datetime(2019, 1, 5, 16, 00, 00),  # Ending date
+        fromdate=datetime.datetime(2013, 9, 5, 9, 30, 00),  # Start  date
+        todate=datetime.datetime(2016, 1, 7, 16, 00, 00),  # Ending date
 
         nullvalue=0.0,  # Used for replacing NaN-values with 0
 
@@ -137,9 +136,9 @@ if runstrat == 'pair':
     #qgrid.show_grid(par_df)
 
 else:
-    per = range(4000, 10000, 3000)
-    max = max(per)
-    strats = cerebro.optstrategy(Strategy_fibonacci2, invested=15000, period=per,maximum = max)
+    per = range(10, 100, 15)
+    maximum = max(per)
+    strats = cerebro.optstrategy(Strategy_fibonacci2, invested=1000, period=per, maximum=maximum)
 
     cerebro.broker.setcommission(commission=0)
 

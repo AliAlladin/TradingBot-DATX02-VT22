@@ -398,8 +398,9 @@ class Strategy_fibonacci(bt.Strategy):
 class Strategy_fibonacci2(bt.Strategy):
     params = (('invested', None),
               ('period', None),
-              ('dic',{'A': 0, 'AA': 1}),
-              ('maximum',None))
+              ('dic', {'SBUX': 0, 'FLEX': 1, 'GS': 2, 'NSWA': 3, 'TRMB': 4, 'WYNN': 5, 'VIAV': 6, 'HON': 7, 'FLR': 8, 'AJG': 9,
+                      'CVS': 10, 'HRB': 11, 'TGNA': 12, 'MSCI': 13, 'TRV': 14, 'COF': 15, 'HUM': 16, 'AON': 17, 'GRMN': 18, 'BUD': 19}),
+              ('maximum', None),)
 
     # "Self" is the bar/line we are on, of the data
     def log(self, txt, dt=None):
@@ -420,6 +421,9 @@ class Strategy_fibonacci2(bt.Strategy):
         self.dic = self.params.dic  # Dictionary of tickers with indices, {'TICKER' -> Index}
         self.myData = {}  # To store all the data we need, {'TICKER' -> Data}
         self.invested_at_level = {}  # To know if we are invested, {'TICKER' -> [boolean, boolean, boolean]}
+
+        self.indexChangeOfDay=[]
+        self.oldDate=str(self.datas[0].datetime.date(0))
 
         # We initialize these dictionaries
         for ticker in self.dic.keys():
@@ -462,13 +466,19 @@ class Strategy_fibonacci2(bt.Strategy):
 
     # The "run method", defines when to buy and sell
     def next(self):
+        newPotentialDate = str(self.datas[0].datetime.date(0))
+
+        if newPotentialDate != self.oldDate:
+            self.oldDate = newPotentialDate
+            self.indexChangeOfDay.append(len(self.myData.get('SBUX')))
         # Loop through of all tickers, the following is done for all of them
         for ticker in self.dic.keys():
             self.myData.get(ticker).append(self.dataclose[self.dic.get(ticker)][0])
 
             # We want the last 'period' of data points, stored in relevant_data
-            if len(self.myData.get(ticker)) > self.maximum:
-                relevant_data = self.myData.get(ticker)[-self.period:]
+            if len(self.indexChangeOfDay) >= self.maximum:
+                rightDays = self.indexChangeOfDay[len(self.indexChangeOfDay) - self.period]
+                relevant_data = self.myData.get(ticker)[rightDays:]
 
                 # We take the prices of the current point and maximum and minimum on the period.
                 price_now = relevant_data[-1]
@@ -502,6 +512,14 @@ class Strategy_fibonacci2(bt.Strategy):
 
                     # WHEN TO SELL? We sell when the stock price is at a new high on the period
                     if price_now == high and self.invested_at_level.get(ticker).count(True) > 0:
+                        # Sell all stocks, close the position
+                        self.order = self.close(self.datas[self.dic.get(ticker)])
+                        # We do not longer have a position in the ticker
+                        for i in range(self.invested_at_level.get(ticker).count(True)):
+                            self.invested_at_level.get(ticker)[i] = False
+
+                if not uptrend:
+                    if price_now == low and self.invested_at_level.get(ticker).count(True) > 0:
                         # Sell all stocks, close the position
                         self.order = self.close(self.datas[self.dic.get(ticker)])
                         # We do not longer have a position in the ticker

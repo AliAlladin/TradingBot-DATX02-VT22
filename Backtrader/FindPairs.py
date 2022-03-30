@@ -180,5 +180,4 @@ def in_csv_file(start):
         stock1 , stock2 = i.get_pairs()
         my_pair_file.write(stock1+ ' '+ stock2 +'\n')
 
-start=datetime.date(2014, 6, 9)
-in_csv_file(start)
+gettingDistinctDates()

@@ -158,12 +158,12 @@ class Strategy_pairGen(bt.Strategy):
 
     def closingPosition(self,z_score, current_ratio, shares_stock1):
         if self.long:
-            if z_score > 0 or self.sellOf:
+            if z_score > -2.5 or self.sellOf:
                 self.order = self.close(self.datas[0])
                 self.order = self.close(self.datas[1])
                 self.active = False
         else:
-            if z_score < 0 or self.sellOf:
+            if z_score < 2.5 or self.sellOf:
                 self.order = self.close(self.datas[1])
                 self.order = self.close(self.datas[0])
                 self.active = False

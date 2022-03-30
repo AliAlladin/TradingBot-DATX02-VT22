@@ -19,25 +19,20 @@ import random
 
 
 def main():
-    start = '2019-03-22'
-    end = '2022-03-22'
+    start = '2011-03-22'
+    end = '2014-03-22'
     #distinctStocks()
     # tryingOut(start,end)
     stocks=acquireList()
+    stocks=stocks[0:30]
     pairs=findPairs(stocks,start,end)
-    my_pair_file = open('Pairs.txt', 'w')
+    my_pair_file = open('Backtrader/Pairs.txt', 'w')
     for pair in pairs:
         stock1, stock2=pair.get_pairs()
         my_pair_file.write(stock1+" "+stock2+ "\n")
     my_pair_file.close()
-    print(pairs)
-    pairs=acquiringPair(pairs)
-    print(pairs)
-    my_pair_file = open('Pairs1.txt', 'w')
-    for pair in pairs:
-        stock1, stock2 = pair.get_pairs()
-        my_pair_file.write(stock1 + " " + stock2 + "\n")
-    my_pair_file.close()
+    start_from_backtrader=datetime.date(2014, 6, 9)
+    in_csv_file(start_from_backtrader)
 
 def gettingDistinctDates():
     modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
@@ -139,18 +134,18 @@ def findPairs(stocks, start, end):
             beta = result.params[1]
             p1 = adfuller(stock1data - beta * stock2data)[1]
             p2 = coint(stock1data, stock2data)[1]
-            if p1 < 0.0002 and p2 < 0.0002:
+            pvalue=0.05
+            if p1 < 0.05 and p2 < 0.05:
                 p = Pair(stocks[i], stocks[j])
                 pairs.append(p)
     toc = time.perf_counter()
     plt.show()
     print('finding pairs took ', toc - tic, ' seconds')
-    print(len(pairs))
     return pairs
 
 def in_csv_file(start):
 
-    my_pair_file = open('Pairs.txt', 'r')
+    my_pair_file = open('Backtrader/Pairs.txt', 'r')
     priority_list=[]
     not_priority=[]
     for i in my_pair_file:
@@ -174,10 +169,11 @@ def in_csv_file(start):
     priority_list = acquiringPair(priority_list)
     not_priority = acquiringPair(not_priority)
     my_pair_file.close()
-    my_pair_file = open('Pairs2.txt', 'w')
+    my_pair_file = open('Backtrader/Pairs1.txt', 'w')
     total_list=priority_list+not_priority
     for i in total_list:
         stock1 , stock2 = i.get_pairs()
         my_pair_file.write(stock1+ ' '+ stock2 +'\n')
 
-gettingDistinctDates()
+main()
+

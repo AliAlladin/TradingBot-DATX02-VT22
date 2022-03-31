@@ -1,4 +1,4 @@
-from optimizeStrats import *  # import our first strategy
+from optimizeStrats import *  # import our first strategy.
 import os
 import sys  # To find out the script name (in argv[0])
 import backtrader.analyzers as btanalyzers

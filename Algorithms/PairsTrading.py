@@ -46,8 +46,6 @@ class PairsTrading:
             t1 = self.pairs['T1'][i]  # Ticker symbol
             t2 = self.pairs['T2'][i]  # Ticker symbol
 
-            print(latest_prices)
-
             # Latest minute data for ticker. Only 1 data point.
             tick1 = latest_prices.loc[latest_prices['Symbol'] == t1]
             tick2 = latest_prices.loc[latest_prices['Symbol'] == t2]
@@ -60,9 +58,8 @@ class PairsTrading:
             data_df = pd.concat([hist_prices[t1], hist_prices[t2]], axis=1, join='inner', keys=[t1, t2], )
 
             # Update the last row with the minute data
-            print(data_df)
             data_df.iloc[-1] = [tick1.iat[0, 1], tick2.iat[0, 1]]
-            print(data_df)
+            data_df = data_df.astype(np.float64)
 
             # Perform a linear regression to calculate the spread
             result = sm.OLS(data_df[t1], data_df[t2]).fit()

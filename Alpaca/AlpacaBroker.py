@@ -36,9 +36,6 @@ class AlpacaBroker:
             order = self.api.submit_order(
                 symbol, target_position_size, "buy", "market", "day")
 
-            print("BUY order for {} {} {}".format(order.qty,
-                                                  order.symbol, order.status))
-
             return order.id
         except Exception as e:
             print(e)
@@ -47,10 +44,6 @@ class AlpacaBroker:
     def sell(self, symbol: str, target_position_size: float):
         try:
             order = self.api.submit_order(symbol, round(target_position_size), "sell", "market", "day")
-
-            print("SELL order for {} {} {}".format(order.qty,
-                                                   order.symbol, order.status))
-
             return order.id
         except Exception as e:
             print(e)

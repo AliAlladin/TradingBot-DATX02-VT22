@@ -46,17 +46,12 @@ class AlpacaBroker:
     # Function to place a sell order.
     def sell(self, symbol: str, target_position_size: float):
         try:
-            position = self.get_position(symbol)
-            if position is not None and target_position_size <= position["qty"]:
-                order = self.api.submit_order(
-                    symbol, target_position_size, "sell", "market", "day")
+            order = self.api.submit_order(symbol, round(target_position_size), "sell", "market", "day")
 
-                print("SELL order for {} {} {}".format(order.qty,
-                                                       order.symbol, order.status))
+            print("SELL order for {} {} {}".format(order.qty,
+                                                   order.symbol, order.status))
 
-                return order.id
-            else:
-                print("Can't create SELL order. (Check symbol and target_position_size)")
+            return order.id
         except Exception as e:
             print(e)
 
@@ -121,6 +116,3 @@ class AlpacaBroker:
         return pd.DataFrame(list)
 
 
-broker = AlpacaBroker()
-# print(broker.short("AAPL", 10))
-print(broker.get_position("AAPL"))

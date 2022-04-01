@@ -1,7 +1,6 @@
 import datetime
 import os
 import sys  # To find out the script name (in argv[0])
-
 import pandas as pd
 import random
 pd.options.mode.chained_assignment = None
@@ -10,8 +9,8 @@ from Pair import *
 from Strategies import *  # import our Strategies
 
 def main():
-    #StrategyOne()
-    StrategyTwo()
+    StrategyOne()
+    #StrategyTwo()
 
 
 def StrategyOne():
@@ -24,10 +23,7 @@ def StrategyOne():
     # The data of pairs comes from Pairs.txt which we read
     datap = os.path.join(modpath, 'Backtrader/Pairs.txt')
     my_pair_file = open(datap, 'r')
-
     endValueForEachPair=[]
-
-    
     # We go through Pairs.txt to add all tickers and Pairs
     for line in my_pair_file:
         pairs = []  # A list of Pairs (see Pair.py)
@@ -40,14 +36,11 @@ def StrategyOne():
         for ticker in stocks:
             dict[ticker]=i
             i=+1
-
             CSV_file_path = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(ticker)  # Full path to csv-file
-
             data = bt.feeds.GenericCSVData(
-
                 dataname=CSV_file_path,  # Full path to csv-file
-                fromdate=datetime.datetime(2013, 4, 1, 9, 30, 00),  # Start  date
-                todate=datetime.datetime(2016, 5, 1, 16, 00, 00),  # Ending date
+                fromdate=datetime.datetime(2017, 1, 1, 9, 30, 00),  # Start  date
+                todate=datetime.datetime(2019, 1, 1, 16, 00, 00),  # Ending date
 
                 nullvalue=0.0,  # Used for replacing NaN-values with 0
 
@@ -58,17 +51,14 @@ def StrategyOne():
                 time=-1,  # column containing the time field if separate from the datetime field. -1 if not present.
 
                 # For each below, reference the corresponding index from the data
-
                 open=1,
                 high=2,
                 low=3,
                 close=4,
                 volume=5,
-
                 openinterest=-1,  # -1 if no such column exists
                 timeframe=bt.TimeFrame.Minutes,
                 #compression=60
-
             )
             cerebro.adddata(data)
         cerebro.broker.setcash(100000.0)
@@ -76,7 +66,7 @@ def StrategyOne():
         # Add strategy to Cerebro
         # TODO: allow for strategy switching
         todate1=datetime.date(2019, 5, 1)
-        cerebro.addstrategy(Strategy_pairGen, dic=dict, pairs=pairs, distance=1, period=600, invested=100000, todate=todate1)
+        cerebro.addstrategy(Strategy_pairGen, dic=dict, pairs=pairs, distance=3, period=100, invested=1000, todate=todate1)
 
         # Set the commission - 0.1% ... divide by 100 to remove the %
         cerebro.broker.setcommission(commission=0)
@@ -175,8 +165,8 @@ def StrategyTwo():
         data = bt.feeds.GenericCSVData(
 
             dataname=CSV_file_path,  # Full path to csv-file
-            fromdate=datetime.datetime(2018, 4, 1, 9, 30, 00),  # Start  date
-            todate=datetime.datetime(2020, 5, 1, 16, 00, 00),  # Ending date
+            fromdate=datetime.datetime(2017, 1, 1, 9, 30, 00),  # Start  date
+            todate=datetime.datetime(2019, 1, 1, 16, 00, 00),  # Ending date
 
             nullvalue=0.0,  # Used for replacing NaN-values with 0
 

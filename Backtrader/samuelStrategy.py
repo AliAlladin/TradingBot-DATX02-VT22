@@ -4,47 +4,14 @@ import statsmodels.api as sm
 from Pair import *
 import datetime
 
-
-class Strategy_pairGen(bt.Strategy):
-    params = (('distance', None),
-              ('period', None),
-              ('stock1',None),
-              ('stock2',None),
-              ('invested',None),
-              ('todate',None),)
-
-    # "Self" is the bar/line we are on, of the data
+class Strategy(bt.Strategy):    
+    def __init__(self, invested, period): 
+        self.invested_amount = invested #amount in each stock
+        self.period=period
 
     def log(self, txt, dt=None):  # Logging function/output for this strategy
         dt = dt or self.datas[0].datetime.datetime(0)
         print('%s, %s' % (dt.isoformat(), txt))
-
-    def __init__(self):
-        self.stock1Data=[]
-        self.stock2Data=[]
-        
-        # The parameters that are to be varied to optimize the model
-        self.distance = self.params.distance
-        self.period = self.params.period
-        self.stock1=self.params.stock1
-        self.stock2=self.params.stock2
-
-        self.active=False             
-        self.long = None                   
-        self.invested_amount = self.params.invested #amount in each pair
-
-        #paramters to close position at end date
-        self.todate = self.params.todate
-        self.sellOf = False
-
-        # The closing data of the stock
-        self.dataclose = []
-        for i in range(0, 2):  # We add the closing data for each of all stocks
-            self.dataclose.append(self.datas[i].close)
-        self.oldDate = str(self.datas[0].datetime.date(0))
-        self.firstTime = True
-
-        print("initialising") #just for terminal
 
     # Reports an order instance
     def notify_order(self, order):
@@ -73,6 +40,8 @@ class Strategy_pairGen(bt.Strategy):
             self.log('Order Canceled/Margin/Rejected')
 
     # Receives a trade whenever there has been a change in one
+
+
     def notify_trade(self, trade):
         if not trade.isclosed:
             return
@@ -85,11 +54,44 @@ class Strategy_pairGen(bt.Strategy):
     # The "run method", defines when to buy and sell
 
 
+class Strategy_pairGen(Strategy):
+
+    params = (('distance', None),
+            ('period', None),
+            ('stock1',None),
+            ('stock2',None),
+            ('invested',None),
+            ('todate',None),)
+
+    def __init__(self):
+        Strategy.__init__(self, self.params.invested, self.params.period)
+        self.stock1Data=[]
+        self.stock2Data=[]
+        
+        # The parameters that are to be varied to optimize the model
+        self.distance = self.params.distance
+        self.stock1=self.params.stock1
+        self.stock2=self.params.stock2
+        self.active=False             
+        self.long = None
+
+        #paramters to close position at end date
+        self.todate = self.params.todate
+        self.sellOf = False
+
+        # The closing data of the stock
+        self.dataclose = []
+        for i in range(0, 2):  # We add the closing data for each of all stocks
+            self.dataclose.append(self.datas[i].close)
+        self.oldDate = str(self.datas[0].datetime.date(0))
+        self.firstTime = True
+
+        print("initialising") #just for terminal
+
     def next(self):
         #check if last date so that we close positions
         if self.todate == self.datas[0].datetime.date(0):
             self.sellOf = True
-
 
         if self.firstTime:
             self.oldDate = str(self.datas[0].datetime.date(0))
@@ -158,12 +160,12 @@ class Strategy_pairGen(bt.Strategy):
 
     def closingPosition(self,z_score, current_ratio, shares_stock1):
         if self.long:
-            if z_score > -2.5 or self.sellOf:
+            if z_score > 0 or self.sellOf:
                 self.order = self.close(self.datas[0])
                 self.order = self.close(self.datas[1])
                 self.active = False
         else:
-            if z_score < 2.5 or self.sellOf:
+            if z_score < 0 or self.sellOf:
                 self.order = self.close(self.datas[1])
                 self.order = self.close(self.datas[0])
                 self.active = False
@@ -181,6 +183,5 @@ class Strategy_pairGen(bt.Strategy):
         # Calculation of the Z-score
         mean = np.mean(spread)
         std = np.std(spread)
-
         z_score = (spread[period - 1] - mean) / std
         return z_score

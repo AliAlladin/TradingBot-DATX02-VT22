@@ -5,23 +5,22 @@ import pandas as pd
 pd.options.mode.chained_assignment = None
 from Pair import *
 from samuelStrategy import *  # import our first strategy
+
+#Global variables
+modpath = os.path.dirname(os.path.dirname(sys.argv[0])) # Individual os paths
+
 def main():
     StrategyOne()
     #StrategyTwo()
 
-
+#Pair Trading
 def StrategyOne():
     strat='Strategy_pairGen'
     cerebro = bt.Cerebro() # Instantiate Cerebro engine. This is the main control center / brain
-
-    modpath = os.path.dirname(os.path.dirname(sys.argv[0])) # Individual os paths
-
-    datap = os.path.join(modpath, 'Backtrader/Pairs1.txt') # The data of pairs comes from Pairs.txt which we read
+    datap = os.path.join(modpath, 'Backtrader/Pairs.txt') # The data of pairs comes from Pairs.txt which we read
     my_pair_file = open(datap, 'r')
-
     endValueForEachPair=[]
 
-    
     # We go through Pairs.txt to add all tickers and Pairs
     for line in my_pair_file:
         pairs = []  # A list of Pairs (see Pair.py)
@@ -46,14 +45,12 @@ def Strategy2():
     total_portfolio_value=sum(endValueForEachStock)-len(endValueForEachStock)*100000
 
 def add_data(stock,cerebro):
-    modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
     CSV_file_path = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(stock)  # Full path to csv-file
-
     data = bt.feeds.GenericCSVData(
 
         dataname=CSV_file_path,  # Full path to csv-file
-        fromdate=datetime.datetime(2014, 9, 1, 9, 30, 00),  # Start  date
-        todate=datetime.datetime(2019, 5, 1, 16, 00, 00),  # Ending date
+        fromdate=datetime.datetime(2017, 1, 1, 9, 30, 00),  # Start  date
+        todate=datetime.datetime(2019, 1, 1, 16, 00, 00),  # Ending date
 
         nullvalue=0.0,  # Used for replacing NaN-values with 0
 
@@ -78,32 +75,13 @@ def add_data(stock,cerebro):
     )
     cerebro.adddata(data)
 
-
-def creating_file_with_stocks():
-    stocks = []
-    modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
-    directory_in_str = os.path.join(modpath, 'Data/filtered_csv_data/')
-    directory = os.fsencode(directory_in_str)
-    for filename in os.listdir(directory):
-        x = (str(filename))
-        x = x.split('\'')[1]
-        x = x.removesuffix('.csv')
-        if "." in x:
-            y = x.split('.')
-            x = y[0] + "-" + y[1]
-        stocks.append(x)
-    my_pair_file = open('Stocks.txt', 'w')
-    for i in stocks:  
-        my_pair_file.write(i+ "\n")
-    my_pair_file.close()
-
 def run(cerebro, strat):
     cerebro.broker.setcash(100000.0)
     todate1=datetime.date(2019, 5, 1)
     cerebro.broker.setcommission(commission=0)  # Set the commission - 0.1% ... divide by 100 to remove the %
     if strat=='Strategy_pairGen':
         todate1=datetime.date(2019, 5, 1)
-        cerebro.addstrategy(Strategy_pairGen, distance=3, period=400, invested=10000, todate=todate1,stock1='A', stock2='AA')
+        cerebro.addstrategy(Strategy_pairGen, distance=3, period=100, invested=1000, todate=todate1,stock1='A', stock2='AA')
     else:
         cerebro.addstrategy(strat, distance=2.5, period=100, invested=100000, todate=todate1)
 

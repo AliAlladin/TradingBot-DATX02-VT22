@@ -21,7 +21,7 @@ class Strategy(bt.Strategy):
         print('%s, %s' % (dt.isoformat(), txt))
 
     # Reports an order instance
-    def notify_order(self, order): #Backtrader calls this function
+    def notify_order(self, order): # Backtrader calls this function
 
         # The order is completed
         # Attention: broker could reject order if there is not enough cash
@@ -51,10 +51,10 @@ class Strategy(bt.Strategy):
         if not trade.isclosed:
             return
 
-#Specific attributes pair trading
+# Specific attributes pair trading
 class Strategy_pairGen(Strategy): 
 
-#The needed parameters
+# The needed parameters
     params = (('distance', None),
             ('period', None),
             ('invested',None),
@@ -63,16 +63,16 @@ class Strategy_pairGen(Strategy):
 
     def __init__(self):
         Strategy.__init__(self, self.params.invested, self.params.period, 
-        self.params.todate, self.params.my_result_file) #Initiate the general general parameters for strategies
+        self.params.todate, self.params.my_result_file) # Initiate the general general parameters for strategies
         
-        #Saving stockdata for each stock
+        # Saving stockdata for each stock
         self.stock1Data=[] 
         self.stock2Data=[]
         
-        self.distance = self.params.distance #Distance from average
-        self.active=False #To check if the pair is active             
-        self.long = None #If we have bought the first stock or not
-        self.sellOf = False #Variable to check if it is the last day
+        self.distance = self.params.distance # Distance from average
+        self.active=False # To check if the pair is active             
+        self.long = None # If we have bought the first stock or not
+        self.sellOf = False # Variable to check if it is the last day
 
         # The closing data of the stock
         self.dataclose = []
@@ -80,16 +80,16 @@ class Strategy_pairGen(Strategy):
             self.dataclose.append(self.datas[i].close)
     
 
-        print("initialising") #just for terminal
+        print("initialising") # Just for terminal
 
     def next(self):
         # Check if last date so that we close positions
-        if self.todate == self.datas[0].datetime.date(0): #Check if last day (then we want to sell)
+        if self.todate == self.datas[0].datetime.date(0): # Check if last day (then we want to sell)
             self.sellOf = True
 
-        newPotentialDate = str(self.datas[0].datetime.date(0)) #Variable to check if it is new day
+        newPotentialDate = str(self.datas[0].datetime.date(0)) # Variable to check if it is new day
 
-        if newPotentialDate != self.oldDate: #Checking if new day then add the closing price the day before
+        if newPotentialDate != self.oldDate: # Checking if new day then add the closing price the day before
             self.oldDate = newPotentialDate 
             self.stock1Data.append(self.dataclose[0][-1])
             self.stock2Data.append(self.dataclose[1][-1])
@@ -98,17 +98,17 @@ class Strategy_pairGen(Strategy):
         if len(self.stock1Data) >= self.period: # To check if we can start making trades
             # Sort to receive only data of the last 'period' days
 
-            #Extract relevant closing price for each stock
+            # Extract relevant closing price for each stock
             relevant_data_stock1 = self.stock1Data[len(self.stock1Data) - self.period:len(
                 self.stock1Data) - 1] 
             relevant_data_stock2 = self.stock2Data[len(self.stock2Data) - self.period:len(
                 self.stock2Data) - 1]
 
-            #Add the current price for each stock    
+            # Add the current price for each stock    
             relevant_data_stock1.append(self.dataclose[0][0])
             relevant_data_stock2.append(self.dataclose[1][0])
 
-            z_score=self.linearRegression(relevant_data_stock1,relevant_data_stock2,self.period) #Want to calculate the z_score
+            z_score=self.linearRegression(relevant_data_stock1,relevant_data_stock2,self.period) # Want to calculate the z_score
 
             # To know how much we need to buy of each stock
             shares_stock1 = self.invested_amount / relevant_data_stock1[self.period - 1]

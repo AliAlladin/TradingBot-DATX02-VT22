@@ -236,7 +236,6 @@ class Strategy_pairGen(bt.Strategy):
 
 class Strategy_fibonacci(bt.Strategy):
 
-
     # "Self" is the bar/line we are on, of the data
     def log(self, txt, dt=None):
         # Logging function/output for this strategy

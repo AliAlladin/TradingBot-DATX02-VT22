@@ -8,10 +8,18 @@ from samuelStrategy import *  # import our first strategy
 
 #Global variables
 modpath = os.path.dirname(os.path.dirname(sys.argv[0])) # Individual os paths
+todate=datetime.date(2019, 5, 1)
+invested=1000
+start_date=datetime.datetime(2017, 1, 1, 9, 30, 00)  # Start  date
+end_date=datetime.datetime(2019, 1, 1, 16, 00, 00)  # Ending datev
+datap = os.path.join(modpath, 'Results/result.txt') # The data of pairs comes from Pairs.txt which we read
+my_result_file = open(datap, 'w')
+
+
 
 def main():
-    StrategyOne()
-    #StrategyTwo()
+    #StrategyOne()
+    StrategyTwo()
 
 #Pair Trading
 def StrategyOne():
@@ -25,32 +33,40 @@ def StrategyOne():
     for line in my_pair_file:
         pairs = []  # A list of Pairs (see Pair.py)
         stocks = line.split()
+        stock1=stocks[0]
+        stock2=stocks[1]
         cerebro = bt.Cerebro()
-        pairs.append(Pair(stocks[0], stocks[1]))
-
+        pairs.append(Pair(stock1, stock2))
         for ticker in stocks:
-            add_data(ticker,cerebro)
-        endValueForEachPair.append(run(cerebro,strat))
-    total_portfolio_value=sum(endValueForEachPair)-len(endValueForEachPair)*100000
+            add_data(cerebro, ticker)
+        my_result_file.write("Pair: " + stock1 + " "+ stock2)
+        cerebro.addstrategy(Strategy_pairGen, distance=3, period=100, invested=invested, 
+        todate=todate, my_result_file=my_result_file)
+        endValueForEachPair.append(run(cerebro))
+    total_portfolio_value=sum(endValueForEachPair)-len(endValueForEachPair)*invested
     print(total_portfolio_value)
+    my_result_file.close()
 
-def Strategy2():
+def StrategyTwo():
     endValueForEachStock=[]
-    strat='Strategy_fibonacci'
     my_stock_file = open('Stocks.txt', 'r')
     for stock in my_stock_file:
         cerebro = bt.Cerebro()
-        add_data(cerebro, stock)
-        endValueForEachStock.append(run(cerebro, strat))
+        stock_name=stock.split()[0]
+        add_data(cerebro, stock_name)
+        my_result_file.write("Stock: " + stock_name)
+        cerebro.addstrategy(Strategy_fibonacci, stock_name=stock_name, invested=1000, period=50, 
+        todate=todate, my_result_file=my_result_file)
+        endValueForEachStock.append(run(cerebro))
     total_portfolio_value=sum(endValueForEachStock)-len(endValueForEachStock)*100000
+    my_result_file.close()
 
-def add_data(stock,cerebro):
+def add_data(cerebro, stock):
     CSV_file_path = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(stock)  # Full path to csv-file
     data = bt.feeds.GenericCSVData(
-
         dataname=CSV_file_path,  # Full path to csv-file
-        fromdate=datetime.datetime(2017, 1, 1, 9, 30, 00),  # Start  date
-        todate=datetime.datetime(2019, 1, 1, 16, 00, 00),  # Ending date
+        fromdate=start_date,
+        todate=end_date,
 
         nullvalue=0.0,  # Used for replacing NaN-values with 0
 
@@ -70,35 +86,19 @@ def add_data(stock,cerebro):
 
         openinterest=-1,  # -1 if no such column exists
         timeframe=bt.TimeFrame.Minutes,
-        #compression=60
-
     )
     cerebro.adddata(data)
 
-def run(cerebro, strat):
+def run(cerebro):
     cerebro.broker.setcash(100000.0)
-    todate1=datetime.date(2019, 5, 1)
     cerebro.broker.setcommission(commission=0)  # Set the commission - 0.1% ... divide by 100 to remove the %
-    if strat=='Strategy_pairGen':
-        todate1=datetime.date(2019, 5, 1)
-        cerebro.addstrategy(Strategy_pairGen, distance=3, period=100, invested=1000, todate=todate1,stock1='A', stock2='AA')
-    else:
-        cerebro.addstrategy(strat, distance=2.5, period=100, invested=100000, todate=todate1)
-
     print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue()) # Print starting portfolio value
-
-    # Creates csv files with inquired data. Has to be executed before cerebro.run()
-    # "out" specifies the name of the output file. It currently overwrites the same file.
-    cerebro.addwriter(bt.WriterFile, csv=True, out='log.csv')
-
     cerebro.run() # Core method to perform backtesting
     print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue()) # Print final portfolio value
-
     try:
-        print('hej')
-        #cerebro.plot() # To plot the trades
+        cerebro.plot() # To plot the trades
     except IndexError:
         print('prob length 0')
     return cerebro.broker.getvalue()
-
+    
 main()

@@ -162,7 +162,7 @@ def run_optimize(cerebro):
                  x[0].analyzers.sharpe.get_analysis()['sharperatio']] for x in back]
 
     par_df = pd.DataFrame(par_list, columns=['distance', 'period', 'return', 'dd', 'sharpe'])
-    # qgrid.show_grid(par_df)
+    # qgrid.show_grid(par_df).
 
 
 optimize('Pair')

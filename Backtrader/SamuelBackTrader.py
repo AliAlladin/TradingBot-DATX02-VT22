@@ -15,15 +15,12 @@ end_date=datetime.datetime(2019, 1, 1, 16, 00, 00)  # Ending datev
 datap = os.path.join(modpath, 'Results/result.txt') # The data of pairs comes from Pairs.txt which we read
 my_result_file = open(datap, 'w')
 
-
-
 def main():
     #StrategyOne()
     StrategyTwo()
 
 #Pair Trading
 def StrategyOne():
-    strat='Strategy_pairGen'
     cerebro = bt.Cerebro() # Instantiate Cerebro engine. This is the main control center / brain
     datap = os.path.join(modpath, 'Backtrader/Pairs.txt') # The data of pairs comes from Pairs.txt which we read
     my_pair_file = open(datap, 'r')

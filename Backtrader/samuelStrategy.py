@@ -4,18 +4,19 @@ import statsmodels.api as sm
 from Pair import *
 import datetime
 
+#General attributes for all strategies
 class Strategy(bt.Strategy):    
 
     def __init__(self, invested, period, todate, my_result_file): 
-        self.invested_amount = invested #amount in each stock
-        self.period=period
-        self.oldDate = str(self.datas[0].datetime.date(0))
-        self.todate = self.params.todate
-        self.my_result_file=my_result_file
+        self.invested_amount = invested # Amount in each stock
+        self.period=period # Number of days before being able to analyse if buy/sell
+        self.oldDate = str(self.datas[0].datetime.date(0)) # Variable to check if new date
+        self.todate = self.params.todate # Variable so we sell on the last day (not necessary)
+        self.my_result_file=my_result_file # File to save buys and sells so we can analyse afterwards
 
-    def log(self, txt, dt=None):  # Logging function/output for this strategy
+    def log(self, txt, dt=None):  #For saving important information
         dt = dt or self.datas[0].datetime.datetime(0)
-        self.my_result_file.write('%s, %s' % (dt.isoformat(), txt))
+        self.my_result_file.write('%s, %s' % (dt.isoformat(), txt)) #Saving the order information in the file
         print('%s, %s' % (dt.isoformat(), txt))
 
     # Reports an order instance
@@ -48,8 +49,10 @@ class Strategy(bt.Strategy):
         if not trade.isclosed:
             return
 
-class Strategy_pairGen(Strategy):
+#Specific attributes pair trading
+class Strategy_pairGen(Strategy): 
 
+#The needed parameters
     params = (('distance', None),
             ('period', None),
             ('invested',None),
@@ -57,17 +60,17 @@ class Strategy_pairGen(Strategy):
             ('my_result_file',None),)
 
     def __init__(self):
-        Strategy.__init__(self, self.params.invested, self.params.period, self.params.todate, self.params.my_result_file)
-        self.stock1Data=[]
+        Strategy.__init__(self, self.params.invested, self.params.period, 
+        self.params.todate, self.params.my_result_file) #Initiate the general general parameters for strategies
+        
+        #Saving stockdata for each stock
+        self.stock1Data=[] 
         self.stock2Data=[]
         
-        # The parameters that are to be varied to optimize the model
-        self.distance = self.params.distance
-        self.active=False             
-        self.long = None
-
-        #paramters to close position at end date
-        self.sellOf = False
+        self.distance = self.params.distance #Distance from average
+        self.active=False #To check if the pair is active             
+        self.long = None #If we have bought the first stock or not
+        self.sellOf = False #Variable to check if it is the last day
 
         # The closing data of the stock
         self.dataclose = []
@@ -78,27 +81,30 @@ class Strategy_pairGen(Strategy):
         print("initialising") #just for terminal
 
     def next(self):
-        #check if last date so that we close positions
-        if self.todate == self.datas[0].datetime.date(0):
+        # Check if last date so that we close positions
+        if self.todate == self.datas[0].datetime.date(0): #Check if last day (then we want to sell)
             self.sellOf = True
 
-        newPotentialDate = str(self.datas[0].datetime.date(0))
+        newPotentialDate = str(self.datas[0].datetime.date(0)) #Variable to check if it is new day
 
         if newPotentialDate != self.oldDate: #Checking if new day then add the closing price the day before
-            self.oldDate = newPotentialDate
+            self.oldDate = newPotentialDate 
             self.stock1Data.append(self.dataclose[0][-1])
             self.stock2Data.append(self.dataclose[1][-1])
 
         # We want to only look after 'period' days
-        if len(self.stock1Data) >= self.period:
+        if len(self.stock1Data) >= self.period: # To check if we can start making trades
             # Sort to receive only data of the last 'period' days
+
+            #Extract relevant closing price for each stock
             relevant_data_stock1 = self.stock1Data[len(self.stock1Data) - self.period:len(
-                self.stock1Data) - 1]
+                self.stock1Data) - 1] 
             relevant_data_stock2 = self.stock2Data[len(self.stock2Data) - self.period:len(
                 self.stock2Data) - 1]
+
+            #Add the current price for each stock    
             relevant_data_stock1.append(self.dataclose[0][0])
             relevant_data_stock2.append(self.dataclose[1][0])
-
 
             z_score=self.linearRegression(relevant_data_stock1,relevant_data_stock2,self.period) #Want to calculate the z_score
 

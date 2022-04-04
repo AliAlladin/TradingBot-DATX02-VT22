@@ -58,7 +58,11 @@ class PairsTrading:
             data_df = pd.concat([hist_prices[t1], hist_prices[t2]], axis=1, join='inner', keys=[t1, t2], )
 
             # Update the last row with the minute data
-            data_df.iloc[-1] = [tick1.iat[0, 1], tick2.iat[0, 1]]
+            try:
+                data_df.iloc[-1] = [tick1.iat[0, 1], tick2.iat[0, 1]]
+            except Exception as e:
+                print(e)
+                continue
             data_df = data_df.astype(np.float64)
 
             # Perform a linear regression to calculate the spread

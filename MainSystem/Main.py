@@ -15,22 +15,36 @@ class StrategyObserver:
         observable.subscribe(self)
 
     def notify(self, observable, signal: dict):
-        if signal['signal'] == "BUY":
-            order_id = broker.buy(signal['symbol'], signal['volume'])   # Send buy order to broker
-            while broker.get_order(order_id)['filled_at'] is not None:  # Wait for order to be filled
-                continue
+        try:
+            if signal['signal'] == "BUY":
+                order_id = broker.buy(signal['symbol'], round((signal['volume'])))  # Send buy order to broker
+                if order_id is None:
+                    return
+                while broker.get_order(order_id)['filled_at'] is None:  # Wait for order to be filled
+                    continue
+                database_handler.sqlBuy(signal['symbol'],
+                                        database_handler.sqlGetPrice(signal['symbol']),
+                                        round(broker.get_order(order_id)['qty']))
+            elif signal['signal'] == "SELL":
+                order_id = broker.sell(signal['symbol'], round(signal['volume']))  # Send sell order to broker
+                if order_id is None:
+                    return
+                while broker.get_order(order_id)['filled_at'] is None:  # Wait for order to be filled
+                    continue
+                database_handler.sqlSell(signal['symbol'],
+                                         database_handler.sqlGetPrice(signal['symbol']),
+                                         round(broker.get_order(order_id)['qty']))
 
-            database_handler.sqlBuy(signal['symbol'], 0)  # TODO Get current price of ticker
-        elif signal['signal'] == "SELL":
-            order_id = broker.sell(signal['symbol'], signal['volume'])  # Send sell order to broker
-            while broker.get_order(order_id)['filled_at'] is not None:  # Wait for order to be filled
-                continue
-            database_handler.sqlSell(signal['symbol'], 0)  # TODO Get current price of ticker
+            order = broker.get_order(order_id)
+            message = "{} {} {} at {}$".format(order['type'],
+                                              order['qty'],
+                                              order['symbol'],
+                                              database_handler.sqlGetPrice(signal['symbol']))
+            print(message)
+            #NotificationBot.sendNotification(message)
 
-        order = broker.get_order(order_id)
-        message = "{} {} {} at {}".format(order['type'], order['symbol'], order['qty'], 0)  # TODO Get current price of ticker
-        # NotificationBot.sendNotification(message)
-
+        except Exception as e:
+            print(e)
 
 class DataObserver:
     def __init__(self, observable):
@@ -53,7 +67,7 @@ def main():
     broker = AlpacaBroker.AlpacaBroker()
 
     global strategy
-    strategy = PairsTrading.PairsTrading(pairs, 0.5, 500, 10000)
+    strategy = PairsTrading.PairsTrading(pairs, 2, 600, 2000)
 
     global database_handler
     database_handler = handleData.DatabaseHandler()
@@ -63,8 +77,7 @@ def main():
     DataObserver(data_provider)  # Add data observer
     data_provider.start()   # Start live-data thread
 
-
-
+    sleep(60)
 
     strategy_observer = StrategyObserver(strategy)  # Add strategy observer
 
@@ -77,15 +90,26 @@ def main():
 
     while True:
         if broker.market_is_open():
-            latest_price = database_handler.sqlGetAllPrice()  # Get latest prices from database
-            strategy.run(latest_price, hist_data)   # Run strategy
-            sleep(60)   # Wait one minute
+            try:
+                print("Running")
+                latest_price = database_handler.sqlGetAllPrices()  # Get latest prices from database
+                strategy.run(latest_price, hist_data)  # Run strategy
+                sleep(60)  # Wait one minute
+            except Exception as e:
+                print(e)
+                continue
         else:
-            # NotificationBot.sendNotification(broker.all_postions()) # Send notification of current positions and account valu
-            live_data_provider.marketClosed()    # Lock live-data thread
-            broker.wait_for_market_open()   # Send program to sleep until market opens.
-            live_data_provider.marketOpen() # Unlock live-data thread
-            hist_data = test.end_of_day(list(tickers), 30)  # Update historic data
+            try:
+                NotificationBot.sendNotification("Portfolio value: {}".format(broker.get_portfolio_value()))
+                NotificationBot.sendNotification("Going to sleep")
+                live_data_provider.marketClosed()  # Lock live-data thread
+                broker.wait_for_market_open()  # Send program to sleep until market opens.
+                NotificationBot.sendNotification("Starting")
+                live_data_provider.marketOpen()  # Unlock live-data thread
+                sleep(60)  # Wait one minute
+                hist_data = test.end_of_day(list(tickers), 30)  # Update historic data
+            except Exception as e:
+                print(e)
 
 if __name__ == "__main__":
     main()

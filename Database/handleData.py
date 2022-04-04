@@ -18,7 +18,6 @@ class DatabaseHandler:
 
         cursor = self.conn.cursor()
 
-        '''
         # drop
         sql = open('../Database/drop.sql', 'r')
         cursor.execute(sql.read())
@@ -44,7 +43,6 @@ class DatabaseHandler:
         cursor.execute(sql.read())
         self.conn.commit()
         print("insert created")
-        '''
 
 
     def insertAndCommitQuery(self, stockTicker: str, price: float, volume: float, query: str):
@@ -86,9 +84,13 @@ class DatabaseHandler:
         self.conn.commit()
 
     def sqlGetAllPrices(self):
-        postgreSQL_select_Query = "select * from Prices"
-        self.cursor.execute(postgreSQL_select_Query)
-        return pd.DataFrame.from_records(self.cursor.fetchall(), columns=['Symbol', 'Price'])
+        try:
+            postgreSQL_select_Query = "select * from Prices"
+            self.cursor.execute(postgreSQL_select_Query)
+            return pd.DataFrame.from_records(self.cursor.fetchall(), columns=['Symbol', 'Price'])
+        except Exception as e:
+            print(e)
+            return self.sqlGetAllPrices()
 
     def sqlGetPrice(self, symbol: str):
         postgreSQL_select_Query = "select price from Prices where ticker = %s"

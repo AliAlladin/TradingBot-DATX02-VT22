@@ -43,7 +43,7 @@ class AlpacaBroker:
     # Function to place a sell order.
     def sell(self, symbol: str, target_position_size: float):
         try:
-            order = self.api.submit_order(symbol, round(target_position_size), "sell", "market", "day")
+            order = self.api.submit_order(symbol, target_position_size, "sell", "market", "day")
             return order.id
         except Exception as e:
             print(e)

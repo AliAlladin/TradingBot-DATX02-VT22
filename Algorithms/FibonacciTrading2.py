@@ -1,19 +1,17 @@
-import os
-from datetime import time
+from datetime import time, date
 
 import pandas as pd
-import sys
-import yfinance as yf
 
 '''
 Assuming that the input data consists of 1 dataframe w/ the columns: "Date" and each ticker's name w/ 
 respective closing prices for each date
 '''
 
+
 # This data is to be provided by the database.
-data = yf.download(tickers="AAPL A AA AMZN", period="7d", interval="1m")['Close']
-data.to_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testdata.csv'), index=True)
-testData = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testdata.csv'))
+# data = yf.download(tickers="AAPL A AA AMZN", period="7d", interval="1m")['Close']
+# data.to_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testdata.csv'), index=True)
+# testData = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testdata.csv'))
 
 
 class FibonacciStrategy:
@@ -30,30 +28,38 @@ class FibonacciStrategy:
         self._observers.remove(observer)
 
     # Initialization of class
-    def __init__(self, ticker_data):
+    def __init__(self, csv_data):
         self._observers = []  # List of observers to be notified
 
         # Parameters
         self.invested_amount = 10000  # The amount for which we invest
-        self.period = 3  # Period of days to determine high or low swing
+        self.period = 85  # Period of days to determine high or low swing
 
         # The Fibonacci ratios
         self.ratios = [0.382, 0.5, 0.618]
 
-        self.data = ticker_data
-        self.data['Datetime'] = pd.to_datetime(self.data['Datetime'])  # Convert column to datetime type
+        self.data = csv_data  # Minute data for one ticker
+        self.data['DateTime'] = pd.to_datetime(self.data['DateTime'])  # Converts column to actual datetime dtype
 
-        self.oldDate = self.data.iloc[-1]['Datetime'].date()  # Fetch the most recent date
+        self.start_index = extract_start_index(self.data,
+                                               self.period)  # Extracts start index of the latest self.period of days
+
+        self.latest_csv_date = self.data.iloc[-1]['DateTime'].date()  # Fetch the most recent date from the csv-file
 
         # New dataframe with the fibonacci levels initiated with "False"
         self.invested_levels = pd.DataFrame(columns=self.data.columns[1:], index=self.ratios)
         for col in self.invested_levels.columns:
             self.invested_levels[col].values[:] = False
 
-    def run(self):
+    def run(self, minute_data):
         fibonacci_levels = []
         uptrend = False
 
+        # If we have begun a new date
+        if date.today() != self.latest_csv_date:
+            start_index = extract_start_index(self.period)
+
+        '''
         # Collects all indices for when market opens
         indices = []
         for i in range(len(self.data)):
@@ -61,14 +67,13 @@ class FibonacciStrategy:
                 indices.append(i)
 
         start_index = indices[len(indices) - self.period]
+        '''
 
         for i in range(1, (len(self.data.columns))):
 
             # Extracts ticker data for a specific period into a dataframe
-            relevantData = self.data[['Datetime', self.data.columns[i]]][start_index:].copy()
+            relevantData = self.data[['DateTime', self.data.columns[i]]][self.start_index:].copy()
             ticker = relevantData.columns[1]
-
-            print(relevantData)
 
             price_now = relevantData.iloc[-1, 1]  # Latest data point/closing price
             date_high = relevantData.loc[relevantData[ticker].idxmax()]  # Date and value of the highest closing price
@@ -127,6 +132,18 @@ class FibonacciStrategy:
                         # We do no longer have a position in the ticker
                         for n in range(len(self.ratios)):
                             self.invested_levels.loc[self.ratios[n]][ticker] = False
+
+
+def extract_start_index(data, period: int):
+    start_index = 0
+    count = 0
+    for i in range(len(data.index) - 1, 0, -1):
+        if data.iloc[i]['DateTime'].time() == time(9, 30, 00):
+            count += 1
+            if count == period:
+                start_index = i
+                break
+    return start_index
 
 
 # ----------------------------------------------------------------------------------------------------------------------

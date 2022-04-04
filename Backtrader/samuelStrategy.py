@@ -20,7 +20,6 @@ class Strategy(bt.Strategy):
 
     # Reports an order instance
     def notify_order(self, order):
-        print("hej")
         # The order is completed
         # Attention: broker could reject order if there is not enough cash
         if order.status in [order.Completed]:
@@ -173,7 +172,7 @@ class Strategy_pairGen(Strategy):
         z_score = (spread[period - 1] - mean) / std
         return z_score
 
-class Strategy_fibonacci(bt.Strategy):
+class Strategy_fibonacci(Strategy):
 
     params = (('stock_name', None),
             ('invested', None),

@@ -124,7 +124,8 @@ class Strategy_pairGen(bt.Strategy):
         # We go through each pair
         for pair in self.pairs:
             # We want to only look after 'period' days
-            if len(self.myData.get(pair.stock1)) > self.period:
+            if len(self.myData.get(pair.stock1)) >= self.period:
+
                 # Sort to receive only data of the last 'period' days
                 relevant_data_stock1 = self.myData.get(pair.stock1)[len(self.myData.get(pair.stock1)) - self.period:len(
                     self.myData.get(pair.stock1)) - 1]
@@ -212,6 +213,7 @@ class Strategy_pairGen(bt.Strategy):
 
                     else:
                         if z_score < 0 or self.sellOf:
+                            print(self.sellOf)
                             # Buy back stock 1 and sell stock 2
                             # self.log('SELL CREATE, %.2f' % self.dataclose[self.dic.get(pair.stock2)][0])
                             self.order = self.sell(self.datas[self.dic.get(pair.stock2)],

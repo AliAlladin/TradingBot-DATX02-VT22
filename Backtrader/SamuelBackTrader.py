@@ -8,17 +8,17 @@ from samuelStrategy import *  # Import our Strategies
 
 # Global variables
 modpath = os.path.dirname(os.path.dirname(sys.argv[0])) # Individual os paths
-todate=datetime.date(2019, 5, 1) # Last date to trade
+todate=datetime.date(2020, 1, 15) # Last date to trade
 invested=1000 # How much to invest in each stock
-start_date=datetime.datetime(2017, 1, 1, 9, 30, 00)  # Start  date
-end_date=datetime.datetime(2019, 1, 1, 16, 00, 00)  # Ending datev
+start_date=datetime.datetime(2018, 1, 1, 9, 30, 00)  # Start  date
+end_date=datetime.datetime(2020, 1, 15, 16, 00, 00)  # Ending datev
 datap = os.path.join(modpath, 'Results/result.csv') # The data of pairs comes from Pairs.txt which we read
 my_result_file = open(datap, 'w') # Saving all our trades in a file
 
 # Main function starts either strategy
 def main(): 
-    # StrategyOne()
-    StrategyTwo()
+    StrategyOne()
+    #StrategyTwo()
 
 # Pair Trading
 def StrategyOne():
@@ -38,10 +38,10 @@ def StrategyOne():
         for ticker in stocks: #Adds data for the two stock in that pair
             add_data(cerebro, ticker) # Add data to backtrader
         my_result_file.write("Pair: " + stock1 + " "+ stock2 +"\n") #In the file to know whcih trades below belong to this pair
-        cerebro.addstrategy(Strategy_pairGen, distance=3, period=100, invested=invested, 
+        cerebro.addstrategy(Strategy_pairGen, distance=1, period=100, invested=invested,
         todate=todate, my_result_file=my_result_file) #Add our strategy with right values on the parameters
         endValueForEachPair.append(run(cerebro)) #Run the program and save the portfolio value in the end
-    total_portfolio_value=sum(endValueForEachPair)-len(endValueForEachPair)*invested #Calculate the profit for the total portfolio (all pairs)
+    total_portfolio_value=sum(endValueForEachPair)-len(endValueForEachPair)*100000 #Calculate the profit for the total portfolio (all pairs)
     print(total_portfolio_value) 
     my_result_file.close()
 

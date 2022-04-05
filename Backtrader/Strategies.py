@@ -1,26 +1,23 @@
-import datetime
-
 import backtrader as bt
 import numpy as np
 import statsmodels.api as sm
-
 from Pair import *
+import datetime
 
 
 class Strategy_pairGen(bt.Strategy):
     params = (('distance', None),
               ('period', None),
-              ('dic',
-               {'A': 0, 'AA': 1, 'AAL': 2, 'AAP': 3, 'AAPL': 4, 'ABBV': 5, 'ABC': 6, 'ABMD': 7, 'ABT': 8, 'ACN': 9}),
-              ('pairs',
-               [Pair('A', 'AA'), Pair('AAL', 'AAP'), Pair('AAPL', 'ABBV'), Pair('ABC', 'ABMD'), Pair('ABT', 'ACN')]),
-              ('todate', datetime.datetime(2021, 8, 13, 16, 00, 00)),
-              ('maximum', None),)
+              ('dic', None),
+              ('pairs', None),
+              ('todate', None),
+              ('invested', None),)
+
 
     # "Self" is the bar/line we are on, of the data
     def log(self, txt, dt=None):
         # Logging function/output for this strategy{'A': 0, 'AA': 1}
-        dt = dt or self.datas[0].datetime.date(0)
+        dt = dt or self.datas[0].datetime.datetime(0)
         print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):
@@ -34,16 +31,14 @@ class Strategy_pairGen(bt.Strategy):
         self.distance = self.params.distance
         self.period = self.params.period
 
-        self.maximum = self.params.maximum
+        #amount in each pair
+        self.invested_amount = self.params.invested
 
-        # amount in each pair
-        self.invested_amount = 10000
-
-        # paramters to close position at end date
+        #paramters to close position at end date
         self.todate = self.params.todate
         self.sellOf = False
 
-        # just for terminal
+        #just for terminal
         print("initialising")
 
         # The closing data of the stock
@@ -52,6 +47,7 @@ class Strategy_pairGen(bt.Strategy):
             self.dataclose.append(self.datas[i].close)
         self.oldDate = str(self.datas[0].datetime.date(0))
         self.firstTime = True
+
 
         ''' This might be unnecessary 
         # To keep track of pending orders and buy price/commission
@@ -104,11 +100,12 @@ class Strategy_pairGen(bt.Strategy):
 
     # The "run method", defines when to buy and sell
 
+
     def next(self):
-        # check if last date so that we close positions
+        #check if last date so that we close positions
         if self.todate == self.datas[0].datetime.date(0):
             self.sellOf = True
-            print('value: ', self.broker.getvalue())
+
 
         # self.log('Close, %.2f' % self.dataclose[0][0])
         # self.log('Close, %.2f' % self.dataclose[1][0])
@@ -122,12 +119,12 @@ class Strategy_pairGen(bt.Strategy):
         if newPotentialDate != self.oldDate:
             self.oldDate = newPotentialDate
             for ticker in self.myData.keys():
-                self.myData.get(ticker).append(self.dataclose[self.dic.get(ticker)][0])
+                self.myData.get(ticker).append(self.dataclose[self.dic.get(ticker)][-1])
 
         # We go through each pair
         for pair in self.pairs:
             # We want to only look after 'period' days
-            if len(self.myData.get(pair.stock1)) > self.maximum:
+            if len(self.myData.get(pair.stock1)) > self.period:
                 # Sort to receive only data of the last 'period' days
                 relevant_data_stock1 = self.myData.get(pair.stock1)[len(self.myData.get(pair.stock1)) - self.period:len(
                     self.myData.get(pair.stock1)) - 1]
@@ -135,8 +132,8 @@ class Strategy_pairGen(bt.Strategy):
                     self.myData.get(pair.stock2)) - 1]
                 relevant_data_stock1.append(self.dataclose[self.dic.get(pair.stock1)][0])
                 relevant_data_stock2.append(self.dataclose[self.dic.get(pair.stock2)][0])
-                relevant_data_stock1Log = np.log10(relevant_data_stock1)
-                relevant_data_stock2Log = np.log10(relevant_data_stock2)
+                relevant_data_stock1Log=np.log10(relevant_data_stock1)
+                relevant_data_stock2Log=np.log10(relevant_data_stock2)
                 # Perform a linear regression to calculate the spread
                 result = sm.OLS(relevant_data_stock1Log, sm.add_constant(relevant_data_stock2Log)).fit()
                 beta = result.params[1]
@@ -236,6 +233,7 @@ class Strategy_pairGen(bt.Strategy):
                             pair.ratio = None
 
 
+
 class Strategy_fibonacci(bt.Strategy):
 
     # "Self" is the bar/line we are on, of the data
@@ -251,7 +249,6 @@ class Strategy_fibonacci(bt.Strategy):
         # Sets that store the highs and lows of the stock price
         self.highs = {}  # {'TICKER' -> HIGH}
         self.lows = {}  # {'TICKER' -> LOW}
-
         # Sets that store the dates of the highs and lows of the stock price {'TICKER' -> DATE}
         # TODO: We might remove the dates, they could be unnecessary.
         self.date_high = {}
@@ -275,7 +272,7 @@ class Strategy_fibonacci(bt.Strategy):
         # The parameters that are to be varied to optimize the model
         self.invested_amount = 10000  # The amount for which we invest
         self.ratios = [0.382, 0.5, 0.618]  # The Fibonacci ratios
-        self.invested_at_level = [False] * len(self.ratios)  # Initially no position in any stock
+        self.invested_at_level = [False] * len(self.ratios) # Initially no position in any stock
 
         # Variables that are needed for startup.
         self.startup = 0
@@ -317,14 +314,15 @@ class Strategy_fibonacci(bt.Strategy):
     # The "run method", defines when to buy and sell
     def next(self):
 
-        # Since we compare with prices from two points ago, we need two days startup.
-        # TODO: Determine how to define the high and low, should we have an interval or locate these extreme points in '
-        #  another way?
 
+        # Since we compare with prices from two points ago, we need two days startup.
+        # TODO: Determine how to define the high and low, should we have an interval or locate these extreme points in another way?
         if not self.can_run:
             self.startup = self.startup + 1
             if self.startup == 2:
                 self.can_run = True
+
+
 
         if self.can_run:
             # Loop through of all tickers, the following is done for all of them
@@ -336,25 +334,23 @@ class Strategy_fibonacci(bt.Strategy):
                 price_two_points_ago = self.dataclose[self.dic.get(ticker)][-2]
 
                 # We recognize the swing high
-                if price_one_point_ago > price_two_points_ago and price_one_point_ago > price_now and price_one_point_ago > \
-                        self.highs[ticker]:
-                    self.highs[ticker] = price_one_point_ago  # Price of the swing high
-                    self.date_high[ticker] = self.datas[0].datetime.datetime(-1)  # Date of the swing high
+                if price_one_point_ago > price_two_points_ago and price_one_point_ago > price_now and price_one_point_ago > self.highs[ticker]:
+                    self.highs[ticker] = price_one_point_ago # Price of the swing high
+                    self.date_high[ticker] = self.datas[0].datetime.datetime(-1) # Date of the swing high
                     # We calculate the Fibonacci support levels
                     high = self.highs.get(ticker)
                     low = self.lows.get(ticker)
                     self.fibonacci_levels = [high - (high - low) * ratio for ratio in self.ratios]
-                    self.uptrend = True  # We are in an uptrend
+                    self.uptrend = True # We are in an uptrend
                 # We recognize the swing low
-                elif price_one_point_ago < price_two_points_ago and price_one_point_ago < price_now and price_one_point_ago < \
-                        self.lows[ticker]:
-                    self.lows[ticker] = price_one_point_ago  # Price of the swing low
-                    self.date_low[ticker] = self.datas[0].datetime.datetime(-1)  # Price of the swing high
+                elif price_one_point_ago < price_two_points_ago and price_one_point_ago < price_now and price_one_point_ago < self.lows[ticker]:
+                    self.lows[ticker] = price_one_point_ago # Price of the swing low
+                    self.date_low[ticker] = self.datas[0].datetime.datetime(-1) # Price of the swing high
                     # We calculate the Fibonacci resistance levels
                     high = self.highs.get(ticker)
                     low = self.lows.get(ticker)
                     self.fibonacci_levels = [low + (high - low) * ratio for ratio in self.ratios]
-                    self.uptrend = False  # We are in a downtrend
+                    self.uptrend = False # We are in a downtrend
 
                 # If we are in an uptrend, we want to buy the stocks at drawbacks (Fibonacci supports).
                 if self.uptrend:
@@ -363,7 +359,7 @@ class Strategy_fibonacci(bt.Strategy):
                         if price_now < self.fibonacci_levels[level] and not self.invested_at_level[level]:
                             # We have reached the level, so we buy some stocks
                             number_of_stocks = self.invested_amount / price_now
-                            self.order = self.buy(self.datas[self.dic.get(ticker)], size=number_of_stocks)
+                            self.order = self.buy(self.datas[self.dic.get(ticker)], size = number_of_stocks)
 
                             # We do not want to buy on consecutive days, so we say that we have invested in this level
                             self.invested_at_level[level] = True
@@ -401,6 +397,10 @@ class Strategy_fibonacci(bt.Strategy):
 
 
 class Strategy_fibonacci2(bt.Strategy):
+    params = (('invested', None),
+              ('period', None),
+              ('dic',None),
+              ('max',None),)
 
     # "Self" is the bar/line we are on, of the data
     def log(self, txt, dt=None):
@@ -409,22 +409,27 @@ class Strategy_fibonacci2(bt.Strategy):
         print('%s, %s' % (dt.isoformat(), txt))
 
     # Initialization of the strategy
-    def __init__(self, dic):
+    def __init__(self):
 
         # Parameters
-        self.invested_amount = 10000  # The amount for which we invest
-        self.period = 10000  # Period to determine swing high and swing low
-
+        self.invested_amount = self.params.invested  # The amount for which we invest
+        self.period = self.params.period  # Period to determine swing high and swing low
+        self.dic = self.params.dic  # Dictionary of tickers with indices, {'TICKER' -> Index}
+        self.max=self.params.max
         # To store data for each ticker
         self.ratios = [0.382, 0.5, 0.618]  # The Fibonacci ratios
-        self.dic = dic  # Dictionary of tickers with indices, {'TICKER' -> Index}
         self.myData = {}  # To store all the data we need, {'TICKER' -> Data}
         self.invested_at_level = {}  # To know if we are invested, {'TICKER' -> [boolean, boolean, boolean]}
 
+
+        self.indexChangeOfDay=[]
+        self.numberOfDays=30
+        self.oldDate=str(self.datas[0].datetime.date(0))
+
         # We initialize these dictionaries
-        for ticker in dic.keys():
-            self.myData[ticker] = []  # To store the stock prices
-            self.invested_at_level[ticker] = [False] * len(self.ratios)  # Initially not invested
+        for ticker in self.dic.keys():
+            self.myData[ticker] = [] # To store the stock prices
+            self.invested_at_level[ticker] = [False] * len(self.ratios) # Initially not invested
 
         # The closing data of the stocks
         self.dataclose = []
@@ -455,7 +460,6 @@ class Strategy_fibonacci2(bt.Strategy):
         # If the order is canceled, margin or rejected
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
             self.log('Order Canceled/Margin/Rejected')
-
     # Receives a trade whenever there has been a change in one
     def notify_trade(self, trade):
         if not trade.isclosed:
@@ -463,13 +467,20 @@ class Strategy_fibonacci2(bt.Strategy):
 
     # The "run method", defines when to buy and sell
     def next(self):
+
+        newPotentialDate = str(self.datas[0].datetime.date(0))
+
+        if newPotentialDate != self.oldDate:
+            self.oldDate = newPotentialDate
+            self.indexChangeOfDay.append(len(self.myData.get('A')))
         # Loop through of all tickers, the following is done for all of them
         for ticker in self.dic.keys():
             self.myData.get(ticker).append(self.dataclose[self.dic.get(ticker)][0])
 
             # We want the last 'period' of data points, stored in relevant_data
-            if len(self.myData.get(ticker)) > self.period:
-                relevant_data = self.myData.get(ticker)[-self.period:]
+            if len(self.indexChangeOfDay) >= self.max:
+                rightDays=self.indexChangeOfDay[len(self.indexChangeOfDay)-self.period]
+                relevant_data = self.myData.get(ticker)[rightDays:]
 
                 # We take the prices of the current point and maximum and minimum on the period.
                 price_now = relevant_data[-1]
@@ -482,7 +493,7 @@ class Strategy_fibonacci2(bt.Strategy):
 
                 # Are we in an uptrend or a downtrend?
                 if date_high > date_low:
-                    uptrend = True  # We are in an uptrend
+                    uptrend = True # We are in an uptrend
                     # We calculate the Fibonacci support levels
                     fibonacci_levels = [high - (high - low) * ratio for ratio in self.ratios]
 
@@ -496,7 +507,7 @@ class Strategy_fibonacci2(bt.Strategy):
                         if price_now < fibonacci_levels[level] and not self.invested_at_level.get(ticker)[level]:
                             # We have reached the level, so we buy some stocks
                             number_of_stocks = self.invested_amount / price_now
-                            self.order = self.buy(self.datas[self.dic.get(ticker)], size=number_of_stocks)
+                            self.order = self.buy(self.datas[self.dic.get(ticker)], size = number_of_stocks)
 
                             # We do not want to buy on consecutive days, so we say that we have invested in this level
                             self.invested_at_level.get(ticker)[level] = True
@@ -509,6 +520,7 @@ class Strategy_fibonacci2(bt.Strategy):
                         for i in range(self.invested_at_level.get(ticker).count(True)):
                             self.invested_at_level.get(ticker)[i] = False
 
+                # We are in a downtrend, we therefore sell to avoid losing too much money
                 if not uptrend:
                     if price_now == low and self.invested_at_level.get(ticker).count(True) > 0:
                         # Sell all stocks, close the position

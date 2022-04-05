@@ -1,53 +1,27 @@
-import backtrader as bt
-import numpy as np
-import statsmodels.api as sm
-from Pair import *
-import datetime
+import backtrader as bt #The backtrader package
+import numpy as np #So we can take the logarithm 
+import statsmodels.api as sm #To make the linear regression
+import datetime #To use dates
 
+#General attributes for all strategies
+class Strategy(bt.Strategy):    
 
-class Strategy_pairGen(bt.Strategy):
-    params = (('distance', None),
-              ('period', None),
-              ('stock1',None),
-              ('stock2',None),
-              ('invested',None),
-              ('todate',None),)
+    def __init__(self, invested, period, todate, my_result_file): 
 
-    # "Self" is the bar/line we are on, of the data
+        self.invested_amount = invested # Amount in each stock
+        self.period=period # Number of days before being able to analyse if buy/sell
+        self.oldDate = str(self.datas[0].datetime.date(0)) # Variable to check if new date
+        self.todate = self.params.todate # Variable so we sell on the last day (not necessary)
+        self.my_result_file=my_result_file # File to save buys and sells so we can analyse afterwards
 
-    def log(self, txt, dt=None):  # Logging function/output for this strategy
+    def log(self, txt, dt=None):  #For saving important information
+
         dt = dt or self.datas[0].datetime.datetime(0)
+        self.my_result_file.write('%s, %s' % (dt.isoformat(), txt+"\n")) #Saving the order information in the file
         print('%s, %s' % (dt.isoformat(), txt))
 
-    def __init__(self):
-        self.stock1Data=[]
-        self.stock2Data=[]
-        
-        # The parameters that are to be varied to optimize the model
-        self.distance = self.params.distance
-        self.period = self.params.period
-        self.stock1=self.params.stock1
-        self.stock2=self.params.stock2
-
-        self.active=False             
-        self.long = None                   
-        self.invested_amount = self.params.invested #amount in each pair
-
-        #paramters to close position at end date
-        self.todate = self.params.todate
-        self.sellOf = False
-
-        # The closing data of the stock
-        self.dataclose = []
-        for i in range(0, 2):  # We add the closing data for each of all stocks
-            self.dataclose.append(self.datas[i].close)
-        self.oldDate = str(self.datas[0].datetime.date(0))
-        self.firstTime = True
-
-        print("initialising") #just for terminal
-
     # Reports an order instance
-    def notify_order(self, order):
+    def notify_order(self, order): # Backtrader calls this function
 
         # The order is completed
         # Attention: broker could reject order if there is not enough cash
@@ -67,52 +41,74 @@ class Strategy_pairGen(bt.Strategy):
                           order.executed.value,
                           order.executed.comm))
 
-
         # If the order is canceled, margin or rejected
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
             self.log('Order Canceled/Margin/Rejected')
 
     # Receives a trade whenever there has been a change in one
+
     def notify_trade(self, trade):
         if not trade.isclosed:
             return
-        # We log the profit when we have completed a trade
-        # TODO: This needs to be changed
 
-        # self.log('OPERATION PROFIT, GROSS %.2f, NET %.2f' %
-        #         (trade.pnl, trade.pnlcomm))
+# Specific attributes pair trading
+class Strategy_pairGen(Strategy): 
 
-    # The "run method", defines when to buy and sell
+# The needed parameters
+    params = (('distance', None),
+            ('period', None),
+            ('invested',None),
+            ('todate',None),
+            ('my_result_file',None),)
 
+    def __init__(self):
+        Strategy.__init__(self, self.params.invested, self.params.period, 
+        self.params.todate, self.params.my_result_file) # Initiate the general general parameters for strategies
+        
+        # Saving stockdata for each stock
+        self.stock1Data=[] 
+        self.stock2Data=[]
+        
+        self.distance = self.params.distance # Distance from average
+        self.active=False # To check if the pair is active             
+        self.long = None # If we have bought the first stock or not
+        self.sellOf = False # Variable to check if it is the last day
+
+        # The closing data of the stock
+        self.dataclose = []
+        for i in range(0, 2):  # We add the closing data for each of all stocks
+            self.dataclose.append(self.datas[i].close)
+    
+
+        print("initialising") # Just for terminal
 
     def next(self):
-        #check if last date so that we close positions
-        if self.todate == self.datas[0].datetime.date(0):
+        # Check if last date so that we close positions
+        if self.todate == self.datas[0].datetime.date(0): # Check if last day (then we want to sell)
             self.sellOf = True
 
+        newPotentialDate = str(self.datas[0].datetime.date(0)) # Variable to check if it is new day
 
-        if self.firstTime:
-            self.oldDate = str(self.datas[0].datetime.date(0))
-            self.firstTime = False
-        newPotentialDate = str(self.datas[0].datetime.date(0))
-
-        if newPotentialDate != self.oldDate: #Checking if new day then add the closing price the day before
-            self.oldDate = newPotentialDate
+        if newPotentialDate != self.oldDate: # Checking if new day then add the closing price the day before
+            self.oldDate = newPotentialDate 
             self.stock1Data.append(self.dataclose[0][-1])
             self.stock2Data.append(self.dataclose[1][-1])
 
         # We want to only look after 'period' days
-        if len(self.stock1Data) >= self.period:
+        if len(self.stock1Data) >= self.period: # To check if we can start making trades
             # Sort to receive only data of the last 'period' days
+
+            # Extract relevant closing price for each stock
             relevant_data_stock1 = self.stock1Data[len(self.stock1Data) - self.period:len(
-                self.stock1Data) - 1]
+                self.stock1Data) - 1] 
             relevant_data_stock2 = self.stock2Data[len(self.stock2Data) - self.period:len(
                 self.stock2Data) - 1]
+
+            # Add the current price for each stock    
             relevant_data_stock1.append(self.dataclose[0][0])
             relevant_data_stock2.append(self.dataclose[1][0])
 
-
-            z_score=self.linearRegression(relevant_data_stock1,relevant_data_stock2,self.period) #Want to calculate the z_score
+            z_score=self.linearRegression(relevant_data_stock1,relevant_data_stock2,self.period) # Want to calculate the z_score
 
             # To know how much we need to buy of each stock
             shares_stock1 = self.invested_amount / relevant_data_stock1[self.period - 1]
@@ -126,6 +122,7 @@ class Strategy_pairGen(bt.Strategy):
             else:
                 self.closingPosition(z_score, current_ratio, shares_stock1)
 
+    #To check whether to take a position or not
     def takingPosition(self, z_score, current_ratio, shares_stock1):
     # We check whether the Z-score is unusually high or low (>distance or <-distance)
         if z_score > self.distance and not self.sellOf:
@@ -156,6 +153,7 @@ class Strategy_pairGen(bt.Strategy):
             self.ratio = current_ratio
             self.active = True
 
+    # To check whether or not we should close our poisition
     def closingPosition(self,z_score, current_ratio, shares_stock1):
         if self.long:
             if z_score > 0 or self.sellOf:
@@ -168,6 +166,7 @@ class Strategy_pairGen(bt.Strategy):
                 self.order = self.close(self.datas[0])
                 self.active = False
 
+    # Calculations the z-score for the pair
     def linearRegression(self, data1,data2,period):
         data1_log=np.log10(data1)
         data2_log=np.log10(data2)
@@ -181,6 +180,98 @@ class Strategy_pairGen(bt.Strategy):
         # Calculation of the Z-score
         mean = np.mean(spread)
         std = np.std(spread)
-
         z_score = (spread[period - 1] - mean) / std
         return z_score
+
+# The distinct class for the fibonacci strategy
+class Strategy_fibonacci(Strategy):
+
+    params = (('stock_name', None),
+            ('invested', None),
+            ('period', None),
+            ('todate', None),
+            ('my_result_file', None))
+
+    # Initialization of the strategy
+    def __init__(self):
+
+        Strategy.__init__(self, self.params.invested, self.params.period, self.params.todate, 
+        self.params.my_result_file) #The general parameters for any strategy
+        
+        # Parameters
+        self.invested_amount = self.params.invested  # The amount for which we invest
+        self.period = self.params.period  # Period to determine swing high and swing low
+        self.stock_name=self.params.stock_name
+        
+        # To store data for each ticker
+        self.ratios = [0.382, 0.5, 0.618]  # The Fibonacci ratios
+        self.myData = []  # To store all the data we need, {'TICKER' -> Data}
+        self.invested_at_level = []  # To know if we are invested, {'TICKER' -> [boolean, boolean, boolean]}
+        self.indexChangeOfDay=[] #To know which datapoints to include. We save at which datapoint new day occur
+        self.invested_at_level = [False] * len(self.ratios) # Initially not invested
+        self.dataclose = self.datas[0].close # We add the trading price for the stock
+
+    # The "run method", defines when to buy and sell
+    def next(self):
+
+        newPotentialDate = str(self.datas[0].datetime.date(0))
+        if newPotentialDate != self.oldDate: #Checking if new day
+            self.oldDate = newPotentialDate
+            self.indexChangeOfDay.append(len(self.myData))
+        self.myData.append(self.dataclose[0])
+
+        # We want the last 'period' of data points, stored in relevant_data
+        if len(self.indexChangeOfDay) >= self.period:
+            rightDays=self.indexChangeOfDay[len(self.indexChangeOfDay)-self.period]
+            relevant_data = self.myData[rightDays:]
+
+            # We take the prices of the current point and maximum and minimum on the period.
+            price_now = relevant_data[-1]
+            high = max(relevant_data)
+            low = min(relevant_data)
+
+            # The date of swing high and swing low
+            date_high = np.argmax(relevant_data)
+            date_low = np.argmin(relevant_data)
+
+            # Are we in an uptrend or a downtrend?
+            if date_high > date_low:
+                uptrend = True # We are in an uptrend
+                # We calculate the Fibonacci support levels
+                fibonacci_levels = [high - (high - low) * ratio for ratio in self.ratios]
+
+            else:
+                uptrend = False  # We are in a downtrend
+
+            # If we are in an uptrend, we want to buy the stocks at drawbacks (Fibonacci supports).
+            if date_high > date_low:
+            # We check if we have reached the Fibonacci support levels  
+                for level in range(len(self.ratios)):
+                    if price_now < fibonacci_levels[level] and not self.invested_at_level[level]:
+                        # We have reached the level, so we buy some stocks
+                        number_of_stocks = self.invested_amount / price_now
+                        self.order = self.buy(self.datas[0], size = number_of_stocks)
+                        self.log('Buy Created: Price: %.2f' %(self.dataclose[0]))
+
+                        # We do not want to buy on consecutive days, so we say that we have invested in this level
+                        self.invested_at_level[level] = True
+
+                # WHEN TO SELL? We sell when the stock price is at a new high on the period
+                if price_now == high and self.invested_at_level.count(True) > 0:
+                    # Sell all stocks, close the position
+                    self.order = self.close(self.datas[0])
+                    self.log('Sell Created: Price: %.2f' %(self.dataclose[0]))
+                    # We do not longer have a position in the ticker
+                    for i in range(self.invested_at_level.count(True)):
+                        self.invested_at_level[i] = False
+
+            # We are in a downtrend, we therefore sell to avoid losing too much money
+            else: #Not uptrend
+                if price_now == low and self.invested_at_level.count(True) > 0:
+                    # Sell all stocks, close the position
+                    self.order = self.close(self.datas[0])
+                    self.log('Sell Created: Price: %.2f' %(self.dataclose[0]))
+
+                    # We do not longer have a position in the ticker
+                    for i in range(self.invested_at_level.count(True)):
+                        self.invested_at_level[i] = False

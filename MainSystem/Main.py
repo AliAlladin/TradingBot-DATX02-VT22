@@ -1,14 +1,13 @@
-import time
 from time import sleep
 from Algorithms import PairsTrading
 from Alpaca import AlpacaBroker
-from MarketDataSocket import live_data_provider
+from DataProvider import live_data_provider, hist_data_provider
 from Database import handleData
 from NotificationHandler import NotificationBot
 import pandas as pd
 import os
 import sys
-import test
+
 
 class StrategyObserver:
     def __init__(self, observable):
@@ -89,7 +88,7 @@ def main():
         tickers.add(pairs['T1'][i])
         tickers.add(pairs['T2'][i])
 
-    hist_data = test.end_of_day(list(tickers), 30)
+    hist_data = hist_data_provider.end_of_day(list(tickers), 30)
 
     while True:
         if broker.market_is_open():
@@ -110,7 +109,7 @@ def main():
                 NotificationBot.sendNotification("Starting")
                 live_data_provider.marketOpen()  # Unlock live-data thread
                 sleep(60)  # Wait one minute
-                hist_data = test.end_of_day(list(tickers), 30)  # Update historic data
+                hist_data = hist_data_provider.end_of_day(list(tickers), 30)  # Update historic data
             except Exception as e:
                 print(e)
 

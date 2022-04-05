@@ -39,7 +39,7 @@ def StrategyOne():
             CSV_file_path = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(ticker)  # Full path to csv-file
             data = bt.feeds.GenericCSVData(
                 dataname=CSV_file_path,  # Full path to csv-file
-                fromdate=datetime.datetime(2018, 1, 1, 9, 30, 00),  # Start  date
+                fromdate=datetime.datetime(2018, 1, 2, 9, 30, 00),  # Start  date
                 todate=datetime.datetime(2020, 1, 15, 16, 00, 00),  # Ending date
 
                 nullvalue=0.0,  # Used for replacing NaN-values with 0

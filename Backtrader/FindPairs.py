@@ -157,12 +157,15 @@ def create_distinct_pairs(pairs):
 # To create a .txt-file of distinct dates
 def get_distinct_dates():
     # We open a data-file and put all dates in a .txt-file
-    data_file = open('Data/filtered_csv_data/A.csv', 'r')
+    modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
+    directory_in_str = os.path.join(modpath, 'Data/filtered_csv_data/A.csv')
+    data_file = open(directory_in_str, 'r')
     distinct_dates = []  # A list to keep track of the dates
+
 
     # Looping through the data file and append our distinct dates
     for row in data_file:
-        date = row[0]
+        date = row.split()[0]
         if date not in distinct_dates:
             distinct_dates.append(date)
     data_file.close()
@@ -193,7 +196,7 @@ def get_distinct_stocks():
 # correct start date
 def in_csv_file(start):
 
-    my_pair_file = open('Backtrader/Pairs.txt', 'r')
+    my_pair_file = open('Pairs.txt', 'r')
     priority_list = []
     not_priority = []
 
@@ -227,6 +230,6 @@ def in_csv_file(start):
     total_list = priority_list + not_priority
     store_pairs(total_list, 'Pairs2.txt')
 
-
-start_time = datetime.date(2010, 1, 1)
-in_csv_file(start_time)
+get_distinct_dates()
+#start_time = datetime.date(2010, 1, 1)
+#in_csv_file(start_time)

@@ -128,9 +128,9 @@ class Strategy_pairGen(bt.Strategy):
 
                 # Sort to receive only data of the last 'period' days
                 relevant_data_stock1 = self.myData.get(pair.stock1)[len(self.myData.get(pair.stock1)) - self.period:len(
-                    self.myData.get(pair.stock1)) - 1]
+                    self.myData.get(pair.stock1))]
                 relevant_data_stock2 = self.myData.get(pair.stock2)[len(self.myData.get(pair.stock2)) - self.period:len(
-                    self.myData.get(pair.stock2)) - 1]
+                    self.myData.get(pair.stock2))]
                 relevant_data_stock1.append(self.dataclose[self.dic.get(pair.stock1)][0])
                 relevant_data_stock2.append(self.dataclose[self.dic.get(pair.stock2)][0])
                 relevant_data_stock1Log=np.log10(relevant_data_stock1)

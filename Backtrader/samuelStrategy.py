@@ -68,7 +68,8 @@ class Strategy_pairGen(Strategy):
         # Saving stockdata for each stock
         self.stock1Data=[] 
         self.stock2Data=[]
-        
+
+        self.firstTime = True
         self.distance = self.params.distance # Distance from average
         self.active=False # To check if the pair is active             
         self.long = None # If we have bought the first stock or not
@@ -87,22 +88,28 @@ class Strategy_pairGen(Strategy):
         if self.todate == self.datas[0].datetime.date(0): # Check if last day (then we want to sell)
             self.sellOf = True
 
+        if self.firstTime:
+            self.oldDate = str(self.datas[0].datetime.date(0))
+            self.firstTime = False
+
         newPotentialDate = str(self.datas[0].datetime.date(0)) # Variable to check if it is new day
 
         if newPotentialDate != self.oldDate: # Checking if new day then add the closing price the day before
-            self.oldDate = newPotentialDate 
+            self.oldDate = newPotentialDate
             self.stock1Data.append(self.dataclose[0][-1])
             self.stock2Data.append(self.dataclose[1][-1])
 
         # We want to only look after 'period' days
         if len(self.stock1Data) >= self.period: # To check if we can start making trades
+
             # Sort to receive only data of the last 'period' days
+
 
             # Extract relevant closing price for each stock
             relevant_data_stock1 = self.stock1Data[len(self.stock1Data) - self.period:len(
-                self.stock1Data) - 1] 
+                self.stock1Data)]
             relevant_data_stock2 = self.stock2Data[len(self.stock2Data) - self.period:len(
-                self.stock2Data) - 1]
+                self.stock2Data)]
 
             # Add the current price for each stock    
             relevant_data_stock1.append(self.dataclose[0][0])

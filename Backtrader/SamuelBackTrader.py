@@ -10,7 +10,7 @@ from samuelStrategy import *  # Import our Strategies
 modpath = os.path.dirname(os.path.dirname(sys.argv[0])) # Individual os paths
 todate=datetime.date(2020, 1, 15) # Last date to trade
 invested=1000 # How much to invest in each stock
-start_date=datetime.datetime(2018, 1, 1, 9, 30, 00)  # Start  date
+start_date=datetime.datetime(2018, 1, 2, 9, 30, 00)  # Start  date
 end_date=datetime.datetime(2020, 1, 15, 16, 00, 00)  # Ending datev
 datap = os.path.join(modpath, 'Results/result.csv') # The data of pairs comes from Pairs.txt which we read
 my_result_file = open(datap, 'w') # Saving all our trades in a file

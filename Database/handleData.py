@@ -18,33 +18,32 @@ class DatabaseHandler:
 
         cursor = self.conn.cursor()
 
-        '''
         # drop
-        sql = open('drop.sql', 'r')
+        sql = open('../Database/drop.sql', 'r')
         cursor.execute(sql.read())
         self.conn.commit()
         print("drop table")
-        '''
+        
 
         # Tables
-        sql = open('tables.sql', 'r')
+        sql = open('../Database/tables.sql', 'r')
         cursor.execute(sql.read())
         self.conn.commit()
         print("Table created")
 
         # Views
-        sql = open('views.sql', 'r')
+        sql = open('../Database/views.sql', 'r')
         cursor.execute(sql.read())
         self.conn.commit()
         print("views created")
 
-        '''
+        
         # insert
-        sql = open('inserts.sql', 'r')
+        sql = open('../Database/inserts.sql', 'r')
         cursor.execute(sql.read())
         self.conn.commit()
         print("insert created")
-        '''
+
 
     def insertAndCommitQuery(self, stockTicker: str, price: float, volume: float, query: str):
         query = query.replace('a1', "\'" + stockTicker + "\'")
@@ -80,11 +79,20 @@ class DatabaseHandler:
         query = "INSERT INTO Prices (ticker, price) VALUES(a2, a1) ON CONFLICT (ticker) DO UPDATE SET price = a1 " \
                 "WHERE Prices.ticker = a2 "
         query = query.replace('a1', str(price))
-        query = query.replace('a2', "\'" + stockTicker + "\'")
+        query = query.replace('a2', "\'" + str(stockTicker) + "\'")
         self.cursor.execute(query)
         self.conn.commit()
 
-    def sqlGetAllPrice(self):
-        postgreSQL_select_Query = "select * from Prices"
-        self.cursor.execute(postgreSQL_select_Query)
-        return pd.DataFrame.from_records(self.cursor.fetchall(), columns=['Symbol', 'Price'])
+    def sqlGetAllPrices(self):
+        try:
+            postgreSQL_select_Query = "select * from Prices"
+            self.cursor.execute(postgreSQL_select_Query)
+            return pd.DataFrame.from_records(self.cursor.fetchall(), columns=['Symbol', 'Price'])
+        except Exception as e:
+            print(e)
+            return self.sqlGetAllPrices()
+
+    def sqlGetPrice(self, symbol: str):
+        postgreSQL_select_Query = "select price from Prices where ticker = %s"
+        self.cursor.execute(postgreSQL_select_Query, (symbol, ))
+        return float(self.cursor.fetchone()[0])

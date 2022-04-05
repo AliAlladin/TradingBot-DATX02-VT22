@@ -60,6 +60,7 @@ def main():
                         sep=" ",
                         header=None)
 
+
     pairs.columns = ['T1', 'T2']
 
     global broker
@@ -73,6 +74,8 @@ def main():
 
     global data_provider
     data_provider = live_data_provider.liveDataStream(1, "pairs_data")
+
+    broker.get_shortable(pairs)
 
     DataObserver(data_provider)  # Add data observer
     data_provider.start()   # Start live-data thread

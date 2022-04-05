@@ -5,6 +5,8 @@ import threading
 import pandas as pd
 import yliveticker
 
+from NotificationHandler.NotificationBot import sendNotification
+
 log = logging.getLogger(__name__)
 
 
@@ -30,7 +32,7 @@ class liveDataStream(threading.Thread):
         global thisInstance
         thisInstance = self
         print('Starting ' + thisInstance.name + '\n')
-        yliveticker.YLiveTicker(on_ticker=on_new_msg, ticker_names=extractTickers(), on_close=onClose)
+        yliveticker.YLiveTicker(on_ticker=on_new_msg, ticker_names=extractTickers(), on_close=onClose, on_error=onError)
 
 
 thisInstance = None
@@ -91,7 +93,9 @@ def accessLiveData():
     dataLock.release()
     return returnData
 
+
 i = 0
+
 
 # Everytime a new datapoint gets acquired by the websocket this method is run and sends it to its observers.
 def on_new_msg(ws, msg):
@@ -108,7 +112,6 @@ def on_new_msg(ws, msg):
             }
         )
         send_data(df)
-
         print(df.T.to_string() + "\n")
 
     else:
@@ -118,24 +121,22 @@ def on_new_msg(ws, msg):
 
 # if market is closed, this method is run to lock the main sequence
 def marketClosed():
+    sendNotification('Live tracker going to sleep')
     sleepLock.acquire()
 
 
 # if market is open, this method is run to start the main sequence
 def marketOpen():
+    sendNotification('Live tracker starting')
     sleepLock.release()
 
 
-# TODO if error this is run
-def onError(ws, msg):
-    # do something
-    print('error occured')
+def onError(error):
+    sendNotification('Yahoo live tracker crashed with message: ' + str(error))
 
 
-# TODO if app cosed this is run
-def onClose(ws, msg):
-    # do something
-    print('System Closed')
+def onClose():
+    sendNotification('System Closed')
 
 
 def main():

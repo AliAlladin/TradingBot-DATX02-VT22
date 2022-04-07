@@ -134,15 +134,17 @@ class FibonacciStrategy:
                             self.invested_levels.loc[self.ratios[n]][ticker] = False
 
 
-def extract_start_index(data, period: int):
+# Method which extracts the starting index of the minute data
+def extract_start_index(df, period:int):
     start_index = 0
     count = 0
-    for i in range(len(data.index) - 1, 0, -1):
-        if data.iloc[i]['DateTime'].time() == time(9, 30, 00):
+    for i in range(len(df.index) - 1, 0, -1):
+        if count == period:
+            break
+        index_date = df.iloc[i]['DateTime'].date()
+        if df.iloc[i - 1]['DateTime'].date() != index_date:
             count += 1
-            if count == period:
-                start_index = i
-                break
+            start_index = i
     return start_index
 
 

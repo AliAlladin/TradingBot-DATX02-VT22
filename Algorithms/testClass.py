@@ -9,31 +9,49 @@ import pandas as pd
 # Import package
 import os
 import yfinance as yf
-from datetime import date
+from datetime import date, datetime
 import sys
+from time import sleep
 
+# data = yf.download(tickers="A AA AAP AMZN", period="3d", interval="1m")['Close']
+# data.to_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/muu.csv'))
+
+'''
 A = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Data/testData/A.csv'), sep=",")
 AA = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Data/testData/AA.csv'), sep=",")
-AAPL = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Data/testData/AAP.csv'), sep=",")
+AAP = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Data/testData/AAP.csv'), sep=",")
 AMZN = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Data/testData/AMZN.csv'), sep=",")
 
-frames = [A.DateTime, A.Close, AA.Close, AAPL.Close, AMZN.Close]
+#tickers = [A, AA, AAP, AMZN]
+#lengths = [len(A.index),len(AA.index),len(AAP.index),len(AMZN.index)]
+#print(lengths)
 
-result = pd.concat(frames)
-# display(result)
+frames = [AA.DateTime, A.Close, AA.Close, AAP.Close, AMZN.Close]
+
 data_df = pd.concat(
     frames,
     axis=1,
     join='inner',
-    keys=['DateTime', 'A', 'AA', 'AAPL', 'AMZN'],
+    keys=['DateTime', 'A', 'AA', 'AAP', 'AMZN'],
 )
 
-data_df.to_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testingData.csv'), index=False, )
+data_df.to_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testingData.csv'), index=False)
+       # If we have begun a new date
+       if date.today() != self.latest_csv_date:
+           start_index = extract_start_index(self.period)
+
+       
+       # Collects all indices for when market opens
+       indices = []
+       for i in range(len(self.data)):
+           if self.data.iloc[i]['Datetime'].time() == time(9, 30, 00):
+               indices.append(i)
+
+       start_index = indices[len(indices) - self.period]
 
 #hist_data = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/tempData.csv'))
 
 #display(hist_data)
-'''
 
 # csv_data.to_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testdata.csv'), indecis=True)
 
@@ -103,8 +121,7 @@ m = csv_data.iloc[start_index]['DateTime'].date()
 
 csv_data = csv_data[start_index:]
 print(csv_data)
-'''
-'''
+
 csv_data = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Data/testData/A.csv'))
 csv_data['DateTime'] = pd.to_datetime(csv_data['DateTime'])
 
@@ -142,16 +159,69 @@ mu = extract_start_index(csv_data, 3)
 print(mu)
 print(csv_data.iloc[mu]['DateTime'])
 
-
-csv_data = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Data/testData/A.csv'))
-csv_data['DateTime'] = pd.to_datetime(csv_data['DateTime'])
-minute_data = yf.download(tickers="A AAPL", period="1d", interval="1m")
-minute_data.reset_index(inplace=True)
-minute_data = minute_data[['Datetime', 'Open', 'High', 'Low', 'Close', 'Volume']]
-minute_data.rename(columns={'Datetime': 'DateTime'}, inplace=True)
-
 print(minute_data)
 #updated_frame = pd.concat([csv_data, minute_data], axis=0)
 #print(minute_data)
 #print(updated_frame)
+#csv_data = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testingData.csv'))
+
+minute_data = yf.download(tickers="A AA AAP AMZN", period="1d", interval="1m")
+minute_data.reset_index(inplace=True)
+minute_data = minute_data[['Datetime', 'Close']]
+#minute_data.rename(columns={'Datetime': 'DateTime'}, inplace=True)
+#print( csv_data)
+
 '''
+'''
+data = yf.download(tickers="A AA AAP AMZN", period="3d", interval="1m")['Close']
+data.reset_index(inplace=True)
+data = data[['Datetime', 'Close']]
+data.rename(columns={'Datetime': 'DateTime'}, inplace=True)
+
+testCSV = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testData.csv'))
+print(data)
+updated_frame = pd.concat([testCSV, data], axis=0)
+print(updated_frame)
+'''
+'''
+def extract_start_index(df, period:int):
+    start_index = 0
+    count = 0
+    for i in range(len(df.index) - 1, 0, -1):
+        if count == period:
+            break
+        index_date = df.iloc[i]['DateTime'].date()
+        if df.iloc[i - 1]['DateTime'].date() != index_date:
+            count += 1
+            start_index = i
+    return start_index
+
+testCSV = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testData.csv'))
+testCSV['DateTime'] = pd.to_datetime(testCSV['DateTime'])
+
+
+if testCSV.iloc[-1]['DateTime'].date() != updated_frame.iloc[-1]['DateTime'].date():
+    index = extract_start_index(updated_frame, 7)
+    updated_frame= updated_frame[index:]
+
+testCSV = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testData.csv'))
+testCSV['DateTime'] = pd.to_datetime(testCSV['DateTime'])
+print(testCSV)
+
+testCSV.drop(0, inplace = True, axis=0)
+testCSV.reset_index(inplace = True, drop=True)
+
+print(testCSV)
+'''
+testCSV = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testData.csv'))
+testCSV['DateTime'] = pd.to_datetime(testCSV['DateTime'])
+updated_frame = testCSV
+for i in range(0, 5):
+    minute = yf.download(tickers="A AA AAP AMZN", period="3d", interval="1m")['Close']
+    minute.reset_index(inplace=True)
+    minute.rename(columns={'Datetime': 'DateTime'}, inplace=True)
+    updated_frame = pd.concat([updated_frame, minute], axis=0)
+    updated_frame.drop(0, inplace=True, axis=0)
+    updated_frame.reset_index(inplace=True, drop=True)
+    print(updated_frame)
+    sleep(60)

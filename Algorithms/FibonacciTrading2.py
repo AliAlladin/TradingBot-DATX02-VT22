@@ -1,5 +1,7 @@
+import os
+import sys
 from datetime import time, date
-
+import yfinance as yf
 import pandas as pd
 
 '''
@@ -7,11 +9,11 @@ Assuming that the input data consists of 1 dataframe w/ the columns: "Date" and 
 respective closing prices for each date
 '''
 
-
 # This data is to be provided by the database.
-# data = yf.download(tickers="AAPL A AA AMZN", period="7d", interval="1m")['Close']
-# data.to_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testdata.csv'), index=True)
-# testData = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testdata.csv'))
+testCSV = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testData.csv'))
+minute = yf.download(tickers="A AA AAP AMZN", period="3d", interval="1m")['Close']
+minute.reset_index(inplace=True)
+minute.rename(columns={'Datetime': 'DateTime'}, inplace=True)
 
 
 class FibonacciStrategy:
@@ -38,13 +40,9 @@ class FibonacciStrategy:
         # The Fibonacci ratios
         self.ratios = [0.382, 0.5, 0.618]
 
-        self.data = csv_data  # Minute data for one ticker
-        self.data['DateTime'] = pd.to_datetime(self.data['DateTime'])  # Converts column to actual datetime dtype
-
-        self.start_index = extract_start_index(self.data,
-                                               self.period)  # Extracts start index of the latest self.period of days
-
-        self.latest_csv_date = self.data.iloc[-1]['DateTime'].date()  # Fetch the most recent date from the csv-file
+        start_index = extract_start_index(csv_data, self.period)
+        self.data = csv_data[start_index:]  # Historic minute data for tickers
+        self.data['DateTime'] = pd.to_datetime(self.data['DateTime'])
 
         # New dataframe with the fibonacci levels initiated with "False"
         self.invested_levels = pd.DataFrame(columns=self.data.columns[1:], index=self.ratios)
@@ -55,25 +53,16 @@ class FibonacciStrategy:
         fibonacci_levels = []
         uptrend = False
 
-        # If we have begun a new date
-        if date.today() != self.latest_csv_date:
-            start_index = extract_start_index(self.period)
-
-        '''
-        # Collects all indices for when market opens
-        indices = []
-        for i in range(len(self.data)):
-            if self.data.iloc[i]['Datetime'].time() == time(9, 30, 00):
-                indices.append(i)
-
-        start_index = indices[len(indices) - self.period]
-        '''
+        self.data = pd.concat([self.data, minute_data], axis=0)
+        self.data.drop(0, inplace=True, axis=0)
+        self.data.reset_index(inplace=True, drop=True)
 
         for i in range(1, (len(self.data.columns))):
 
             # Extracts ticker data for a specific period into a dataframe
-            relevantData = self.data[['DateTime', self.data.columns[i]]][self.start_index:].copy()
+            relevantData = self.data[['DateTime', self.data.columns[i]]].copy()
             ticker = relevantData.columns[1]
+            print(relevantData)
 
             price_now = relevantData.iloc[-1, 1]  # Latest data point/closing price
             date_high = relevantData.loc[relevantData[ticker].idxmax()]  # Date and value of the highest closing price
@@ -98,11 +87,7 @@ class FibonacciStrategy:
                         # We have reached the level, so we buy some stocks
                         number_of_stocks = self.invested_amount / price_now
 
-                        self.notify_observers({
-                            "signal": "BUY",
-                            "symbol": ticker,
-                            "volume": number_of_stocks
-                        })
+                        self.notify_observers({"signal": "BUY", "symbol": ticker, "volume": number_of_stocks})
 
                         # We do not want to buy on consecutive days, so we say that we have invested at this level
                         self.invested_levels.loc[ratio][ticker] = True
@@ -111,10 +96,7 @@ class FibonacciStrategy:
                 if price_now == date_high[1]:
                     if True in self.invested_levels.values:
                         # Sell all stocks, close the position
-                        self.notify_observers({
-                            "signal": "SELL",
-                            "symbol": ticker,
-                        })
+                        self.notify_observers({"signal": "SELL", "symbol": ticker, })
 
                         # We do no longer have a position in the ticker
                         for n in range(len(self.ratios)):
@@ -124,10 +106,7 @@ class FibonacciStrategy:
                 if price_now == date_low[1]:
                     if True in self.invested_levels.values:
                         # Sell all stocks, close the position
-                        self.notify_observers({
-                            "signal": "SELL",
-                            "symbol": ticker,
-                        })
+                        self.notify_observers({"signal": "SELL", "symbol": ticker, })
 
                         # We do no longer have a position in the ticker
                         for n in range(len(self.ratios)):
@@ -135,7 +114,7 @@ class FibonacciStrategy:
 
 
 # Method which extracts the starting index of the minute data
-def extract_start_index(df, period:int):
+def extract_start_index(df, period: int):
     start_index = 0
     count = 0
     for i in range(len(df.index) - 1, 0, -1):
@@ -149,5 +128,5 @@ def extract_start_index(df, period:int):
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-k = FibonacciStrategy(testData)
-k.run()
+k = FibonacciStrategy(testCSV)
+k.run(minute)

@@ -29,8 +29,9 @@ class PairsTrading:
         self.pairs.columns = ['T1', 'T2']
         self.pairs['Active'] = False
         self.pairs['long'] = None
-        self.pairs['ratio'] = None
         self.pairs['shares_stock1'] = None
+        self.pairs['shares_stock2'] = None
+
 
         self._observers = []  # List of observers to be notified
 
@@ -89,32 +90,39 @@ class PairsTrading:
                     # High Z-score, we sell stock 1 and buy stock 2
 
                     # Send sell signal to main
+                    shares_stock1 = round(shares_stock1)
                     self.notify_observers({"signal": "SELL", "symbol": self.pairs['T1'][i], "volume": shares_stock1})
 
+                    shares_stock2 = shares_stock1 * current_ratio
                     # Send buy signal to main
                     self.notify_observers(
-                        {"signal": "BUY", "symbol": self.pairs['T2'][i], "volume": shares_stock1 * current_ratio})
+                        {"signal": "BUY", "symbol": self.pairs['T2'][i], "volume": shares_stock2})
 
                     # Description of our position
                     self.pairs['long'][i] = False
-                    self.pairs['ratio'][i] = current_ratio
                     self.pairs['shares_stock1'][i] = shares_stock1
+                    self.pairs['shares_stock2'][i] = shares_stock2
                     self.pairs['Active'][i] = True
 
                 # The Z-score is unusually low, we buy stock1 and sell stock2
                 elif z_score < -self.distance:
 
-                    # Send buy signal to main
-                    self.notify_observers({"signal": "BUY", "symbol": self.pairs['T1'][i], "volume": shares_stock1})
+                    shares_stock2 = round(shares_stock1 * current_ratio)
 
                     # Send sell signal to main
                     self.notify_observers(
-                        {"signal": "SELL", "symbol": self.pairs['T2'][i], "volume": shares_stock1 * current_ratio})
+                        {"signal": "SELL", "symbol": self.pairs['T2'][i], "volume": shares_stock2})
+
+                    shares_stock1 = (shares_stock2 / current_ratio)
+
+                    # Send buy signal to main
+                    self.notify_observers({"signal": "BUY", "symbol": self.pairs['T1'][i], "volume": shares_stock1})
+
 
                     # Description of our position
                     self.pairs['long'][i] = True
-                    self.pairs['ratio'][i] = current_ratio
                     self.pairs['shares_stock1'][i] = shares_stock1
+                    self.pairs['shares_stock2'][i] = shares_stock2
                     self.pairs['Active'][i] = True
 
             # We have a position on a pair and therefore examine whether to close it
@@ -130,11 +138,11 @@ class PairsTrading:
 
                         # Send buy signal to main
                         self.notify_observers({"signal": "BUY", "symbol": self.pairs['T2'][i],
-                            "volume": self.pairs['shares_stock1'][i] * self.pairs['ratio'][i]})
+                            "volume": self.pairs['shares_stock2'][i]})
 
                         # We close the position in the pair
-                        self.pairs['ratio'][i] = None
                         self.pairs['shares_stock1'][i] = None
+                        self.pairs['shares_stock2'][i] = None
                         self.pairs['Active'][i] = False
 
                 else:
@@ -147,9 +155,9 @@ class PairsTrading:
 
                         # Send sell signal to main
                         self.notify_observers({"signal": "SELL", "symbol": self.pairs['T2'][i],
-                            "volume": self.pairs['shares_stock1'][i] * self.pairs['ratio'][i]})
+                            "volume": self.pairs['shares_stock2'][i]})
 
                         # We close the position in the pair
-                        self.pairs['ratio'][i] = None
                         self.pairs['shares_stock1'][i] = None
+                        self.pairs['shares_stock2'][i] = None
                         self.pairs['Active'][i] = False

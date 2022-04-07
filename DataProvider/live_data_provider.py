@@ -30,7 +30,9 @@ class liveDataStream(threading.Thread):
         global thisInstance
         thisInstance = self
         print('Starting ' + thisInstance.name + '\n')
-        yliveticker.YLiveTicker(on_ticker=on_new_msg, ticker_names=extractTickers(), on_close=onClose)
+        aktier = extractTickers()
+        aktier.append('SNAP')
+        yliveticker.YLiveTicker(on_ticker=on_new_msg, ticker_names=aktier, on_close=onClose)
 
 
 thisInstance = None
@@ -53,6 +55,7 @@ def extractTickers():
     # replacing end of line('/n') with ' ' and
     # splitting the text it further when '.' is seen.
     data_into_list = data.replace('\n', ' ').split(" ")
+
     return data_into_list
 
 

@@ -4,6 +4,8 @@ import alpaca_trade_api as tradeapi
 import time
 import pandas as pd
 from Alpaca.Config import *
+import os
+import sys
 
 
 class AlpacaBroker:
@@ -109,3 +111,10 @@ class AlpacaBroker:
         return pd.DataFrame(list)
 
 
+    def get_shortable(self, pairs: pd.DataFrame):
+        for index, row in pairs.iterrows():
+            try:
+                if not self.api.get_asset(row[0]).shortable or not self.api.get_asset(row[1]).shortable:
+                    pairs.drop(index, inplace=True)
+            except Exception as e:
+                print(e)

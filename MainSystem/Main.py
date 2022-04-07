@@ -1,14 +1,13 @@
-import time
 from time import sleep
 from Algorithms import PairsTrading
 from Alpaca import AlpacaBroker
-from MarketDataSocket import live_data_provider
+from DataProvider import live_data_provider, hist_data_provider
 from Database import handleData
 from NotificationHandler import NotificationBot
 import pandas as pd
 import os
 import sys
-import test
+
 
 class StrategyObserver:
     def __init__(self, observable):
@@ -17,7 +16,7 @@ class StrategyObserver:
     def notify(self, observable, signal: dict):
         try:
             if signal['signal'] == "BUY":
-                order_id = broker.buy(signal['symbol'], round((signal['volume'])))  # Send buy order to broker
+                order_id = broker.buy(signal['symbol'], (signal['volume'])) # Send buy order to broker
                 if order_id is None:
                     return
                 while broker.get_order(order_id)['filled_at'] is None:  # Wait for order to be filled
@@ -26,7 +25,7 @@ class StrategyObserver:
                                         database_handler.sqlGetPrice(signal['symbol']),
                                         round(broker.get_order(order_id)['qty']))
             elif signal['signal'] == "SELL":
-                order_id = broker.sell(signal['symbol'], round(signal['volume']))  # Send sell order to broker
+                order_id = broker.sell(signal['symbol'], signal['volume'])  # Send sell order to broker
                 if order_id is None:
                     return
                 while broker.get_order(order_id)['filled_at'] is None:  # Wait for order to be filled
@@ -55,11 +54,11 @@ class DataObserver:
 
 
 def main():
-    print("TEST")
 
     pairs = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Backtrader/Pairs.txt'),
                         sep=" ",
                         header=None)
+
 
     pairs.columns = ['T1', 'T2']
 
@@ -67,13 +66,16 @@ def main():
     broker = AlpacaBroker.AlpacaBroker()
 
     global strategy
-    strategy = PairsTrading.PairsTrading(pairs, 2, 600, 2000)
+    strategy = PairsTrading.PairsTrading(pairs, 2, 600, 1000)
 
     global database_handler
     database_handler = handleData.DatabaseHandler()
 
     global data_provider
     data_provider = live_data_provider.liveDataStream(1, "pairs_data")
+
+    broker.get_shortable(pairs)
+
     DataObserver(data_provider)  # Add data observer
     data_provider.start()   # Start live-data thread
 
@@ -86,7 +88,7 @@ def main():
         tickers.add(pairs['T1'][i])
         tickers.add(pairs['T2'][i])
 
-    hist_data = test.end_of_day(list(tickers), 30)
+    hist_data = hist_data_provider.end_of_day(list(tickers), 30)
 
     while True:
         if broker.market_is_open():
@@ -107,7 +109,7 @@ def main():
                 NotificationBot.sendNotification("Starting")
                 live_data_provider.marketOpen()  # Unlock live-data thread
                 sleep(60)  # Wait one minute
-                hist_data = test.end_of_day(list(tickers), 30)  # Update historic data
+                hist_data = hist_data_provider.end_of_day(list(tickers), 30)  # Update historic data
             except Exception as e:
                 print(e)
 

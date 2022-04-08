@@ -16,26 +16,24 @@ from time import sleep
 # data = yf.download(tickers="A AA AAP AMZN", period="3d", interval="1m")['Close']
 # data.to_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/muu.csv'))
 
-'''
+
 A = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Data/testData/A.csv'), sep=",")
 AA = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Data/testData/AA.csv'), sep=",")
 AAP = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Data/testData/AAP.csv'), sep=",")
 AMZN = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Data/testData/AMZN.csv'), sep=",")
 
-#tickers = [A, AA, AAP, AMZN]
-#lengths = [len(A.index),len(AA.index),len(AAP.index),len(AMZN.index)]
-#print(lengths)
 
-frames = [AA.DateTime, A.Close, AA.Close, AAP.Close, AMZN.Close]
+frames = [AA.DateTime, AMZN.Close, AA.Close, AAP.Close, A.Close]
 
 data_df = pd.concat(
     frames,
     axis=1,
     join='inner',
-    keys=['DateTime', 'A', 'AA', 'AAP', 'AMZN'],
+    keys=['DateTime', 'AMZN', 'AA', 'AAP', 'A'],
 )
 
 data_df.to_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testingData.csv'), index=False)
+'''
        # If we have begun a new date
        if date.today() != self.latest_csv_date:
            start_index = extract_start_index(self.period)

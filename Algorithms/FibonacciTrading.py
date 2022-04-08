@@ -1,4 +1,9 @@
+import datetime
+
 import pandas as pd
+import pytz
+
+pd.options.mode.chained_assignment = None  # default='warn'
 
 
 class FibonacciStrategy:
@@ -30,7 +35,14 @@ class FibonacciStrategy:
 
         start_index = extract_start_index(csv_data, self.period)
         self.data = csv_data[start_index:]  # Historic minute data for tickers
+        self.data.reset_index(drop=True, inplace=True)
         self.data['DateTime'] = pd.to_datetime(self.data['DateTime'])  # Change dtype of column DateTime to DateTime
+
+        rows = self.data.columns[1:]
+        emptyRows = [0] * len(rows)
+        self.investments = pd.DataFrame({'Symbol': rows, 'Volume': emptyRows})
+        self.investments.sort_values(by='Symbol', inplace=True)
+        self.investments.reset_index(drop=True, inplace=True)
 
         # New dataframe with the fibonacci levels initiated with "False"
         self.invested_levels = pd.DataFrame(columns=self.data.columns[1:], index=self.ratios)
@@ -45,10 +57,9 @@ class FibonacciStrategy:
 
         fibonacci_levels = []
         uptrend = False
-
-        self.data = pd.concat([self.data, minute_data], axis=0)  # Concat the historic csv data with new minute bars
         self.data.drop(0, inplace=True, axis=0)  # Remove the first row of the dataframe
         self.data.reset_index(inplace=True, drop=True)  # Resets index of dataframe
+        self.data = updateFrame(self.data, minute_data)
 
         for i in range(1, (len(self.data.columns))):  # Iterate through the tickers of the dataframe
 
@@ -78,6 +89,7 @@ class FibonacciStrategy:
                     if price_now < fibonacci_levels[m] and not self.invested_levels.loc[ratio][ticker]:
                         # We have reached the level, so we buy some stocks
                         number_of_stocks = self.invested_amount / price_now
+                        self.investments.loc[(self.investments.Symbol == ticker), 'Volume'] = number_of_stocks
 
                         self.notify_observers({"signal": "BUY", "symbol": ticker, "volume": number_of_stocks})
 
@@ -87,8 +99,10 @@ class FibonacciStrategy:
                 # We sell when the stock price is at a new high on the period
                 if price_now == max_point[1]:
                     if True in self.invested_levels.values:
+
+                        number_of_stocks = self.investments.loc[(self.investments.Symbol == ticker), 'Volume']
                         # Sell all stocks, close the position
-                        self.notify_observers({"signal": "SELL", "symbol": ticker, })
+                        self.notify_observers({"signal": "SELL", "symbol": ticker, "volume": number_of_stocks})
 
                         # We do no longer have a position in the ticker
                         for n in range(len(self.ratios)):
@@ -97,8 +111,9 @@ class FibonacciStrategy:
             if not uptrend:
                 if price_now == min_point[1]:
                     if True in self.invested_levels.values:
+                        number_of_stocks = self.investments.loc[(self.investments.Symbol == ticker), 'Volume']
                         # Sell all stocks, close the position
-                        self.notify_observers({"signal": "SELL", "symbol": ticker, })
+                        self.notify_observers({"signal": "SELL", "symbol": ticker, "volume": number_of_stocks})
 
                         # We do no longer have a position in the ticker
                         for n in range(len(self.ratios)):
@@ -107,6 +122,8 @@ class FibonacciStrategy:
 
 # Method which extracts the starting index of the minute data
 def extract_start_index(df, period: int):
+    df['DateTime'] = pd.to_datetime(df['DateTime'])  # Change dtype of column DateTime to DateTime
+
     start_index = 0
     count = 0
     for i in range(len(df.index) - 1, 0, -1):
@@ -117,3 +134,19 @@ def extract_start_index(df, period: int):
             count += 1
             start_index = i
     return start_index
+
+
+def updateFrame(csv, minuteBars):
+    dat = csv['DateTime']
+    csvFrame = csv.reindex(sorted(csv.columns[1:]), axis=1)
+    csvFrame.insert(0, 'DateTime', dat)
+
+    minuteBars.sort_values(by='Symbol', inplace=True)
+    emptyRow = [0] * len(csv.columns)
+    new_timezone = pytz.timezone("US/Eastern")
+    csv.loc[len(csv.index)] = emptyRow
+    csv.iloc[-1, 0] = datetime.datetime.now(new_timezone).strftime("%Y-%m-%d %H:%M:%S")
+
+    for i in range(1, (len(csvFrame.columns))):
+        csvFrame.iloc[-1, i] = minuteBars.iloc[i - 1]['Price']
+    return csvFrame

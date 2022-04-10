@@ -72,7 +72,7 @@ def main():
     database_handler = handleData.DatabaseHandler()
 
     global data_provider
-    data_provider = live_data_provider.liveDataStream(1, "pairs_data")
+    data_provider = live_data_provider.liveDataStream(1, "pairs_data", "../Backtrader/Pairs.txt")
 
     broker.get_shortable(pairs)
 

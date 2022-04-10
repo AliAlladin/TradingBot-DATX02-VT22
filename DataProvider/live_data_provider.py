@@ -10,8 +10,9 @@ log = logging.getLogger(__name__)
 
 # class that handles the creating of a new thread and sets up an observer
 class liveDataStream(threading.Thread):
-    def __init__(self, threadId, name):
+    def __init__(self, threadId, name, ticker_path):
         threading.Thread.__init__(self)
+        self.ticker_path = ticker_path
         self.threadID = threadId
         self.name = name
         self._observers = []
@@ -30,7 +31,7 @@ class liveDataStream(threading.Thread):
         global thisInstance
         thisInstance = self
         print('Starting ' + thisInstance.name + '\n')
-        aktier = extractTickers()
+        aktier = extractTickers(thisInstance.ticker_path)
         aktier.append('SNAP')
         yliveticker.YLiveTicker(on_ticker=on_new_msg, ticker_names=aktier, on_close=onClose)
 
@@ -46,9 +47,9 @@ dataLock = threading.Lock()
 savedData = list
 
 
-def extractTickers():
+def extractTickers(ticker_path):
     # opening the file in read mode
-    tickerFile = open("../Backtrader/Pairs.txt", "r")
+    tickerFile = open(ticker_path, "r")
     # reading the file
     data = tickerFile.read()
 

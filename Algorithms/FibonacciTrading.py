@@ -1,5 +1,5 @@
 import datetime
-
+import numpy as np
 import pandas as pd
 import pytz
 
@@ -61,15 +61,20 @@ class FibonacciStrategy:
         self.data.reset_index(inplace=True, drop=True)  # Resets index of dataframe
         self.data = updateFrame(self.data, minute_data)
 
+        self.data['DateTime'] = pd.to_datetime(self.data['DateTime'])  # Change dtype of column DateTime to DateTime
+
+
         for i in range(1, (len(self.data.columns))):  # Iterate through the tickers of the dataframe
 
             # Extracts ticker data for a specific ticker
             relevantData = self.data[['DateTime', self.data.columns[i]]].copy()
             ticker = relevantData.columns[1]
 
+            relevantData[ticker] = pd.to_numeric(relevantData[ticker])  # Change dtype of column DateTime to DateTime
+
             price_now = relevantData.iloc[-1, 1]  # Latest recorded price of the current ticker
-            max_point = relevantData.loc[relevantData[ticker].idxmax()]  # Date,value of the highest recorded price
-            min_point = relevantData.loc[relevantData[ticker].idxmin()]  # Date,value of the lowest recorded price
+            max_point = relevantData.loc[relevantData[ticker].astype(np.float64).idxmax()]  # Date,value of the highest recorded price
+            min_point = relevantData.loc[relevantData[ticker].astype(np.float64).idxmin()]  # Date,value of the lowest recorded price
 
             # Check dates fo if we are in an uptrend or downtrend
             if max_point[0] > min_point[0]:  # Note that the variables hold both a datetime type and int type
@@ -142,10 +147,10 @@ def updateFrame(csv, minuteBars):
     csvFrame.insert(0, 'DateTime', dat)
 
     minuteBars.sort_values(by='Symbol', inplace=True)
-    emptyRow = [0] * len(csv.columns)
+    emptyRow = [0] * len(csvFrame.columns)
     new_timezone = pytz.timezone("US/Eastern")
-    csv.loc[len(csv.index)] = emptyRow
-    csv.iloc[-1, 0] = datetime.datetime.now(new_timezone).strftime("%Y-%m-%d %H:%M:%S")
+    csvFrame.loc[len(csv.index)] = emptyRow
+    csvFrame.iloc[-1, 0] = datetime.datetime.now(new_timezone).strftime("%Y-%m-%d %H:%M:%S")
 
     for i in range(1, (len(csvFrame.columns))):
         csvFrame.iloc[-1, i] = minuteBars.iloc[i - 1]['Price']

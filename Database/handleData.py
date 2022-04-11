@@ -80,8 +80,12 @@ class DatabaseHandler:
                 "WHERE Prices.ticker = a2 "
         query = query.replace('a1', str(price))
         query = query.replace('a2', "\'" + str(stockTicker) + "\'")
-        self.cursor.execute(query)
-        self.conn.commit()
+        try:
+            self.cursor.execute(query)
+            self.conn.commit()
+        except Exception as e:
+            print(stockTicker)
+            print(e)
 
     def sqlGetAllPrices(self):
         try:

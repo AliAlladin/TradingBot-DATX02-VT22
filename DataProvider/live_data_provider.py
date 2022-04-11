@@ -55,6 +55,8 @@ def extractTickers():
     # replacing end of line('/n') with ' ' and
     # splitting the text it further when '.' is seen.
     data_into_list = data.replace('\n', ' ').split(" ")
+    data_into_list.append('AZN')
+    data_into_list.append('TLSNY')
     return data_into_list
 
 

@@ -8,17 +8,18 @@ class Strategy(bt.Strategy):
 
     def __init__(self, invested, period, todate, my_result_file): 
 
-        self.invested_amount = invested # Amount in each stock
+        self.invested_amount = invested # Amount to invest in each stock
         self.period=period # Number of days before being able to analyse if buy/sell
         self.oldDate = str(self.datas[0].datetime.date(0)) # Variable to check if new date
         self.todate = self.params.todate # Variable so we sell on the last day (not necessary)
         self.my_result_file=my_result_file # File to save buys and sells so we can analyse afterwards
+        self.sellOf = False # Variable to check if it is the last day
 
-    def log(self, txt, dt=None):  #F or saving important information
+    def log(self, txt, dt=None):  # For saving important information
 
-        dt = dt or self.datas[0].datetime.datetime(0)
+        dt = dt or self.datas[0].datetime.datetime(0) #If we want to give a specific date as input
         self.my_result_file.write('%s, %s' % (dt.isoformat(), txt+"\n")) # Saving the order information in the file
-        print('%s, %s' % (dt.isoformat(), txt))
+        print('%s, %s' % (dt.isoformat(), txt)) #To know what is happening during the time it is running
 
     # Reports an order instance
     def notify_order(self, order): # Backtrader calls this function
@@ -27,7 +28,7 @@ class Strategy(bt.Strategy):
         # Attention: broker could reject order if there is not enough cash
         if order.status in [order.Completed]:
             # If it is a buying order
-            if order.isbuy():
+            if order.isbuy(): 
                 self.log(
                     'BUY EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
                     (order.executed.price,
@@ -45,8 +46,8 @@ class Strategy(bt.Strategy):
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
             self.log('Order Canceled/Margin/Rejected')
 
-    # Receives a trade whenever there has been a change in one
 
+    # Receives a trade whenever there has been a change in one
     def notify_trade(self, trade):
         if not trade.isclosed:
             return
@@ -63,8 +64,8 @@ class Strategy_pairGen(Strategy):
 
     def __init__(self):
         Strategy.__init__(self, self.params.invested, self.params.period, 
-        self.params.todate, self.params.my_result_file) # Initiate the general general parameters for strategies
-        
+        self.params.todate, self.params.my_result_file) # Initiate the general parameters for any of the strategies
+
         # Saving stockdata for each stock
         self.stock1Data=[] 
         self.stock2Data=[]
@@ -72,14 +73,12 @@ class Strategy_pairGen(Strategy):
         self.distance = self.params.distance # Distance from average
         self.active=False # To check if the pair is active             
         self.long = None # If we have bought the first stock or not
-        self.sellOf = False # Variable to check if it is the last day
 
         # The closing data of the stock
         self.dataclose = []
         for i in range(0, 2):  # We add the closing data for each of all stocks
             self.dataclose.append(self.datas[i].close)
     
-
         print("initialising") # Just for terminal
 
     def next(self):
@@ -135,8 +134,6 @@ class Strategy_pairGen(Strategy):
 
             # Description of our position
             self.long = False  # Pair.long is true when we are long of the first stock
-            self.ratio = current_ratio
-            self.shares_stock1 = shares_stock1
             self.active = True
 
         # The Z-score is unusually low, we buy stock1 and sell stock2
@@ -149,12 +146,11 @@ class Strategy_pairGen(Strategy):
 
             # Description of our position
             self.long = True
-            self.shares_stock1 = shares_stock1
-            self.ratio = current_ratio
             self.active = True
 
     # To check whether or not we should close our poisition
     def closingPosition(self,z_score, current_ratio, shares_stock1):
+
         if self.long:
             if z_score > 0 or self.sellOf:
                 self.order = self.close(self.datas[0])
@@ -205,9 +201,9 @@ class Strategy_fibonacci(Strategy):
         
         # To store data for each ticker
         self.ratios = [0.382, 0.5, 0.618]  # The Fibonacci ratios
-        self.myData = []  # To store all the data we need, {'TICKER' -> Data}
-        self.invested_at_level = []  # To know if we are invested, {'TICKER' -> [boolean, boolean, boolean]}
-        self.indexChangeOfDay=[] #To know which datapoints to include. We save at which datapoint new day occur
+        self.myData = []  # To store all the data we up to this moment
+        self.invested_at_level = []  # To know if we are invested [boolean, boolean, boolean]
+        self.indexChangeOfDay=[] # To know which datapoints to include. We save at which datapoint new day occur
         self.invested_at_level = [False] * len(self.ratios) # Initially not invested
         self.dataclose = self.datas[0].close # We add the trading price for the stock
 

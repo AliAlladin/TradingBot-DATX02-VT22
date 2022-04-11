@@ -71,7 +71,7 @@ def main():
     database_handler = handleData.DatabaseHandler()
 
     global data_provider
-    data_provider = live_data_provider.liveDataStream(1, "fib_data", "") #TODO Add path to Fibonacci tickers
+    data_provider = live_data_provider.liveDataStream(1, "fib_data", "../MainSystem/Stockstorun.txt")
 
     DataObserver(data_provider)  # Add data observer
     data_provider.start()   # Start live-data thread

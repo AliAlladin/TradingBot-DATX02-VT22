@@ -55,7 +55,7 @@ class DataObserver:
 
 def main():
 
-    pairs = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Backtrader/Pairs.txt'),
+    pairs = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'MainSystem/Pairstorun.txt'),
                         sep=" ",
                         header=None)
 
@@ -72,9 +72,11 @@ def main():
     database_handler = handleData.DatabaseHandler()
 
     global data_provider
-    data_provider = live_data_provider.liveDataStream(1, "pairs_data", "../Backtrader/Pairs.txt")
+    data_provider = live_data_provider.liveDataStream(1, "pairs_data", "../MainSystem/Pairstorun.txt")
 
+    print(pairs)
     broker.get_shortable(pairs)
+    print(pairs)
 
     DataObserver(data_provider)  # Add data observer
     data_provider.start()   # Start live-data thread

@@ -1,7 +1,7 @@
-import backtrader as bt #The backtrader package
-import numpy as np #So we can take the logarithm 
-import statsmodels.api as sm #To make the linear regression
-import datetime #To use dates
+import backtrader as bt # The backtrader package
+import numpy as np # So we can take the logarithm 
+import statsmodels.api as sm # To make the linear regression
+import datetime # To use dates
 
 #General attributes for all strategies
 class Strategy(bt.Strategy):    
@@ -14,10 +14,10 @@ class Strategy(bt.Strategy):
         self.todate = self.params.todate # Variable so we sell on the last day (not necessary)
         self.my_result_file=my_result_file # File to save buys and sells so we can analyse afterwards
 
-    def log(self, txt, dt=None):  #For saving important information
+    def log(self, txt, dt=None):  #F or saving important information
 
         dt = dt or self.datas[0].datetime.datetime(0)
-        self.my_result_file.write('%s, %s' % (dt.isoformat(), txt+"\n")) #Saving the order information in the file
+        self.my_result_file.write('%s, %s' % (dt.isoformat(), txt+"\n")) # Saving the order information in the file
         print('%s, %s' % (dt.isoformat(), txt))
 
     # Reports an order instance
@@ -122,7 +122,7 @@ class Strategy_pairGen(Strategy):
             else:
                 self.closingPosition(z_score, current_ratio, shares_stock1)
 
-    #To check whether to take a position or not
+    # To check whether to take a position or not
     def takingPosition(self, z_score, current_ratio, shares_stock1):
     # We check whether the Z-score is unusually high or low (>distance or <-distance)
         if z_score > self.distance and not self.sellOf:
@@ -196,7 +196,7 @@ class Strategy_fibonacci(Strategy):
     def __init__(self):
 
         Strategy.__init__(self, self.params.invested, self.params.period, self.params.todate, 
-        self.params.my_result_file) #The general parameters for any strategy
+        self.params.my_result_file) # The general parameters for any strategy
         
         # Parameters
         self.invested_amount = self.params.invested  # The amount for which we invest
@@ -215,7 +215,7 @@ class Strategy_fibonacci(Strategy):
     def next(self):
 
         newPotentialDate = str(self.datas[0].datetime.date(0))
-        if newPotentialDate != self.oldDate: #Checking if new day
+        if newPotentialDate != self.oldDate: # Checking if new day
             self.oldDate = newPotentialDate
             self.indexChangeOfDay.append(len(self.myData))
         self.myData.append(self.dataclose[0])

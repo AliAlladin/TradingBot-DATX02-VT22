@@ -118,3 +118,4 @@ class AlpacaBroker:
                     pairs.drop(index, inplace=True)
             except Exception as e:
                 print(e)
+        pairs.reset_index(drop=True, inplace=True)

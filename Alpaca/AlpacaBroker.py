@@ -1,11 +1,8 @@
-from datetime import datetime
-from turtle import pos
 import alpaca_trade_api as tradeapi
-import time
 import pandas as pd
+import time
+
 from Alpaca.Config import *
-import os
-import sys
 
 
 class AlpacaBroker:
@@ -109,7 +106,6 @@ class AlpacaBroker:
             }
             list.append(position_info)
         return pd.DataFrame(list)
-
 
     def get_shortable(self, pairs: pd.DataFrame):
         for index, row in pairs.iterrows():

@@ -1,15 +1,11 @@
 import csv
 import datetime
-import os
-import sys
 
 import numpy as np
 import pandas as pd
 import pytz
 
 pd.options.mode.chained_assignment = None  # default='warn'
-
-pathToCSV = os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/final.csv')
 
 
 class FibonacciStrategy:
@@ -25,12 +21,15 @@ class FibonacciStrategy:
     def unsubscribe(self, observer):
         self._observers.remove(observer)
 
-    def __init__(self, csv_data):
+    def __init__(self, pathToCSV):
         """
         NOTE: csv_data must be a dataframe with columns = ['DateTime', t1, t2,...tn] where t1-tn are ticker symbols with
         only closing/current prices
         """
         self._observers = []  # List of observers to be notified
+        self.csvPath = pathToCSV
+
+        csv_data = pd.read_csv(pathToCSV)  # Convert the csv-file to a dataframe
 
         # Parameters
         self.invested_amount = 10000  # The amount for which we invest
@@ -65,7 +64,7 @@ class FibonacciStrategy:
         uptrend = False
         self.data.drop(0, inplace=True, axis=0)  # Remove the first row of the dataframe
         self.data.reset_index(inplace=True, drop=True)  # Resets index of dataframe
-        self.data = updateFrame(self.data, minute_data)
+        self.data = updateData(self.csvPath, self.data, minute_data)
 
         self.data['DateTime'] = pd.to_datetime(self.data['DateTime'])  # Change dtype of column DateTime to DateTime
 
@@ -148,24 +147,28 @@ def extract_start_index(df, period: int):
     return start_index
 
 
-def updateFrame(csv, minuteBars):
-    dat = csv['DateTime']
-    csvFrame = csv.reindex(sorted(csv.columns[1:]), axis=1)
+def updateData(path, csv_df, minuteBars):
+    dat = csv_df['DateTime']
+    csvFrame = csv_df.reindex(sorted(csv_df.columns[1:]), axis=1)
     csvFrame.insert(0, 'DateTime', dat)
 
     minuteBars.sort_values(by='Symbol', inplace=True)
     emptyRow = [0] * len(csvFrame.columns)
     new_timezone = pytz.timezone("US/Eastern")
-    csvFrame.loc[len(csv.index)] = emptyRow
+    csvFrame.loc[len(csv_df.index)] = emptyRow
     csvFrame.iloc[-1, 0] = datetime.datetime.now(new_timezone).strftime("%Y-%m-%d %H:%M:%S")
 
     for i in range(1, (len(csvFrame.columns))):
         csvFrame.iloc[-1, i] = minuteBars.iloc[i - 1]['Price']
-    addToCSV(csvFrame.iloc[-1].tolist())
+
+    # Converts last row of df to a list and sends it as a parameter to addToCSV()
+    addToCSV(path, csvFrame.iloc[-1].tolist())
+
     return csvFrame
 
 
-def addToCSV(row):
-    with open(pathToCSV, 'a', newline='') as f:
+# Adds a new row to the CSV-file
+def addToCSV(path, row):
+    with open(path, 'a', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(row)

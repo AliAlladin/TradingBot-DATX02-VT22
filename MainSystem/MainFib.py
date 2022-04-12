@@ -19,7 +19,7 @@ class StrategyObserver:
 
         try:
             if signal['signal'] == "BUY":
-                order_id = broker.buy(signal['symbol'], (signal['volume'])) # Send buy order to broker
+                order_id = broker.buy(signal['symbol'], (signal['volume']))  # Send buy order to broker
                 if order_id is None:
                     return
                 while broker.get_order(order_id)['filled_at'] is None:  # Wait for order to be filled
@@ -40,14 +40,15 @@ class StrategyObserver:
 
             order = broker.get_order(order_id)
             message = "{} {} {} at {}$".format(order['type'],
-                                              order['qty'],
-                                              order['symbol'],
-                                              database_handler.sqlGetPrice(signal['symbol']))
+                                               order['qty'],
+                                               order['symbol'],
+                                               database_handler.sqlGetPrice(signal['symbol']))
             print(message)
-            #NotificationBot.sendNotification(message)
+            # NotificationBot.sendNotification(message)
 
         except Exception as e:
             print(e)
+
 
 class DataObserver:
     def __init__(self, observable):
@@ -58,14 +59,16 @@ class DataObserver:
 
 
 def main():
+    # csv = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testingData.csv'))
 
-    csv = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testingData.csv'))
+    # TODO: Add a csv-file to the MainSystem folder and name it "final.csv"
+    pathToCSV = os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'MainSystem/final.csv')
 
     global broker
     broker = AlpacaBroker.AlpacaBroker()
 
     global strategy
-    strategy = FibonacciTrading.FibonacciStrategy(csv)
+    strategy = FibonacciTrading.FibonacciStrategy(pathToCSV)
 
     global database_handler
     database_handler = handleData.DatabaseHandler()
@@ -74,7 +77,7 @@ def main():
     data_provider = live_data_provider.liveDataStream(1, "fib_data", "../MainSystem/Stockstorun.txt")
 
     DataObserver(data_provider)  # Add data observer
-    data_provider.start()   # Start live-data thread
+    data_provider.start()  # Start live-data thread
 
     sleep(10)
 
@@ -98,6 +101,7 @@ def main():
                 sleep(60)  # Wait one minute
             except Exception as e:
                 print(e)
+
 
 if __name__ == "__main__":
     main()

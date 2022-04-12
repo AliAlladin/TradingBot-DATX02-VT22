@@ -1,5 +1,5 @@
-import psycopg2
 import pandas as pd
+import psycopg2
 from sqlalchemy import create_engine
 
 
@@ -9,7 +9,7 @@ class DatabaseHandler:
             host="localhost",
             database="tradingBot",
             user="postgres",
-            password="postgres",
+            password="asdasd123",
             port="5432"
         )
 
@@ -26,7 +26,6 @@ class DatabaseHandler:
         cursor.execute(sql.read())
         self.conn.commit()
         print("drop table")
-        
 
         # Tables
         sql = open('../Database/tables.sql', 'r')
@@ -39,14 +38,6 @@ class DatabaseHandler:
         cursor.execute(sql.read())
         self.conn.commit()
         print("views created")
-
-        
-        # insert
-        sql = open('../Database/inserts.sql', 'r')
-        cursor.execute(sql.read())
-        self.conn.commit()
-        print("insert created")
-
 
     def insertAndCommitQuery(self, stockTicker: str, price: float, volume: float, query: str):
         query = query.replace('a1', "\'" + stockTicker + "\'")
@@ -101,7 +92,7 @@ class DatabaseHandler:
 
     def sqlGetPrice(self, symbol: str):
         postgreSQL_select_Query = "select price from Prices where ticker = %s"
-        self.cursor.execute(postgreSQL_select_Query, (symbol, ))
+        self.cursor.execute(postgreSQL_select_Query, (symbol,))
         return float(self.cursor.fetchone()[0])
 
     def sqlLoadPairs(self, pairs: pd.DataFrame):
@@ -148,3 +139,4 @@ class DatabaseHandler:
         except Exception as e:
             print(e)
             return self.sqlGetAllPrices()
+

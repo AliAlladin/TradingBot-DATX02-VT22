@@ -1,6 +1,6 @@
 alpaca_trade_api==1.5.1
 backtrader==1.9.76.123
-matplotlib==3.2.2
+matplotlib~=3.5.1
 numpy==1.22.3
 pandas==1.4.1
 psycopg2==2.9.3
@@ -9,3 +9,5 @@ yfinance==0.1.70
 yliveticker~=0.3.0
 ipython~=8.2.0
 requests~=2.27.1
+SQLAlchemy~=1.4.32
+pytz~=2021.3

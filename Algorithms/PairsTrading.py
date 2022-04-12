@@ -26,6 +26,7 @@ class PairsTrading:
 
 
     def __init__(self, distance, period, invested_amount):
+
         self._observers = []  # List of observers to be notified
 
         # The parameters that are to be varied to optimize the model
@@ -91,6 +92,7 @@ class PairsTrading:
                     # Send buy signal to main
                     self.notify_observers({"signal": "BUY", "symbol": pairs['t2'][i], "volume": shares_stock2})
 
+
                     # Description of our position
                     pairs['long'][i] = False
                     pairs['shares_stock1'][i] = shares_stock1
@@ -105,12 +107,10 @@ class PairsTrading:
                     # Send sell signal to main
                     self.notify_observers({"signal": "SELL", "symbol": pairs['t2'][i], "volume": shares_stock2})
 
-
                     shares_stock1 = (shares_stock2 / current_ratio)
 
                     # Send buy signal to main
                     self.notify_observers({"signal": "BUY", "symbol": pairs['t1'][i], "volume": shares_stock1})
-
 
                     # Description of our position
                     pairs['long'][i] = True
@@ -133,6 +133,7 @@ class PairsTrading:
                         self.notify_observers(
                             {"signal": "BUY", "symbol": pairs['t2'][i], "volume": pairs['shares_stock2'][i]})
 
+
                         # We close the position in the pair
                         pairs['shares_stock1'][i] = None
                         pairs['shares_stock2'][i] = None
@@ -149,7 +150,6 @@ class PairsTrading:
                         # Send sell signal to main
                         self.notify_observers(
                             {"signal": "SELL", "symbol": pairs['t2'][i], "volume": pairs['shares_stock2'][i]})
-
 
                         # We close the position in the pair
                         pairs['shares_stock1'][i] = None

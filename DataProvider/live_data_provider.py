@@ -33,7 +33,8 @@ class liveDataStream(threading.Thread):
         global thisInstance
         thisInstance = self
         print('Starting ' + thisInstance.name + '\n')
-        yliveticker.YLiveTicker(on_ticker=on_new_msg, ticker_names=extractTickers(), on_close=onClose, on_error=onError)
+        yliveticker.YLiveTicker(on_ticker=on_new_msg, ticker_names=extractTickers(self.ticker_path), on_close=onClose, on_error=onError)
+
 
 
 

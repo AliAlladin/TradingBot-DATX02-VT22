@@ -57,7 +57,6 @@ class DataObserver:
 
 
 def main():
-
     pairs = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'MainSystem/Pairstorun.txt'),
 
                         sep=" ",
@@ -72,6 +71,8 @@ def main():
     global database_handler
     database_handler = handleData.DatabaseHandler()
     database_handler.sqlLoadPairs(pairs)
+    database_handler.sqlSave('ABT', 'CDNS', True, True, 21.3, 41.231)
+
 
     global strategy
     strategy = PairsTrading.PairsTrading(pairs, 2, 600, 1000)

@@ -97,7 +97,7 @@ class DatabaseHandler:
         engine = create_engine('postgresql://postgres:asdasd123@localhost:5432/tradingBot')
 
         print(pairs)
-        pairs['Active'] = False
+        pairs['active'] = False
         pairs['long'] = None
         pairs['shares_stock1'] = 0.000
         pairs['shares_stock2'] = 0.000
@@ -111,13 +111,14 @@ class DatabaseHandler:
             con.execute('ALTER TABLE Save ADD PRIMARY KEY (t1,t2);')
 
     def sqlSave(self, ticker1: str, ticker2: str, active: bool, whichBuy: bool, amount1: float, amount2: float):
-        query = "UPDATE Save SET Active=a1, long=a2, shares_stock1=a3, shares_stock2=a4 WHERE a5=a6"
+        query = "UPDATE save SET active=a1, long=a2, shares_stock1=a3, shares_stock2=a4 WHERE t1=a5 AND t2=a6"
         query = query.replace('a1', str(active))
         query = query.replace('a2', str(whichBuy))
         query = query.replace('a3', str(amount1))
         query = query.replace('a4', str(amount2))
         query = query.replace('a5', "\'" + ticker1 + "\'")
         query = query.replace('a6', "\'" + ticker2 + "\'")
+        print(query)
         self.cursor.execute(query)
         self.conn.commit()
 

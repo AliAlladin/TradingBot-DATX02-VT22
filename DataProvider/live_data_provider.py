@@ -37,6 +37,7 @@ class liveDataStream(threading.Thread):
 
 
 
+
 thisInstance = None
 
 tickers = []

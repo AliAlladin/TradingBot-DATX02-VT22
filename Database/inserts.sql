@@ -22,3 +22,7 @@ INSERT INTO Prices VALUES ('u',2);
 INSERT INTO Prices VALUES ('v',3);
 INSERT INTO Prices VALUES ('x',4);
 INSERT INTO Prices VALUES ('y',5);
+
+
+
+

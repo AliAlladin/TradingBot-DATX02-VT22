@@ -1,12 +1,14 @@
+import os
+import sys
 from time import sleep
+
+import pandas as pd
+
 from Algorithms import PairsTrading
 from Alpaca import AlpacaBroker
 from DataProvider import live_data_provider, hist_data_provider
 from Database import handleData
 from NotificationHandler import NotificationBot
-import pandas as pd
-import os
-import sys
 
 
 class StrategyObserver:
@@ -16,7 +18,7 @@ class StrategyObserver:
     def notify(self, observable, signal: dict):
         try:
             if signal['signal'] == "BUY":
-                order_id = broker.buy(signal['symbol'], (signal['volume'])) # Send buy order to broker
+                order_id = broker.buy(signal['symbol'], (signal['volume']))  # Send buy order to broker
                 if order_id is None:
                     return
                 while broker.get_order(order_id)['filled_at'] is None:  # Wait for order to be filled
@@ -36,14 +38,15 @@ class StrategyObserver:
 
             order = broker.get_order(order_id)
             message = "{} {} {} at {}$".format(order['type'],
-                                              order['qty'],
-                                              order['symbol'],
-                                              database_handler.sqlGetPrice(signal['symbol']))
+                                               order['qty'],
+                                               order['symbol'],
+                                               database_handler.sqlGetPrice(signal['symbol']))
             print(message)
-            #NotificationBot.sendNotification(message)
+            # NotificationBot.sendNotification(message)
 
         except Exception as e:
             print(e)
+
 
 class DataObserver:
     def __init__(self, observable):
@@ -56,20 +59,22 @@ class DataObserver:
 def main():
 
     pairs = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'MainSystem/Pairstorun.txt'),
+
                         sep=" ",
                         header=None)
 
-
-    pairs.columns = ['T1', 'T2']
+    pairs.columns = ['t1', 't2']
+    print(pairs)
 
     global broker
     broker = AlpacaBroker.AlpacaBroker()
 
-    global strategy
-    strategy = PairsTrading.PairsTrading(pairs, 2, 600, 1000)
-
     global database_handler
     database_handler = handleData.DatabaseHandler()
+    database_handler.sqlLoadPairs(pairs)
+
+    global strategy
+    strategy = PairsTrading.PairsTrading(pairs, 2, 600, 1000)
 
     global data_provider
     data_provider = live_data_provider.liveDataStream(1, "pairs_data", "../MainSystem/Pairstorun.txt")
@@ -79,7 +84,7 @@ def main():
     print(pairs)
 
     DataObserver(data_provider)  # Add data observer
-    data_provider.start()   # Start live-data thread
+    data_provider.start()  # Start live-data thread
 
     sleep(60)
 
@@ -87,8 +92,8 @@ def main():
 
     tickers = set()
     for i in range(len(pairs.index)):
-        tickers.add(pairs['T1'][i])
-        tickers.add(pairs['T2'][i])
+        tickers.add(pairs['t1'][i])
+        tickers.add(pairs['t2'][i])
 
     hist_data = hist_data_provider.end_of_day(list(tickers), 30)
 
@@ -114,6 +119,7 @@ def main():
                 hist_data = hist_data_provider.end_of_day(list(tickers), 30)  # Update historic data
             except Exception as e:
                 print(e)
+
 
 if __name__ == "__main__":
     main()

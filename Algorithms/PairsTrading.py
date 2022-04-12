@@ -24,15 +24,8 @@ class PairsTrading:
     def unsubscribe(self, observer):
         self._observers.remove(observer)
 
-    def __init__(self, pairs, distance, period, invested_amount):
-        self.pairs = pairs
-        self.pairs.columns = ['T1', 'T2']
-        self.pairs['Active'] = False
-        self.pairs['long'] = None
-        self.pairs['shares_stock1'] = None
-        self.pairs['shares_stock2'] = None
 
-
+    def __init__(self, distance, period, invested_amount):
         self._observers = []  # List of observers to be notified
 
         # The parameters that are to be varied to optimize the model
@@ -40,12 +33,12 @@ class PairsTrading:
         self.period = period
         self.invested_amount = invested_amount
 
-    def run(self, latest_prices: pd.DataFrame, hist_prices: pd.DataFrame):
-        for i in range(len(self.pairs.index)):
+    def run(self, pairs: pd.DataFrame, latest_prices: pd.DataFrame, hist_prices: pd.DataFrame):
+        for i in range(len(pairs.index)):
 
             # Fetches a pair and the latest prices for each of the tickers
-            t1 = self.pairs['T1'][i]  # Ticker symbol
-            t2 = self.pairs['T2'][i]  # Ticker symbol
+            t1 = pairs['t1'][i]  # Ticker symbol
+            t2 = pairs['t2'][i]  # Ticker symbol
 
             # Latest minute data for ticker. Only 1 data point.
             tick1 = latest_prices.loc[latest_prices['Symbol'] == t1]
@@ -84,25 +77,25 @@ class PairsTrading:
             current_ratio = data_df[t1][len(data_df) - 1] / data_df[t2][len(data_df) - 1]
 
             # If we don't have a position in this pair
-            if not self.pairs['Active'][i]:
+            if not pairs['active'][i]:
                 # We check whether the Z-score is unusually high or low (>distance or <-distance)
                 if z_score > self.distance:
                     # High Z-score, we sell stock 1 and buy stock 2
 
                     # Send sell signal to main
                     shares_stock1 = round(shares_stock1)
-                    self.notify_observers({"signal": "SELL", "symbol": self.pairs['T1'][i], "volume": shares_stock1})
+                    self.notify_observers({"signal": "SELL", "symbol": pairs['t1'][i], "volume": shares_stock1})
 
                     shares_stock2 = shares_stock1 * current_ratio
+
                     # Send buy signal to main
-                    self.notify_observers(
-                        {"signal": "BUY", "symbol": self.pairs['T2'][i], "volume": shares_stock2})
+                    self.notify_observers({"signal": "BUY", "symbol": pairs['t2'][i], "volume": shares_stock2})
 
                     # Description of our position
-                    self.pairs['long'][i] = False
-                    self.pairs['shares_stock1'][i] = shares_stock1
-                    self.pairs['shares_stock2'][i] = shares_stock2
-                    self.pairs['Active'][i] = True
+                    pairs['long'][i] = False
+                    pairs['shares_stock1'][i] = shares_stock1
+                    pairs['shares_stock2'][i] = shares_stock2
+                    pairs['active'][i] = True
 
                 # The Z-score is unusually low, we buy stock1 and sell stock2
                 elif z_score < -self.distance:
@@ -110,40 +103,40 @@ class PairsTrading:
                     shares_stock2 = round(shares_stock1 * current_ratio)
 
                     # Send sell signal to main
-                    self.notify_observers(
-                        {"signal": "SELL", "symbol": self.pairs['T2'][i], "volume": shares_stock2})
+                    self.notify_observers({"signal": "SELL", "symbol": pairs['t2'][i], "volume": shares_stock2})
+
 
                     shares_stock1 = (shares_stock2 / current_ratio)
 
                     # Send buy signal to main
-                    self.notify_observers({"signal": "BUY", "symbol": self.pairs['T1'][i], "volume": shares_stock1})
+                    self.notify_observers({"signal": "BUY", "symbol": pairs['t1'][i], "volume": shares_stock1})
 
 
                     # Description of our position
-                    self.pairs['long'][i] = True
-                    self.pairs['shares_stock1'][i] = shares_stock1
-                    self.pairs['shares_stock2'][i] = shares_stock2
-                    self.pairs['Active'][i] = True
+                    pairs['long'][i] = True
+                    pairs['shares_stock1'][i] = shares_stock1
+                    pairs['shares_stock2'][i] = shares_stock2
+                    pairs['active'][i] = True
 
             # We have a position on a pair and therefore examine whether to close it
             else:
                 # We previously bought the stock 1
-                if self.pairs['long'][i]:
+                if pairs['long'][i]:
                     if z_score > 0:
                         # Sell stock 1 and buy back stock 2
 
                         # Send sell signal to main
                         self.notify_observers(
-                            {"signal": "SELL", "symbol": self.pairs['T1'][i], "volume": self.pairs['shares_stock1'][i]})
+                            {"signal": "SELL", "symbol": pairs['t1'][i], "volume": pairs['shares_stock1'][i]})
 
                         # Send buy signal to main
-                        self.notify_observers({"signal": "BUY", "symbol": self.pairs['T2'][i],
-                            "volume": self.pairs['shares_stock2'][i]})
+                        self.notify_observers(
+                            {"signal": "BUY", "symbol": pairs['t2'][i], "volume": pairs['shares_stock2'][i]})
 
                         # We close the position in the pair
-                        self.pairs['shares_stock1'][i] = None
-                        self.pairs['shares_stock2'][i] = None
-                        self.pairs['Active'][i] = False
+                        pairs['shares_stock1'][i] = None
+                        pairs['shares_stock2'][i] = None
+                        pairs['active'][i] = False
 
                 else:
                     if z_score < 0:
@@ -151,13 +144,14 @@ class PairsTrading:
 
                         # Send buy signal to main
                         self.notify_observers(
-                            {"signal": "BUY", "symbol": self.pairs['T1'][i], "volume": self.pairs['shares_stock1'][i]})
+                            {"signal": "BUY", "symbol": pairs['t1'][i], "volume": pairs['shares_stock1'][i]})
 
                         # Send sell signal to main
-                        self.notify_observers({"signal": "SELL", "symbol": self.pairs['T2'][i],
-                            "volume": self.pairs['shares_stock2'][i]})
+                        self.notify_observers(
+                            {"signal": "SELL", "symbol": pairs['t2'][i], "volume": pairs['shares_stock2'][i]})
+
 
                         # We close the position in the pair
-                        self.pairs['shares_stock1'][i] = None
-                        self.pairs['shares_stock2'][i] = None
-                        self.pairs['Active'][i] = False
+                        pairs['shares_stock1'][i] = None
+                        pairs['shares_stock2'][i] = None
+                        pairs['active'][i] = False

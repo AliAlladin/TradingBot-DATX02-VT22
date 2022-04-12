@@ -1,5 +1,6 @@
 import psycopg2
 import pandas as pd
+from sqlalchemy import create_engine
 
 
 class DatabaseHandler:
@@ -11,6 +12,8 @@ class DatabaseHandler:
             password="postgres",
             port="5432"
         )
+
+        self.engine = create_engine('postgresql://postgres:postgres@localhost:5432/tradingBot')
 
         self.cursor = self.conn.cursor()
 
@@ -100,3 +103,48 @@ class DatabaseHandler:
         postgreSQL_select_Query = "select price from Prices where ticker = %s"
         self.cursor.execute(postgreSQL_select_Query, (symbol, ))
         return float(self.cursor.fetchone()[0])
+
+    def sqlLoadPairs(self, pairs: pd.DataFrame):
+
+        pairs['active'] = False
+        pairs['long'] = None
+        pairs['shares_stock1'] = 0.000
+        pairs['shares_stock2'] = 0.000
+
+        try:
+            pairs.to_sql('save', con=self.engine, if_exists='fail', index=False)
+            with self.engine.connect() as con:
+                con.execute('ALTER TABLE Save ADD PRIMARY KEY (t1,t2);')
+        except Exception as e:
+            print(e)
+
+    def sqlUpdatePairs(self, pairs: pd.DataFrame):
+        try:
+            pairs.to_sql('save', con=self.engine, if_exists='replace', index=False)
+            with self.engine.connect() as con:
+                con.execute('ALTER TABLE Save ADD PRIMARY KEY (t1,t2);')
+        except Exception as e:
+            print(e)
+
+
+    def sqlSave(self, ticker1: str, ticker2: str, active: bool, whichBuy: bool, amount1: float, amount2: float):
+        query = "UPDATE save SET active=a1, long=a2, shares_stock1=a3, shares_stock2=a4 WHERE t1=a5 AND t2=a6"
+        query = query.replace('a1', str(active))
+        query = query.replace('a2', str(whichBuy))
+        query = query.replace('a3', str(amount1))
+        query = query.replace('a4', str(amount2))
+        query = query.replace('a5', "\'" + ticker1 + "\'")
+        query = query.replace('a6', "\'" + ticker2 + "\'")
+        print(query)
+        self.cursor.execute(query)
+        self.conn.commit()
+
+    def sqlGetSaved(self):
+        try:
+            postgreSQL_select_Query = "select * from Save"
+            self.cursor.execute(postgreSQL_select_Query)
+            return pd.DataFrame.from_records(self.cursor.fetchall(),
+                                             columns=['t1', 't2', 'active', 'long', 'shares_stock1', 'shares_stock2'])
+        except Exception as e:
+            print(e)
+            return self.sqlGetAllPrices()

@@ -1,4 +1,5 @@
 from time import sleep
+import pandas as pd
 from Algorithms import PairsTrading
 from Alpaca import AlpacaBroker
 from DataProvider import live_data_provider, hist_data_provider
@@ -60,21 +61,22 @@ def main():
                         header=None)
 
 
-    pairs.columns = ['T1', 'T2']
+    pairs.columns = ['t1', 't2']
+
 
     global broker
     broker = AlpacaBroker.AlpacaBroker()
-
-    global strategy
-    strategy = PairsTrading.PairsTrading(pairs, 2, 600, 1000)
+    broker.get_shortable(pairs)
 
     global database_handler
     database_handler = handleData.DatabaseHandler()
+    database_handler.sqlLoadPairs(pairs)
+
+    global strategy
+    strategy = PairsTrading.PairsTrading(2, 600, 1000)
 
     global data_provider
     data_provider = live_data_provider.liveDataStream(1, "pairs_data", "../Backtrader/Pairs.txt")
-
-    broker.get_shortable(pairs)
 
     DataObserver(data_provider)  # Add data observer
     data_provider.start()   # Start live-data thread
@@ -85,8 +87,8 @@ def main():
 
     tickers = set()
     for i in range(len(pairs.index)):
-        tickers.add(pairs['T1'][i])
-        tickers.add(pairs['T2'][i])
+        tickers.add(pairs['t1'][i])
+        tickers.add(pairs['t2'][i])
 
     hist_data = hist_data_provider.end_of_day(list(tickers), 30)
 
@@ -95,7 +97,9 @@ def main():
             try:
                 print("Running")
                 latest_price = database_handler.sqlGetAllPrices()  # Get latest prices from database
-                strategy.run(latest_price, hist_data)  # Run strategy
+                pairs = database_handler.sqlGetSaved()
+                strategy.run(pairs, latest_price, hist_data)  # Run strategy
+                database_handler.sqlUpdatePairs(pairs)
                 sleep(60)  # Wait one minute
             except Exception as e:
                 print(e)

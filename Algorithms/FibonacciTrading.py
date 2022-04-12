@@ -1,9 +1,15 @@
+import csv
 import datetime
+import os
+import sys
+
 import numpy as np
 import pandas as pd
 import pytz
 
 pd.options.mode.chained_assignment = None  # default='warn'
+
+pathToCSV = os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/final.csv')
 
 
 class FibonacciStrategy:
@@ -63,7 +69,6 @@ class FibonacciStrategy:
 
         self.data['DateTime'] = pd.to_datetime(self.data['DateTime'])  # Change dtype of column DateTime to DateTime
 
-
         for i in range(1, (len(self.data.columns))):  # Iterate through the tickers of the dataframe
 
             # Extracts ticker data for a specific ticker
@@ -73,8 +78,10 @@ class FibonacciStrategy:
             relevantData[ticker] = pd.to_numeric(relevantData[ticker])  # Change dtype of column DateTime to DateTime
 
             price_now = relevantData.iloc[-1, 1]  # Latest recorded price of the current ticker
-            max_point = relevantData.loc[relevantData[ticker].astype(np.float64).idxmax()]  # Date,value of the highest recorded price
-            min_point = relevantData.loc[relevantData[ticker].astype(np.float64).idxmin()]  # Date,value of the lowest recorded price
+            max_point = relevantData.loc[
+                relevantData[ticker].astype(np.float64).idxmax()]  # Date,value of the highest recorded price
+            min_point = relevantData.loc[
+                relevantData[ticker].astype(np.float64).idxmin()]  # Date,value of the lowest recorded price
 
             # Check dates fo if we are in an uptrend or downtrend
             if max_point[0] > min_point[0]:  # Note that the variables hold both a datetime type and int type
@@ -154,4 +161,11 @@ def updateFrame(csv, minuteBars):
 
     for i in range(1, (len(csvFrame.columns))):
         csvFrame.iloc[-1, i] = minuteBars.iloc[i - 1]['Price']
+    addToCSV(csvFrame.iloc[-1].tolist())
     return csvFrame
+
+
+def addToCSV(row):
+    with open(pathToCSV, 'a', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(row)

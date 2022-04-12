@@ -1,7 +1,7 @@
 """
 THIS FILE IS TO BE REMOVED ONCE FINISHED WITH. IT IS ONLY A HELPER CLASS FOR GENERATING DATAFRAMES.
 """
-
+import csv
 import os
 import sys
 from IPython.display import display
@@ -12,7 +12,17 @@ import yfinance as yf
 from datetime import date, datetime
 import sys
 from time import sleep
+import datetime
+import os
+import sys
 
+import pandas as pd
+from datetime import time, date
+import pytz
+
+from Algorithms.FibonacciTrading import FibonacciStrategy
+
+'''
 # data = yf.download(tickers="A AA AAP AMZN", period="3d", interval="1m")['Close']
 # data.to_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/muu.csv'))
 
@@ -33,7 +43,7 @@ data_df = pd.concat(
 )
 
 data_df.to_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testingData.csv'), index=False)
-'''
+
        # If we have begun a new date
        if date.today() != self.latest_csv_date:
            start_index = extract_start_index(self.period)
@@ -169,8 +179,7 @@ minute_data = minute_data[['Datetime', 'Close']]
 #minute_data.rename(columns={'Datetime': 'DateTime'}, inplace=True)
 #print( csv_data)
 
-'''
-'''
+
 data = yf.download(tickers="A AA AAP AMZN", period="3d", interval="1m")['Close']
 data.reset_index(inplace=True)
 data = data[['Datetime', 'Close']]
@@ -180,8 +189,7 @@ testCSV = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0]))
 print(data)
 updated_frame = pd.concat([testCSV, data], axis=0)
 print(updated_frame)
-'''
-'''
+
 def extract_start_index(df, period:int):
     start_index = 0
     count = 0
@@ -210,7 +218,7 @@ testCSV.drop(0, inplace = True, axis=0)
 testCSV.reset_index(inplace = True, drop=True)
 
 print(testCSV)
-'''
+
 testCSV = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testData.csv'))
 testCSV['DateTime'] = pd.to_datetime(testCSV['DateTime'])
 updated_frame = testCSV
@@ -223,3 +231,56 @@ for i in range(0, 5):
     updated_frame.reset_index(inplace=True, drop=True)
     print(updated_frame)
     sleep(60)
+
+csvFrame = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testingData.csv'))
+minuteFrame = pd.DataFrame({'Symbol': ['AMZN', 'AA', 'AAP', 'A'], 'Price': [144, 14, 41, 84]})
+
+rows = csvFrame.columns[1:]
+emptyRows = [0] * len(rows)
+investments = pd.DataFrame({'Symbol': rows, 'Volume': emptyRows})
+investments.sort_values(by='Symbol', inplace=True)
+investments.loc[(investments.Symbol == 'A'), 'Volume'] = 500
+print(investments)
+
+
+#m = FibonacciStrategy(csvFrame)
+#m.run(minuteFrame)
+
+# minuteFrame.sort_values(by='Symbol', inplace = True)
+
+
+def updateFrame(csv, minuteBars):
+    print(csv)
+    dat = csv['DateTime']
+    csv = csv.reindex(sorted(csvFrame.columns[1:]), axis=1)
+    csv.insert(0, 'DateTime', dat)
+
+    minuteBars.sort_values(by='Symbol', inplace=True)
+    emptyRow = [0] * len(csv.columns)
+    new_timezone = pytz.timezone("US/Eastern")
+    csv.loc[len(csv.index)] = emptyRow
+    csv.iloc[-1, 0] = datetime.datetime.now(new_timezone).strftime("%Y-%m-%d %H:%M:%S")
+
+    for i in range(1, (len(csv.columns))):
+        csv.iloc[-1, i] = minuteBars.iloc[i - 1]['Price']
+    return csv
+
+# k = updateFrame(csvFrame, minuteFrame)
+# print(k)
+
+pathToCSV = os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/final.csv')
+newRow = [0] * 41
+
+
+df = pd.read_csv(pathToCSV)
+# print(len(df.columns))
+
+
+def addToCSV(row):
+    with open(pathToCSV, 'a', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(row)
+
+
+addToCSV(df.iloc[-1].tolist())
+'''

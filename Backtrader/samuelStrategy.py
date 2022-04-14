@@ -96,7 +96,7 @@ class Strategy_pairGen(Strategy):
         if self.todate == self.datas[0].datetime.date(0): # Check if last day (then we want to sell)
             self.sellOf = True
 
-        if self.firstTime:
+        if self.firstTime: #Hej
             self.oldDate = str(self.datas[0].datetime.date(0)) # We need the oldDate to be equal to the first day which cannot be initilized in init
             self.firstTime = False
 

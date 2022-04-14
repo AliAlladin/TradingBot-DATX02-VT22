@@ -5,8 +5,6 @@ import threading
 import pandas as pd
 import yliveticker
 
-from NotificationHandler.NotificationBot import sendNotification
-
 log = logging.getLogger(__name__)
 
 
@@ -33,9 +31,7 @@ class liveDataStream(threading.Thread):
         global thisInstance
         thisInstance = self
         print('Starting ' + thisInstance.name + '\n')
-        yliveticker.YLiveTicker(on_ticker=on_new_msg, ticker_names=extractTickers(self.ticker_path), on_close=onClose, on_error=onError)
-
-
+        yliveticker.YLiveTicker(on_ticker=on_new_msg, ticker_names=extractTickers(self.ticker_path))
 
 
 thisInstance = None
@@ -119,7 +115,7 @@ def on_new_msg(ws, msg):
         send_data(df)
 
 
-       # print(df.T.to_string() + "\n")
+    # print(df.T.to_string() + "\n")
 
     else:
         sleepLock.acquire()
@@ -128,22 +124,12 @@ def on_new_msg(ws, msg):
 
 # if market is closed, this method is run to lock the main sequence
 def marketClosed():
-    sendNotification('Live tracker going to sleep')
     sleepLock.acquire()
 
 
 # if market is open, this method is run to start the main sequence
 def marketOpen():
-    sendNotification('Live tracker starting')
     sleepLock.release()
-
-
-def onError(error):
-    sendNotification('Yahoo live tracker crashed with message: ' + str(error))
-
-
-def onClose():
-    sendNotification('System Closed')
 
 
 def main():

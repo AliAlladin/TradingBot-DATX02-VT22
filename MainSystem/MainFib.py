@@ -1,12 +1,14 @@
-from time import sleep
-from Algorithms import FibonacciTrading
-from Alpaca import AlpacaBroker
-from DataProvider import live_data_provider, hist_data_provider
-from Database import handleData
-from NotificationHandler import NotificationBot
-import pandas as pd
 import os
 import sys
+from time import sleep
+
+import pandas as pd
+
+from Algorithms import FibonacciTrading
+from Alpaca import AlpacaBroker2
+from DataProvider import live_data_provider
+from Database import handleDataFib
+from NotificationHandler import NotificationBot
 
 
 class StrategyObserver:
@@ -44,7 +46,7 @@ class StrategyObserver:
                                                order['symbol'],
                                                database_handler.sqlGetPrice(signal['symbol']))
             print(message)
-            # NotificationBot.sendNotification(message)
+            NotificationBot.sendNotification('Fib: ' + message)
 
         except Exception as e:
             print(e)
@@ -65,16 +67,21 @@ def main():
     pathToCSV = os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'MainSystem/final.csv')
 
     global broker
-    broker = AlpacaBroker.AlpacaBroker()
+    broker = AlpacaBroker2.AlpacaBroker()
 
     global strategy
     strategy = FibonacciTrading.FibonacciStrategy(pathToCSV)
 
     global database_handler
-    database_handler = handleData.DatabaseHandler()
+    database_handler = handleDataFib.DatabaseHandler()
+    tickers = pd.read_csv('Stockstorun.txt', header=None)
+    ratios = pd.DataFrame(['0.382', '0.500', '0.618'])
+    tickers.columns = ['ticker']
+    tickers.sort_values(by='ticker', inplace=True)
+    database_handler.sqlLoadFib(ratios, tickers)
 
     global data_provider
-    data_provider = live_data_provider.liveDataStream(1, "fib_data", "../MainSystem/Stockstorun.txt")
+    data_provider = live_data_provider.liveDataStream(2, "fib_data", "../MainSystem/Stockstorun.txt")
 
     DataObserver(data_provider)  # Add data observer
     data_provider.start()  # Start live-data thread
@@ -87,16 +94,25 @@ def main():
         if broker.market_is_open():
             print("Running")
             latest_price = database_handler.sqlGetAllPrices()  # Get latest prices from database
-            strategy.run(latest_price)  # Run strategy
-            sleep(60)  # Wait one minute
+
+            if len(latest_price) == 40:
+                latest_price.drop(latest_price.index[latest_price['Symbol'] == 'TLSNY'], inplace=True)
+                latest_price.drop(latest_price.index[latest_price['Symbol'] == 'AZN'], inplace=True)
+                latest_price.reset_index(inplace=True, drop=True)
+                dataFrame = database_handler.sqlGetSaved()
+                strategy.run(dataFrame,latest_price)  # Run strategy
+                database_handler.sqlUpdateFib(dataFrame)
+                sleep(60)
+            else:
+                sleep(60)  # Wait one minute
 
         else:
             try:
-                NotificationBot.sendNotification("Portfolio value: {}".format(broker.get_portfolio_value()))
-                NotificationBot.sendNotification("Going to sleep")
+                NotificationBot.sendNotification('Fib: ' + "Portfolio value: {}".format(broker.get_portfolio_value()))
+                NotificationBot.sendNotification('Fib: ' + "Going to sleep")
                 live_data_provider.marketClosed()  # Lock live-data thread
                 broker.wait_for_market_open()  # Send program to sleep until market opens.
-                NotificationBot.sendNotification("Starting")
+                NotificationBot.sendNotification('Fib: ' + "Starting")
                 live_data_provider.marketOpen()  # Unlock live-data thread
                 sleep(60)  # Wait one minute
             except Exception as e:

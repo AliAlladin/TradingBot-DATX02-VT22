@@ -1,5 +1,6 @@
-import psycopg2
 import pandas as pd
+import psycopg2
+from sqlalchemy import create_engine
 
 
 class DatabaseHandler:
@@ -11,6 +12,7 @@ class DatabaseHandler:
             password="postgres",
             port="5432"
         )
+        self.engine = create_engine('postgresql://postgres:postgres@localhost:5432/tradingBot2')
 
         self.cursor = self.conn.cursor()
 
@@ -19,17 +21,16 @@ class DatabaseHandler:
         cursor = self.conn.cursor()
 
         # drop
-        sql = open('../Database/drop.sql', 'r')
-        cursor.execute(sql.read())
-        self.conn.commit()
-        print("drop table")
+        # sql = open('../Database/drop.sql', 'r')
+        # cursor.execute(sql.read())
+        # self.conn.commit()
+        # print("drop table")
 
         # Tables
         sql = open('../Database/tableFib.sql', 'r')
         cursor.execute(sql.read())
         self.conn.commit()
         print("Table created")
-
 
     def insertAndCommitQuery(self, stockTicker: str, price: float, volume: float, query: str):
         query = query.replace('a1', "\'" + stockTicker + "\'")
@@ -63,7 +64,7 @@ class DatabaseHandler:
 
     def sqlUpdatePrice(self, stockTicker: str, price: float):
         query = "INSERT INTO PricesF (ticker, price) VALUES(a2, a1) ON CONFLICT (ticker) DO UPDATE SET price = a1 " \
-                "WHERE Prices.ticker = a2 "
+                "WHERE PricesF.ticker = a2 "
         query = query.replace('a1', str(price))
         query = query.replace('a2', "\'" + str(stockTicker) + "\'")
         try:
@@ -86,3 +87,37 @@ class DatabaseHandler:
         postgreSQL_select_Query = "select price from PricesF where ticker = %s"
         self.cursor.execute(postgreSQL_select_Query, (symbol,))
         return float(self.cursor.fetchone()[0])
+
+    def sqlLoadFib(self, ratio: pd.DataFrame, tickers: pd.DataFrame):
+
+        for index, row in tickers.iterrows():
+            ratio[row['ticker']] = False
+
+        ratio.set_index(0, inplace=True)
+
+        try:
+            ratio.to_sql('savef', con=self.engine, if_exists='fail', index=False)
+        except Exception as e:
+            print(e)
+
+    def sqlUpdateFib(self, pairs: pd.DataFrame):
+        try:
+            pairs.to_sql('savef', con=self.engine, if_exists='replace', index=False)
+
+        except Exception as e:
+            print(e)
+
+    def sqlGetSaved(self):
+        try:
+            postgreSQL_select_Query = "select * from savef"
+            self.cursor.execute(postgreSQL_select_Query)
+            column_names = [desc[0] for desc in self.cursor.description]
+            df = pd.DataFrame.from_records(self.cursor.fetchall())
+            df.columns = column_names
+            df['levels'] = [0.382, 0.500, 0.618]
+            df.set_index('levels', inplace=True)
+            return df
+
+        except Exception as e:
+            print(e)
+            return self.sqlGetSaved()

@@ -41,7 +41,7 @@ class StrategyObserver:
                                                order['symbol'],
                                                database_handler.sqlGetPrice(signal['symbol']))
             print(message)
-            # NotificationBot.sendNotification(message)
+            NotificationBot.sendNotification(message)
 
         except Exception as e:
             print(e)
@@ -73,7 +73,7 @@ def main():
     database_handler.sqlLoadPairs(pairs)
 
     global strategy
-    strategy = PairsTrading.PairsTrading(2, 600, 1000)
+    strategy = PairsTrading.PairsTrading(1, 50, 10000)
 
     global data_provider
     data_provider = live_data_provider.liveDataStream(1, "pairs_data", "../MainSystem/Pairstorun.txt")

@@ -9,7 +9,7 @@ class DatabaseHandler:
             host="localhost",
             database="tradingBot",
             user="postgres",
-            password="asdasd123",
+            password="postgres",
             port="5432"
         )
 
@@ -22,10 +22,10 @@ class DatabaseHandler:
         cursor = self.conn.cursor()
 
         # drop
-        sql = open('../Database/drop.sql', 'r')
-        cursor.execute(sql.read())
-        self.conn.commit()
-        print("drop table")
+        # sql = open('../Database/drop.sql', 'r')
+        # cursor.execute(sql.read())
+        # self.conn.commit()
+        # print("drop table")
 
         # Tables
         sql = open('../Database/tables.sql', 'r')
@@ -117,7 +117,6 @@ class DatabaseHandler:
         except Exception as e:
             print(e)
 
-
     def sqlSave(self, ticker1: str, ticker2: str, active: bool, whichBuy: bool, amount1: float, amount2: float):
         query = "UPDATE save SET active=a1, long=a2, shares_stock1=a3, shares_stock2=a4 WHERE t1=a5 AND t2=a6"
         query = query.replace('a1', str(active))
@@ -138,5 +137,4 @@ class DatabaseHandler:
                                              columns=['t1', 't2', 'active', 'long', 'shares_stock1', 'shares_stock2'])
         except Exception as e:
             print(e)
-            return self.sqlGetAllPrices()
-
+            return self.sqlGetSaved()

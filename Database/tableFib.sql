@@ -34,3 +34,4 @@ CREATE TABLE IF NOT EXISTS PricesF(
     ticker TEXT PRIMARY KEY,
     price DECIMAL
 );
+

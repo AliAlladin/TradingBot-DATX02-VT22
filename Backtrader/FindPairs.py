@@ -1,21 +1,20 @@
-import numpy as np
-import pandas as pd
-import statsmodels.api as sm
-from statsmodels.tsa.stattools import coint
-from statsmodels.tsa.stattools import adfuller
-import matplotlib.pyplot as plt
-import yfinance as yf
-from Pair import Pair
-import time
-import os
+import numpy as np #For mathematical functions
+import pandas as pd # For dataframe?
+from statsmodels.tsa.stattools import coint # To check for cointegration
+import matplotlib.pyplot as plt #To plot different things
+import yfinance as yf # For being able to acquire data from end of the day data from Yahoo
+from Pair import Pair # Import the pair object
+import time # Just for fun 
+import os #Get the right pathway here
 import sys  # To find out the script name (in argv[0])
-from datetime import timedelta
-import random
+from datetime import timedelta # To be able to change date since yahoo has weird way of handeling date inputs
+import random # To randomly generate pair so we do not get the ones first in alphabetical order
 import datetime
 
 
 # To find pairs in a specific interval
 def main():
+
     # Date of start and end. Observe that it must be a day when the market is open.
     start = '2011-01-07'
     end = '2014-01-07'
@@ -28,12 +27,12 @@ def main():
     pairs = find_pairs(stocks, start, end) # To find pairs from a list of stocks in the period [start, end]
 
     # To write all the pairs in a .txt-file
-    store_pairs(pairs, 'Pairs.txt')
+    store_pairs(pairs, 'PairsAll.txt')
 
     distinct_pairs = create_distinct_pairs(pairs) # To get a list of pairs where a ticker only appears once
 
     # We save these pairs in another .txt-file
-    store_pairs(distinct_pairs, 'Pairs1.txt')
+    store_pairs(distinct_pairs, 'PairsDistinct.txt')
 
 
 # To get a list of stocks from our folder 'filtered_csv_data'
@@ -99,17 +98,12 @@ def find_pairs(stocks, start, end):
             stock1data = np.log10(data[stocks[i]].tolist())
             stock2data = np.log10(data[stocks[j]].tolist())
 
-            # An ordinary linear regression
-            result = sm.OLS(stock1data, sm.add_constant(stock2data)).fit()
-            beta = result.params[1]
-
             # We make use of the Augmented Dickey-Fuller test to check for co-integration.
-            p1 = adfuller(stock1data - beta * stock2data)[1]
-            p2 = coint(stock1data, stock2data)[1]
+            p1 = coint(stock1data, stock2data)[1]
 
             # If the p-values are lower than the significance level, they are a pair
             sig = 0.65
-            if p1 < sig and p2 < sig:
+            if p1 < sig:
                 p = Pair(stocks[i], stocks[j])
                 pairs.append(p)
     toc = time.perf_counter()

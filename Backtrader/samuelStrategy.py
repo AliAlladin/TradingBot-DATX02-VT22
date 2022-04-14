@@ -19,7 +19,7 @@ class Strategy(bt.Strategy):
 
         dt = dt or self.datas[0].datetime.datetime(0) #If we want to give a specific date as input
         self.my_result_file.write('%s, %s' % (dt.isoformat(), txt+"\n")) # Saving the order information in the file
-        print('%s, %s' % (dt.isoformat(), txt)) #To know what is happening during the time it is running
+        print('%s %s ' % (dt.isoformat(), txt)) #To know what is happening during the time it is running
 
     # Reports an order instance
     def notify_order(self, order): # Backtrader calls this function
@@ -56,15 +56,24 @@ class Strategy(bt.Strategy):
 class Strategy_pairGen(Strategy): 
 
 # The needed parameters
-    params = (('distance', None),
+    params = (('stock1',None),
+            ('stock2',None),
+            ('distance', None),
             ('period', None),
             ('invested',None),
             ('todate',None),
             ('my_result_file',None),)
 
     def __init__(self):
+       
+       
         Strategy.__init__(self, self.params.invested, self.params.period, 
         self.params.todate, self.params.my_result_file) # Initiate the general parameters for any of the strategies
+
+        # Name for the stocks
+
+        self.stock1=self.params.stock1
+        self.stock2=self.params.stock2
 
         # Saving stockdata for each stock
         self.stock1Data=[] 
@@ -79,6 +88,7 @@ class Strategy_pairGen(Strategy):
         for i in range(0, 2):  # We add the closing data for each of all stocks
             self.dataclose.append(self.datas[i].close)
     
+        self.firstTime=False # One thing we need to do the first time
         print("initialising") # Just for terminal
 
     def next(self):
@@ -86,10 +96,14 @@ class Strategy_pairGen(Strategy):
         if self.todate == self.datas[0].datetime.date(0): # Check if last day (then we want to sell)
             self.sellOf = True
 
+        if self.firstTime:
+            self.oldDate = str(self.datas[0].datetime.date(0)) # We need the oldDate to be equal to the first day which cannot be initilized in init
+            self.firstTime = False
+
         newPotentialDate = str(self.datas[0].datetime.date(0)) # Variable to check if it is new day
 
         if newPotentialDate != self.oldDate: # Checking if new day then add the closing price the day before
-            self.oldDate = newPotentialDate 
+            self.oldDate = newPotentialDate
             self.stock1Data.append(self.dataclose[0][-1])
             self.stock2Data.append(self.dataclose[1][-1])
 
@@ -98,10 +112,8 @@ class Strategy_pairGen(Strategy):
             # Sort to receive only data of the last 'period' days
 
             # Extract relevant closing price for each stock
-            relevant_data_stock1 = self.stock1Data[len(self.stock1Data) - self.period:len(
-                self.stock1Data) - 1] 
-            relevant_data_stock2 = self.stock2Data[len(self.stock2Data) - self.period:len(
-                self.stock2Data) - 1]
+            relevant_data_stock1 = self.stock1Data[len(self.stock1Data) - self.period:] 
+            relevant_data_stock2 = self.stock2Data[len(self.stock2Data) - self.period:]
 
             # Add the current price for each stock    
             relevant_data_stock1.append(self.dataclose[0][0])
@@ -127,21 +139,23 @@ class Strategy_pairGen(Strategy):
         if z_score > self.distance and not self.sellOf:
 
             # High Z-score, we sell stock 1 and buy stock 2
-            # self.log('SELL CREATE, %.2f' % self.dataclose[0][0])
+            self.log('SELL CREATE at %.2f for stock: %s' % (self.dataclose[0][0], self.stock1))
+            self.log('BUY CREATE at %.2f for stock: %s' % (self.dataclose[1][0], self.stock2))
+
             self.order = self.sell(self.datas[0], size=shares_stock1)
-            # self.log('BUY CREATE, %.2f' % self.dataclose[1][0])
             self.order = self.buy(self.datas[1], size=shares_stock1 * current_ratio)
 
             # Description of our position
-            self.long = False  # Pair.long is true when we are long of the first stock
+            self.long = False  # self.long is true when we are long the first stock
             self.active = True
 
         # The Z-score is unusually low, we buy stock1 and sell stock2
         elif z_score < -self.distance and not self.sellOf:
-            # self.log('SELL CREATE, %.2f' % self.dataclose[1][0])
-            self.order = self.sell(self.datas[1],
-                                    size=shares_stock1 * current_ratio)
-            # self.log('BUY CREATE, %.2f' % self.dataclose[0][0])
+            
+            self.log('SELL CREATE at %.2f for stock: %s' % (self.dataclose[1][0], self.stock1))
+            self.log('BUY CREATE at %.2f for stock: %s' % (self.dataclose[0][0], self.stock2))
+            
+            self.order = self.sell(self.datas[1], size=shares_stock1 * current_ratio)
             self.order = self.buy(self.datas[0], size=shares_stock1)
 
             # Description of our position
@@ -153,19 +167,30 @@ class Strategy_pairGen(Strategy):
 
         if self.long:
             if z_score > 0 or self.sellOf:
+                self.log('SELL CREATE at %.2f for stock: %s' % (self.dataclose[0][0], self.stock1))
+                self.log('BUY CREATE at %.2f for stock: %s' % (self.dataclose[1][0], self.stock2))
+
                 self.order = self.close(self.datas[0])
                 self.order = self.close(self.datas[1])
+                
                 self.active = False
         else:
             if z_score < 0 or self.sellOf:
+                    
+                self.log('SELL CREATE at %.2f for stock: %s' % (self.dataclose[1][0], self.stock1))
+                self.log('BUY CREATE at %.2f for stock: %s' % (self.dataclose[0][0], self.stock2))
+                
                 self.order = self.close(self.datas[1])
                 self.order = self.close(self.datas[0])
+                
                 self.active = False
 
     # Calculations the z-score for the pair
     def linearRegression(self, data1,data2,period):
+        
         data1_log=np.log10(data1)
         data2_log=np.log10(data2)
+        
         # Perform a linear regression to calculate the spread
         result = sm.OLS(data1_log, sm.add_constant(data2_log)).fit()
         beta = result.params[1]
@@ -177,6 +202,7 @@ class Strategy_pairGen(Strategy):
         mean = np.mean(spread)
         std = np.std(spread)
         z_score = (spread[period - 1] - mean) / std
+        
         return z_score
 
 # The distinct class for the fibonacci strategy
@@ -197,7 +223,7 @@ class Strategy_fibonacci(Strategy):
         # Parameters
         self.invested_amount = self.params.invested  # The amount for which we invest
         self.period = self.params.period  # Period to determine swing high and swing low
-        self.stock_name=self.params.stock_name
+        self.stock_name=self.params.stock_name #The name of the stock
         
         # To store data for each ticker
         self.ratios = [0.382, 0.5, 0.618]  # The Fibonacci ratios
@@ -211,6 +237,7 @@ class Strategy_fibonacci(Strategy):
     def next(self):
 
         newPotentialDate = str(self.datas[0].datetime.date(0))
+
         if newPotentialDate != self.oldDate: # Checking if new day
             self.oldDate = newPotentialDate
             self.indexChangeOfDay.append(len(self.myData))
@@ -271,3 +298,4 @@ class Strategy_fibonacci(Strategy):
                     # We do not longer have a position in the ticker
                     for i in range(self.invested_at_level.count(True)):
                         self.invested_at_level[i] = False
+

@@ -107,7 +107,7 @@ def run(cerebro):
 
 
 def plot_result():
-    datap = os.path.join(modpath, 'Results/plotvalues.txt')  # The data of pairs comes from Pairs.txt which we read
+    datap = os.path.join(modpath, 'Results/plotvalues.txt')  # The data of pairs comes from Pairs.txt which we read.
     txt_plot = open(datap, 'r')
 
     values = []

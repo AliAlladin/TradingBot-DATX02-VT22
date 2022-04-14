@@ -11,7 +11,7 @@ class Strategy(bt.Strategy):
 
     def __init__(self, invested, period, todate, my_result_file): 
 
-        self.invested_amount = invested # Amount to invest in each stock
+        self.invested_amount = invested # Amount to invest in each stock.
         self.period=period # Number of days before being able to analyse if buy/sell
         self.oldDate = str(self.datas[0].datetime.date(0)) # Variable to check if new date
         self.todate = self.params.todate # Variable so we sell on the last day (not necessary)

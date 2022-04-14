@@ -26,13 +26,11 @@ def main():
 
     pairs = find_pairs(stocks, start, end) # To find pairs from a list of stocks in the period [start, end]
 
-    # To write all the pairs in a .txt-file
-    store_pairs(pairs, 'PairsAll.txt')
+    store_pairs(pairs, 'PairsAll.txt') # To write all the pairs in a txt-file
 
     distinct_pairs = create_distinct_pairs(pairs) # To get a list of pairs where a ticker only appears once
 
-    # We save these pairs in another .txt-file
-    store_pairs(distinct_pairs, 'PairsDistinct.txt')
+    store_pairs(distinct_pairs, 'PairsDistinct.txt') # We save these pairs in another .txt-file
 
 
 # To get a list of stocks from our folder 'filtered_csv_data'
@@ -60,6 +58,7 @@ def acquire_stocks():
 
 # To find pairs in the interval [start, end]
 def find_pairs(stocks, start, end):
+
     data = pd.DataFrame()
 
     pairs = []  # An initially empty list of pairs
@@ -74,11 +73,11 @@ def find_pairs(stocks, start, end):
         # If the stock was listed in the time period, we check if it was listed in our period
         if not prices.empty:
             # To gather the first day and the last day of the available data from Yahoo Finance
-            first_day = prices.index[1]
+            first_day = prices.index[1] # Take one day earlier
             first_day = str(first_day).split()[0]
 
             last_day = prices.index[-1]
-            last_day += timedelta(days=1)
+            last_day += timedelta(days=1) #Stop one day earlier
             last_day = str(last_day).split()[0]
 
             # To make sure that the stock has data at the end zones at our interval.
@@ -91,6 +90,7 @@ def find_pairs(stocks, start, end):
     stocks = stocks_new
 
     tic = time.perf_counter()
+    
     # We try to find pairs for all available stocks
     for i in range(0, len(stocks)):
         for j in range(i + 1, len(stocks)):

@@ -18,8 +18,8 @@ portfolio_value_input=100000.0
 # Main function starts either strategy
 def main():
 
-    StrategyOne()
-    #StrategyTwo()
+    #StrategyOne()
+    StrategyTwo()
 
 # Pair Trading
 def StrategyOne():
@@ -55,7 +55,7 @@ def StrategyTwo():
         stock_name=stock.split()[0] #To get rid of new line sign
         add_data(cerebro, stock_name)
         my_result_file.write("Stock: " + stock_name+"\n ")
-        cerebro.addstrategy(Strategy_fibonacci, stock_name=stock_name, invested=1000, period=50, 
+        cerebro.addstrategy(Strategy_fibonacci, stock_name=stock_name, invested=1000, period=10, 
         todate=todate, my_result_file=my_result_file)
         endValueForEachStock.append(run(cerebro))
     total_portfolio_value=sum(endValueForEachStock)-len(endValueForEachStock)*portfolio_value_input
@@ -125,5 +125,5 @@ def plot_result():
     plt.show()
 
 
-# main()
-plot_result()
+main()
+#plot_result()

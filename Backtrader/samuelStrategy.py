@@ -25,7 +25,8 @@ class Strategy(bt.Strategy):
         for row in fileequal:
             a = row.split()[0]
             self.list.append(float(a))
-        self.day = 0
+        self.day = -1
+        self.firstTime=True # One thing we need to do the first time
 
     def log(self, txt, dt=None):  # For saving important information
 
@@ -104,6 +105,7 @@ class Strategy_pairGen(Strategy):
         print("initialising") # Just for terminal
 
     def next(self):
+
         # Check if last date so that we close positions
         if self.todate == self.datas[0].datetime.date(0): # Check if last day (then we want to sell)
             self.sellOf = True
@@ -111,7 +113,7 @@ class Strategy_pairGen(Strategy):
             for i in range(len(self.listday)):
                 filevalues.write(str(self.list[i]) + ' ' + str(self.listday[i]) + "\n")
 
-        if self.firstTime: #Hej tjenare
+        if self.firstTime:
             self.oldDate = str(self.datas[0].datetime.date(0)) # We need the oldDate to be equal to the first day which cannot be initilized in init
             self.firstTime = False
 
@@ -251,30 +253,57 @@ class Strategy_fibonacci(Strategy):
         self.indexChangeOfDay=[] # To know which datapoints to include. We save at which datapoint new day occur
         self.invested_at_level = [False] * len(self.ratios) # Initially not invested
         self.dataclose = self.datas[0].close # We add the trading price for the stock
+        self.max_each_day=[]
+        self.low_each_day=[]
+        self.max_when=[]
+        self.low_when=[]
 
     # The "run method", defines when to buy and sell
     def next(self):
-
         newPotentialDate = str(self.datas[0].datetime.date(0))
 
         if newPotentialDate != self.oldDate: # Checking if new day
             self.oldDate = newPotentialDate
-            self.indexChangeOfDay.append(len(self.myData))
+            #self.indexChangeOfDay.append(len(self.myData))
+            self.day += 1
+            self.list[self.day] = self.list[self.day] + self.broker.getvalue() - 100000
+            self.listday.append(self.datas[0].datetime.date(0))
+            self.max_each_day.append(-10)
+            self.low_each_day.append(10000000000)
+            self.max_when.append(self.datas[0])
+            self.low_when.append(self.datas[0])
+
+
+        if self.max_each_day[self.day]<self.dataclose[0]:
+            self.max_each_day[self.day]=self.dataclose[0]
+            self.max_when[self.day]=self.datas[0]
+        
+        if self.low_each_day[self.day]>self.dataclose[0]:    
+            self.low_each_day[self.day]=self.dataclose[0]
+            self.low_when[self.day]=self.datas[0]
+
         self.myData.append(self.dataclose[0])
+        if self.todate == self.datas[0].datetime.date(0): # Check if last day (then we want to sell)
+            self.sellOf = True
+            filevalues = open(self.datap, 'w')
+            for i in range(len(self.listday)):
+                filevalues.write(str(self.list[i]) + ' ' + str(self.listday[i]) + "\n")
+            
+
 
         # We want the last 'period' of data points, stored in relevant_data
-        if len(self.indexChangeOfDay) >= self.period:
-            rightDays=self.indexChangeOfDay[len(self.indexChangeOfDay)-self.period]
-            relevant_data = self.myData[rightDays:]
+        if  self.day >= self.period-1:
+            relevant_data_max = self.max_each_day[-self.period:]
+            relevant_data_min = self.low_each_day[-self.period:]
 
             # We take the prices of the current point and maximum and minimum on the period.
-            price_now = relevant_data[-1]
-            high = max(relevant_data)
-            low = min(relevant_data)
+            price_now = self.dataclose[0]
+            high = max(relevant_data_max)
+            low = min(relevant_data_min)
 
             # The date of swing high and swing low
-            date_high = np.argmax(relevant_data)
-            date_low = np.argmin(relevant_data)
+            date_high = np.argmax(relevant_data_max)
+            date_low = np.argmin(relevant_data_min)
 
             # Are we in an uptrend or a downtrend?
             if date_high > date_low:

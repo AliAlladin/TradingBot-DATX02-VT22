@@ -111,7 +111,7 @@ class Strategy_pairGen(Strategy):
             for i in range(len(self.listday)):
                 filevalues.write(str(self.list[i]) + ' ' + str(self.listday[i]) + "\n")
 
-        if self.firstTime:
+        if self.firstTime: #Hej tjenare
             self.oldDate = str(self.datas[0].datetime.date(0)) # We need the oldDate to be equal to the first day which cannot be initilized in init
             self.firstTime = False
 

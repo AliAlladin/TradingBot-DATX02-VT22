@@ -95,7 +95,7 @@ def main():
             print("Running")
             latest_price = database_handler.sqlGetAllPrices()  # Get latest prices from database
 
-            if len(latest_price) == 40:
+            if len(latest_price) == 41:
                 latest_price.drop(latest_price.index[latest_price['Symbol'] == 'TLSNY'], inplace=True)
                 latest_price.drop(latest_price.index[latest_price['Symbol'] == 'AZN'], inplace=True)
                 latest_price.reset_index(inplace=True, drop=True)

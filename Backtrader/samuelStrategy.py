@@ -2,6 +2,9 @@ import backtrader as bt # The backtrader package
 import numpy as np # So we can take the logarithm 
 import statsmodels.api as sm # To make the linear regression
 import datetime # To use dates
+import os
+import sys
+
 
 #General attributes for all strategies
 class Strategy(bt.Strategy):    
@@ -14,6 +17,15 @@ class Strategy(bt.Strategy):
         self.todate = self.params.todate # Variable so we sell on the last day (not necessary)
         self.my_result_file=my_result_file # File to save buys and sells so we can analyse afterwards
         self.sellOf = False # Variable to check if it is the last day
+        modpath = os.path.dirname(os.path.dirname(sys.argv[0]))  # Individual os paths
+        self.datap = os.path.join(modpath, 'Results/plotvalues.txt')  # The data of pairs comes from Pairs.txt which we read
+        fileequal = open(self.datap, 'r')  # Saving all our trades in a file
+        self.list = []
+        self.listday = []
+        for row in fileequal:
+            a = row.split()[0]
+            self.list.append(float(a))
+        self.day = 0
 
     def log(self, txt, dt=None):  # For saving important information
 
@@ -95,6 +107,9 @@ class Strategy_pairGen(Strategy):
         # Check if last date so that we close positions
         if self.todate == self.datas[0].datetime.date(0): # Check if last day (then we want to sell)
             self.sellOf = True
+            filevalues = open(self.datap, 'w')
+            for i in range(len(self.listday)):
+                filevalues.write(str(self.list[i]) + ' ' + str(self.listday[i]) + "\n")
 
         if self.firstTime:
             self.oldDate = str(self.datas[0].datetime.date(0)) # We need the oldDate to be equal to the first day which cannot be initilized in init
@@ -106,6 +121,10 @@ class Strategy_pairGen(Strategy):
             self.oldDate = newPotentialDate
             self.stock1Data.append(self.dataclose[0][-1])
             self.stock2Data.append(self.dataclose[1][-1])
+            self.list[self.day] = self.list[self.day] + self.broker.getvalue() - 100000
+            self.listday.append(self.datas[0].datetime.date(0))
+            self.day += 1
+
 
         # We want to only look after 'period' days
         if len(self.stock1Data) >= self.period: # To check if we can start making trades

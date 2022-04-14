@@ -2,14 +2,16 @@ import datetime
 import os # To get the searchpath
 import sys  # To find out the script name (in argv[0])
 from Pair import *
+import matplotlib.pyplot as plt
 from samuelStrategy import *  # Import our Strategies
+import pandas as pd
 
 # Global variables
 modpath = os.path.dirname(os.path.dirname(sys.argv[0])) # Individual os paths
-todate=datetime.date(2022, 5, 1) # Last date to trade
+todate=datetime.date(2021, 12, 23) # Last date to trade
 invested=1000 # How much to invest in each stock
 start_date=datetime.datetime(2017, 1, 1, 9, 30, 00)  # Start  date
-end_date=datetime.datetime(2022, 1, 1, 16, 00, 00)  # Ending date
+end_date=datetime.datetime(2021, 12, 23, 16, 00, 00)  # Ending date
 datap = os.path.join(modpath, 'Results/result.csv') # The data of pairs comes from Pairs.txt which we read
 my_result_file = open(datap, 'w') # Saving all our trades in a file
 portfolio_value_input=100000.0
@@ -103,4 +105,25 @@ def run(cerebro):
 
     return cerebro.broker.getvalue()
 
-main()
+
+def plot_result():
+    datap = os.path.join(modpath, 'Results/plotvalues.txt')  # The data of pairs comes from Pairs.txt which we read
+    txt_plot = open(datap, 'r')
+
+    values = []
+    dates = []
+    for lines in txt_plot:
+        value = float(lines.split()[0])
+        date = lines.split()[1]
+        if not value == 0:
+            values.append(value)
+            dates.append(datetime.datetime.strptime(date, '%Y-%m-%d').date())
+
+    data = {'Date': dates, 'Value': values}
+    dataframe = pd.DataFrame(data)
+    dataframe.plot(x='Date', y='Value')
+    plt.show()
+
+
+# main()
+plot_result()

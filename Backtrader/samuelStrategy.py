@@ -140,7 +140,7 @@ class Strategy_pairGen(Strategy):
             relevant_data_stock1.append(self.dataclose[0][0])
             relevant_data_stock2.append(self.dataclose[1][0])
 
-            z_score=self.linearRegression(relevant_data_stock1,relevant_data_stock2,self.period) # Want to calculate the z_score
+            z_score=self.linearRegression(relevant_data_stock1,relevant_data_stock2) # Want to calculate the z_score
 
             # To know how much we need to buy of each stock
             shares_stock1 = self.invested_amount / relevant_data_stock1[self.period - 1]
@@ -207,7 +207,7 @@ class Strategy_pairGen(Strategy):
                 self.active = False
 
     # Calculations the z-score for the pair
-    def linearRegression(self, data1,data2,period):
+    def linearRegression(self, data1, data2):
         
         data1_log=np.log10(data1)
         data2_log=np.log10(data2)
@@ -215,14 +215,14 @@ class Strategy_pairGen(Strategy):
         # Perform a linear regression to calculate the spread
         result = sm.OLS(data1_log, sm.add_constant(data2_log)).fit()
         beta = result.params[1]
-        spread = []
-        for i in range(0, period):
-            spread.append(data1_log[i] - beta * data2_log[i])
+        spread = data1_log - beta * data2_log
+        #for i in range(0, period):
+         #   spread.append(data1_log[i] - beta * data2_log[i])
 
         # Calculation of the Z-score
         mean = np.mean(spread)
         std = np.std(spread)
-        z_score = (spread[period - 1] - mean) / std
+        z_score = (spread[-1] - mean) / std
         
         return z_score
 

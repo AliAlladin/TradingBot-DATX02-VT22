@@ -124,12 +124,10 @@ class Strategy_pairGen(bt.Strategy):
         # We go through each pair
         for pair in self.pairs:
             # We want to only look after 'period' days
-            if len(self.myData.get(pair.stock1)) > self.period:
+            if len(self.myData.get(pair.stock1)) >= self.period:
                 # Sort to receive only data of the last 'period' days
-                relevant_data_stock1 = self.myData.get(pair.stock1)[len(self.myData.get(pair.stock1)) - self.period:len(
-                    self.myData.get(pair.stock1)) - 1]
-                relevant_data_stock2 = self.myData.get(pair.stock2)[len(self.myData.get(pair.stock2)) - self.period:len(
-                    self.myData.get(pair.stock2)) - 1]
+                relevant_data_stock1 = self.myData.get(pair.stock1)[len(self.myData.get(pair.stock1)):]
+                relevant_data_stock2 = self.myData.get(pair.stock2)[len(self.myData.get(pair.stock2)):]
                 relevant_data_stock1.append(self.dataclose[self.dic.get(pair.stock1)][0])
                 relevant_data_stock2.append(self.dataclose[self.dic.get(pair.stock2)][0])
                 relevant_data_stock1Log=np.log10(relevant_data_stock1)
@@ -137,15 +135,15 @@ class Strategy_pairGen(bt.Strategy):
                 # Perform a linear regression to calculate the spread
                 result = sm.OLS(relevant_data_stock1Log, sm.add_constant(relevant_data_stock2Log)).fit()
                 beta = result.params[1]
-                spread = []
-                for i in range(0, self.period):
-                    spread.append(relevant_data_stock1Log[i] - beta * relevant_data_stock2Log[i])
+                spread = relevant_data_stock1Log - beta * relevant_data_stock2Log
+                #for i in range(0, self.period):
+                 #   spread.append(relevant_data_stock1Log[i] - beta * relevant_data_stock2Log[i])
 
                 # Calculation of the Z-score
                 mean = np.mean(spread)
                 std = np.std(spread)
 
-                z_score = (spread[self.period - 1] - mean) / std
+                z_score = (spread[-1] - mean) / std
 
                 # To know how much we need to buy of each stock
                 shares_stock1 = self.invested_amount / relevant_data_stock1[self.period - 1]

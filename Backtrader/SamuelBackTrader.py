@@ -18,8 +18,9 @@ portfolio_value_input=100000.0
 # Main function starts either strategy
 def main():
 
-    #StrategyOne()
-    StrategyTwo()
+    
+    StrategyOne()
+    #StrategyTwo()
 
 # Pair Trading
 def StrategyOne():
@@ -38,7 +39,7 @@ def StrategyOne():
         for ticker in stocks: # Adds data for the two stock in that pair
             add_data(cerebro, ticker) # Add data to backtrader
         my_result_file.write("Pair: " + stock1 + " "+ stock2 +"\n") # In the file to know whcih trades below belong to this pair
-        cerebro.addstrategy(Strategy_pairGen, stock1=stock1, stock2=stock2, distance=0.8, period=100, invested=invested, 
+        cerebro.addstrategy(Strategy_pairGen, stock1=stock1, stock2=stock2, distance=2, period=200, invested=invested, 
         todate=todate, my_result_file=my_result_file) # Add our strategy with right values on the parameters
         endValueForEachPair.append(run(cerebro)) # Run the program and save the portfolio value in the end
     total_portfolio_value=sum(endValueForEachPair)-len(endValueForEachPair)*portfolio_value_input # Calculate the profit for the total portfolio (all pairs)

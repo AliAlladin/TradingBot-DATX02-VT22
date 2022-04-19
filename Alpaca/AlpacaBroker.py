@@ -1,6 +1,7 @@
+import time
+
 import alpaca_trade_api as tradeapi
 import pandas as pd
-import time
 
 from Alpaca.Config import *
 
@@ -10,12 +11,6 @@ class AlpacaBroker:
         self.api = tradeapi.REST(
             ALPACA_API_KEY, ALPACA_SECRET_KEY, BASE_URL, api_version='v2')
         self.error = tradeapi.rest.APIError
-
-    def get_balance(self):
-        return float(self.api.get_account().cash)
-
-    def get_portfolio_value(self):
-        return float(self.api.get_account().equity)
 
     # Function that checks if market is open.
     def market_is_open(self):
@@ -106,6 +101,12 @@ class AlpacaBroker:
             }
             list.append(position_info)
         return pd.DataFrame(list)
+
+    def get_balance(self):
+        return float(self.api.get_account().cash)
+
+    def get_portfolio_value(self):
+        return float(self.api.get_account().equity)
 
     def get_shortable(self, pairs: pd.DataFrame):
         for index, row in pairs.iterrows():

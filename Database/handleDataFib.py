@@ -1,3 +1,5 @@
+import numpy as np
+
 import pandas as pd
 import psycopg2
 from sqlalchemy import create_engine
@@ -89,7 +91,6 @@ class DatabaseHandler:
         return float(self.cursor.fetchone()[0])
 
     def sqlLoadFib(self, ratio: pd.DataFrame, tickers: pd.DataFrame):
-
         for index, row in tickers.iterrows():
             ratio[row['ticker']] = False
 
@@ -97,6 +98,35 @@ class DatabaseHandler:
 
         try:
             ratio.to_sql('savef', con=self.engine, if_exists='fail', index=False)
+        except Exception as e:
+            print(e)
+
+    def sqlLoadInvestments(self, tickers: pd.DataFrame):
+        tickers2 = tickers.copy()
+        tickers2.rename(columns={'ticker': 'symbol'}, inplace=True)
+        tickers2['volume'] = 0
+        tickers2['volume'].astype(np.float64)
+
+        try:
+            tickers2.to_sql('investmentsf', con=self.engine, if_exists='fail', index=False)
+            with self.engine.connect() as con:
+                con.execute('ALTER TABLE investmentsf ADD PRIMARY KEY (symbol);')
+        except Exception as e:
+            print(e)
+
+    def sqlUpdateInvestments(self, investments: pd.DataFrame):
+        try:
+            investments.to_sql('investmentsf', con=self.engine, if_exists='replace', index=False)
+            with self.engine.connect() as con:
+                con.execute('ALTER TABLE investmentsf ADD PRIMARY KEY (symbol);')
+        except Exception as e:
+            print(e)
+
+    def sqlGetInvestments(self):
+        try:
+            postgreSQL_select_Query = "select * from investmentsf"
+            self.cursor.execute(postgreSQL_select_Query)
+            return pd.DataFrame.from_records(self.cursor.fetchall(), columns=['symbol', 'volume'])
         except Exception as e:
             print(e)
 

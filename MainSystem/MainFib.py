@@ -17,8 +17,6 @@ class StrategyObserver:
 
     def notify(self, observable, signal: dict):
 
-        print(type(signal))
-
         try:
             if signal['signal'] == "BUY":
                 order_id = broker.buy(signal['symbol'], (signal['volume']))  # Send buy order to broker
@@ -79,6 +77,7 @@ def main():
     tickers.columns = ['ticker']
     tickers.sort_values(by='ticker', inplace=True)
     database_handler.sqlLoadFib(ratios, tickers)
+    database_handler.sqlLoadInvestments(tickers)
 
     global data_provider
     data_provider = live_data_provider.liveDataStream(2, "fib_data", "../MainSystem/Stockstorun.txt")
@@ -100,8 +99,10 @@ def main():
                 latest_price.drop(latest_price.index[latest_price['Symbol'] == 'AZN'], inplace=True)
                 latest_price.reset_index(inplace=True, drop=True)
                 dataFrame = database_handler.sqlGetSaved()
-                strategy.run(dataFrame,latest_price)  # Run strategy
+                investments = database_handler.sqlGetInvestments()
+                strategy.run(dataFrame, latest_price, investments)  # Run strategy
                 database_handler.sqlUpdateFib(dataFrame)
+                database_handler.sqlUpdateInvestments(investments)
                 sleep(60)
             else:
                 sleep(60)  # Wait one minute

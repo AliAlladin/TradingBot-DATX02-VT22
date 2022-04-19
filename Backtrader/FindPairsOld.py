@@ -1,53 +1,51 @@
+import datetime
+import os
+import random
+import sys  # To find out the script name (in argv[0])
+import time
+from datetime import timedelta
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import statsmodels
 import statsmodels.api as sm
-from statsmodels.tsa.stattools import coint
-from statsmodels.tsa.stattools import adfuller
-import matplotlib.pyplot as plt
 import yfinance as yf
-from Pair import Pair
-import time
-from statsmodels.regression.rolling import RollingOLS
-import os
-import sys  # To find out the script name (in argv[0])
-from datetime import timedelta, date
-import datetime
+from statsmodels.tsa.stattools import adfuller
+from statsmodels.tsa.stattools import coint
 
-import math
-import random
+from Pair import Pair
 
 
 def main():
     start = '2011-03-22'
     end = '2014-03-22'
-    #distinctStocks()
+    # distinctStocks()
     # tryingOut(start,end)
-    stocks=acquireList()
-    stocks=stocks[0:30]
-    pairs=findPairs(stocks,start,end)
+    stocks = acquireList()
+    stocks = stocks[0:30]
+    pairs = findPairs(stocks, start, end)
     my_pair_file = open('Backtrader/Pairs.txt', 'w')
     for pair in pairs:
-        stock1, stock2=pair.get_pairs()
-        my_pair_file.write(stock1+" "+stock2+ "\n")
+        stock1, stock2 = pair.get_pairs()
+        my_pair_file.write(stock1 + " " + stock2 + "\n")
     my_pair_file.close()
-    start_from_backtrader=datetime.date(2014, 6, 9)
+    start_from_backtrader = datetime.date(2014, 6, 9)
     in_csv_file(start_from_backtrader)
+
 
 def gettingDistinctDates():
     modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
     datap = os.path.join(modpath, 'Data/filtered_csv_data/A.csv')
     my_pair_file = open(datap, 'r')
-    distinctDates=[]
+    distinctDates = []
     for i in my_pair_file:
-        j=i.split()[0]
+        j = i.split()[0]
         if j not in distinctDates:
             distinctDates.append(j)
     my_pair_file.close()
     my_pair_file = open('DistinctDates.txt', 'w')
     for i in distinctDates:
-        my_pair_file.write(str(i)+ '\n')
-
+        my_pair_file.write(str(i) + '\n')
 
 
 def acquireList():
@@ -99,6 +97,7 @@ def acquiringPair(pairs):
             newPairs.append(pair)
     return newPairs
 
+
 def findPairs(stocks, start, end):
     window = 252
     data = pd.DataFrame()
@@ -134,7 +133,7 @@ def findPairs(stocks, start, end):
             beta = result.params[1]
             p1 = adfuller(stock1data - beta * stock2data)[1]
             p2 = coint(stock1data, stock2data)[1]
-            pvalue=0.05
+            pvalue = 0.05
             if p1 < 0.05 and p2 < 0.05:
                 p = Pair(stocks[i], stocks[j])
                 pairs.append(p)
@@ -143,23 +142,23 @@ def findPairs(stocks, start, end):
     print('finding pairs took ', toc - tic, ' seconds')
     return pairs
 
-def in_csv_file(start):
 
+def in_csv_file(start):
     my_pair_file = open('Backtrader/Pairs.txt', 'r')
-    priority_list=[]
-    not_priority=[]
+    priority_list = []
+    not_priority = []
     for i in my_pair_file:
-        priority=True
-        x=i.split()
+        priority = True
+        x = i.split()
         for j in x:
             modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
             datap = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(j)
             csv_file = open(datap, 'r')
-            a=csv_file.readlines()[1]
-            date=a.split()[0]
+            a = csv_file.readlines()[1]
+            date = a.split()[0]
             date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
-            if date>start:
-                priority=False
+            if date > start:
+                priority = False
             csv_file.close()
 
         if priority:
@@ -170,10 +169,10 @@ def in_csv_file(start):
     not_priority = acquiringPair(not_priority)
     my_pair_file.close()
     my_pair_file = open('Backtrader/Pairs1.txt', 'w')
-    total_list=priority_list+not_priority
+    total_list = priority_list + not_priority
     for i in total_list:
-        stock1 , stock2 = i.get_pairs()
-        my_pair_file.write(stock1+ ' '+ stock2 +'\n')
+        stock1, stock2 = i.get_pairs()
+        my_pair_file.write(stock1 + ' ' + stock2 + '\n')
+
 
 main()
-

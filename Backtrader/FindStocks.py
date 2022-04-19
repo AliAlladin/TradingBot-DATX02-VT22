@@ -4,7 +4,6 @@ import sys
 
 # To create a .txt-file with all stocks with data
 def creating_file_with_stocks():
-
     stocks = []  # Initially empty list of stocks
 
     # To find the correct data files

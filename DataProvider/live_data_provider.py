@@ -130,14 +130,3 @@ def marketClosed():
 # if market is open, this method is run to start the main sequence
 def marketOpen():
     sleepLock.release()
-
-
-def main():
-    thread1 = liveDataStream(1, 'thread1')
-    thread1.start()
-    # Remove join when called from other classes, just here for testing
-    thread1.join()
-
-
-if __name__ == "__main__":
-    main()

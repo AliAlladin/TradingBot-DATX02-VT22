@@ -1,20 +1,18 @@
 import datetime
 import os
 import sys  # To find out the script name (in argv[0])
-import backtrader as bt
-import backtrader.analyzers as btanalyzers
-#import qgrid
+# import qgrid
 import time
 
+import backtrader.analyzers as btanalyzers
 import pandas as pd
 
 pd.options.mode.chained_assignment = None
 
-from Pair import *
 from optimizeStrats import *  # import our first strategy
 
 runstrat = 'fib'
-#runstrat = 'pair'
+# runstrat = 'pair'
 tic = time.perf_counter()
 
 startcash = 100000.0
@@ -54,10 +52,9 @@ if runstrat == 'pair':
 
 else:
     tickers = ['SBUX', 'FLEX', 'GS', 'NSWA', 'TRMB', 'WYNN', 'VIAV', 'HON', 'FLR', 'AJG', 'CVS', 'HRB', 'TGNA', 'MSCI',
-            'TRV', 'COF', 'HUM', 'AON', 'GRMN', 'BUD']
+               'TRV', 'COF', 'HUM', 'AON', 'GRMN', 'BUD']
 # We add the data to cerebro
 for ticker in tickers:
-
     CSV_file_path = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(ticker)  # Full path to csv-file
 
     data = bt.feeds.GenericCSVData(
@@ -84,7 +81,7 @@ for ticker in tickers:
 
         openinterest=-1,  # -1 if no such column exists
         timeframe=bt.TimeFrame.Minutes,
-        #compression=1
+        # compression=1
 
     )
     cerebro.adddata(data)
@@ -96,12 +93,13 @@ if runstrat == 'pair':
 
     # Add strategy to Cerebro
     # TODO: allow for strategy switching
-    #end date to know when to close positions
+    # end date to know when to close positions
     todate1 = datetime.date(2019, 1, 5)
     dis = np.linspace(2, 3, num=5)
     per = range(450, 700, 50)
     max = max(per)
-    strats = cerebro.optstrategy(Strategy_pairGen, todate = todate1, distance= dis, period=per, maximum = max,invested=10000)
+    strats = cerebro.optstrategy(Strategy_pairGen, todate=todate1, distance=dis, period=per, maximum=max,
+                                 invested=10000)
 
     # Set the commission - 0.1% ... divide by 100 to remove the %
     cerebro.broker.setcommission(commission=0)
@@ -111,7 +109,7 @@ if runstrat == 'pair':
 
     # Creates csv files with inquired data. Has to be executed before cerebro.run()
     # "out" specifies the name of the output file. It currently overwrites the same file.
-    #cerebro.addwriter(bt.WriterFile, csv=True, out='log.csv')
+    # cerebro.addwriter(bt.WriterFile, csv=True, out='log.csv')
 
     # Core method to perform backtesting
 
@@ -122,18 +120,17 @@ if runstrat == 'pair':
     cerebro.addanalyzer(btanalyzers.DrawDown, _name="drawdown")
     cerebro.addanalyzer(btanalyzers.Returns, _name="returns")
 
-    back = cerebro.run(maxcpus = 1)
+    back = cerebro.run(maxcpus=1)
     print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
-
 
     par_list = [[x[0].params.distance,
                  x[0].params.period,
                  x[0].analyzers.returns.get_analysis()['rtot'],
                  x[0].analyzers.drawdown.get_analysis()['max']['drawdown'],
                  x[0].analyzers.sharpe.get_analysis()['sharperatio']
-                ] for x in back]
-    par_df = pd.DataFrame(par_list, columns = ['distance', 'period', 'return', 'dd', 'sharpe'])
-    #qgrid.show_grid(par_df)
+                 ] for x in back]
+    par_df = pd.DataFrame(par_list, columns=['distance', 'period', 'return', 'dd', 'sharpe'])
+    # qgrid.show_grid(par_df)
 
 else:
     per = range(10, 100, 15)
@@ -170,7 +167,7 @@ else:
     # qgrid.show_grid(par_df)
 print(par_df)
 toc = time.perf_counter()
-print('running optimize took ' , toc-tic , 'seconds')
+print('running optimize took ', toc - tic, 'seconds')
 
 # To plot the trades
-#cerebro.plot()
+# cerebro.plot()

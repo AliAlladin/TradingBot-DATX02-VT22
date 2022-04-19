@@ -43,13 +43,7 @@ class FibonacciStrategy:
         self.data.reset_index(drop=True, inplace=True)
         self.data['DateTime'] = pd.to_datetime(self.data['DateTime'])  # Change dtype of column DateTime to DateTime
 
-        rows = self.data.columns[1:]
-        emptyRows = [0] * len(rows)
-        self.investments = pd.DataFrame({'Symbol': rows, 'Volume': emptyRows})
-        self.investments.sort_values(by='Symbol', inplace=True)
-        self.investments.reset_index(drop=True, inplace=True)
-
-    def run(self, invested_levels, minute_data):
+    def run(self, invested_levels, minute_data, investments):
         """
         NOTE: minute_data must be a dataframe with columns = ['DateTime', t1, t2,...tn] where t1-tn are ticker
         symbols with closing prices only in order for the concat to be successful.
@@ -95,7 +89,7 @@ class FibonacciStrategy:
                     if price_now < fibonacci_levels[m] and not invested_levels.loc[ratio][ticker]:
                         # We have reached the level, so we buy some stocks
                         number_of_stocks = self.invested_amount / price_now
-                        self.investments.loc[(self.investments.Symbol == ticker), 'Volume'] = number_of_stocks
+                        investments.loc[(investments.Symbol == ticker), 'Volume'] = number_of_stocks
 
                         self.notify_observers({"signal": "BUY", "symbol": ticker, "volume": number_of_stocks})
 
@@ -106,7 +100,7 @@ class FibonacciStrategy:
                 if price_now == max_point[1]:
                     if True in invested_levels.values:
 
-                        number_of_stocks = self.investments.loc[(self.investments.Symbol == ticker), 'Volume']
+                        number_of_stocks = investments.loc[(investments.symbol == ticker), 'volume'][0]
                         # Sell all stocks, close the position
                         self.notify_observers({"signal": "SELL", "symbol": ticker, "volume": number_of_stocks})
 
@@ -115,9 +109,9 @@ class FibonacciStrategy:
                             invested_levels.loc[self.ratios[n]][ticker] = False
 
             if not uptrend:
-                if price_now == min_point[1]:
+                if round(price_now, 5) == min_point[1]:
                     if True in invested_levels.values:
-                        number_of_stocks = self.investments.loc[(self.investments.Symbol == ticker), 'Volume']
+                        number_of_stocks = investments.loc[(investments.symbol == ticker), 'volume'][0]
                         # Sell all stocks, close the position
                         self.notify_observers({"signal": "SELL", "symbol": ticker, "volume": number_of_stocks})
 

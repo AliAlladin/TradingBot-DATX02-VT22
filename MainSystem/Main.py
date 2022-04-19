@@ -1,6 +1,7 @@
 import os
 import sys
 from time import sleep
+
 import pandas as pd
 
 from Algorithms import PairsTrading
@@ -63,7 +64,6 @@ def main():
 
     pairs.columns = ['t1', 't2']
 
-
     global broker
     broker = AlpacaBroker.AlpacaBroker()
     broker.get_shortable(pairs)
@@ -77,7 +77,6 @@ def main():
 
     global data_provider
     data_provider = live_data_provider.liveDataStream(1, "pairs_data", "../MainSystem/Pairstorun.txt")
-
 
     DataObserver(data_provider)  # Add data observer
     data_provider.start()  # Start live-data thread

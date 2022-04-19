@@ -1,16 +1,19 @@
 import datetime
 import os
-import sys  # To find out the script name (in argv[0])
-import pandas as pd
 import random
+import sys  # To find out the script name (in argv[0])
+
+import pandas as pd
+
 pd.options.mode.chained_assignment = None
 
 from Pair import *
 from Strategies import *  # import our Strategies
 
+
 def main():
     StrategyOne()
-    #StrategyTwo()
+    # StrategyTwo()
 
 
 def StrategyOne():
@@ -23,7 +26,7 @@ def StrategyOne():
     # The data of pairs comes from Pairs.txt which we read
     datap = os.path.join(modpath, 'Backtrader/Pairs.txt')
     my_pair_file = open(datap, 'r')
-    endValueForEachPair=[]
+    endValueForEachPair = []
     # We go through Pairs.txt to add all tickers and Pairs
     for line in my_pair_file:
         pairs = []  # A list of Pairs (see Pair.py)
@@ -34,9 +37,10 @@ def StrategyOne():
         cerebro = bt.Cerebro()
         pairs.append(Pair(stocks[0], stocks[1]))
         for ticker in stocks:
-            dict[ticker]=i
-            i=+1
-            CSV_file_path = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(ticker)  # Full path to csv-file
+            dict[ticker] = i
+            i = +1
+            CSV_file_path = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(
+                ticker)  # Full path to csv-file
             data = bt.feeds.GenericCSVData(
                 dataname=CSV_file_path,  # Full path to csv-file
                 fromdate=datetime.datetime(2017, 1, 1, 9, 30, 00),  # Start  date
@@ -58,15 +62,16 @@ def StrategyOne():
                 volume=5,
                 openinterest=-1,  # -1 if no such column exists
                 timeframe=bt.TimeFrame.Minutes,
-                #compression=60
+                # compression=60
             )
             cerebro.adddata(data)
         cerebro.broker.setcash(100000.0)
 
         # Add strategy to Cerebro
         # TODO: allow for strategy switching
-        todate1=datetime.date(2019, 5, 1)
-        cerebro.addstrategy(Strategy_pairGen, dic=dict, pairs=pairs, distance=3, period=100, invested=1000, todate=todate1)
+        todate1 = datetime.date(2019, 5, 1)
+        cerebro.addstrategy(Strategy_pairGen, dic=dict, pairs=pairs, distance=3, period=100, invested=1000,
+                            todate=todate1)
 
         # Set the commission - 0.1% ... divide by 100 to remove the %
         cerebro.broker.setcommission(commission=0)
@@ -86,16 +91,18 @@ def StrategyOne():
         print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
         # To plot the trades
-        try: 
+        try:
             cerebro.plot()
         except IndexError:
             print('prob length 0')
         endValueForEachPair.append(cerebro.broker.getvalue())
-    sum=0
+    sum = 0
     for i in endValueForEachPair:
-        sum+=i-100000
+        sum += i - 100000
     print(endValueForEachPair)
     print(sum)
+
+
 '''
     # We go through Pairs.txt to add all tickers and Pairs
     for line in my_pair_file:
@@ -143,6 +150,7 @@ def StrategyOne():
     # To plot the trades
     cerebro.plot()'''
 
+
 def StrategyTwo():
     cerebro = bt.Cerebro()
 
@@ -153,14 +161,14 @@ def StrategyTwo():
     datap = os.path.join(modpath, 'Backtrader/Fibo.txt')
     my_pair_file = open(datap, 'r')
 
-    endValueForEachPair=[]
-    dic={}
-    dic['A']=0
-    dic['AA']=1
-    
+    endValueForEachPair = []
+    dic = {}
+    dic['A'] = 0
+    dic['AA'] = 1
+
     # We go through Pairs.txt to add all tickers and Pairs
     for line in my_pair_file:
-        stock=line.split()[0]
+        stock = line.split()[0]
         CSV_file_path = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(stock)  # Full path to csv-file
         data = bt.feeds.GenericCSVData(
 
@@ -186,47 +194,48 @@ def StrategyTwo():
 
             openinterest=-1,  # -1 if no such column exists
             timeframe=bt.TimeFrame.Minutes,
-            #compression=60
+            # compression=60
 
         )
         cerebro.adddata(data)
     cerebro.broker.setcash(100000.0)
 
-        # Add strategy to Cerebro
-        # TODO: allow for strategy switching
+    # Add strategy to Cerebro
+    # TODO: allow for strategy switching
     cerebro.addstrategy(Strategy_fibonacci2, dic=dic, period=60, invested=1000, max=60)
 
-        # Set the commission - 0.1% ... divide by 100 to remove the %
+    # Set the commission - 0.1% ... divide by 100 to remove the %
     cerebro.broker.setcommission(commission=0)
 
-        # Print starting portfolio value
+    # Print starting portfolio value
     print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
-        # Creates csv files with inquired data. Has to be executed before cerebro.run()
-        # "out" specifies the name of the output file. It currently overwrites the same file.
+    # Creates csv files with inquired data. Has to be executed before cerebro.run()
+    # "out" specifies the name of the output file. It currently overwrites the same file.
     cerebro.addwriter(bt.WriterFile, csv=True, out='log.csv')
 
-        # Core method to perform backtesting
+    # Core method to perform backtesting
     cerebro.run()
 
-        # Print final portfolio value
+    # Print final portfolio value
     print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
     # To plot the trades
-    try: 
+    try:
         cerebro.plot()
     except IndexError:
         print('prob length 0')
     endValueForEachPair.append(cerebro.broker.getvalue())
-    sum=0
+    sum = 0
     for i in endValueForEachPair:
-        sum+=i-100000
+        sum += i - 100000
     print(endValueForEachPair)
     print(sum)
 
+
 def creating_file_with_stocks(start):
     priority_stocks = []
-    not_priority_stocks=[]
+    not_priority_stocks = []
     modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
     directory_in_str = os.path.join(modpath, 'Data/filtered_csv_data/')
     directory = os.fsencode(directory_in_str)
@@ -239,12 +248,12 @@ def creating_file_with_stocks(start):
             x = y[0] + "-" + y[1]
         datap = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(x)
         csv_file = open(datap, 'r')
-        a=csv_file.readlines()[1]
-        date=a.split()[0]
+        a = csv_file.readlines()[1]
+        date = a.split()[0]
         date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
-        priority=True
-        if date>start:
-            priority=False
+        priority = True
+        if date > start:
+            priority = False
         csv_file.close()
 
         if priority:
@@ -252,10 +261,10 @@ def creating_file_with_stocks(start):
         else:
             not_priority_stocks.append(x)
 
-    stocks=random.shuffle(priority_stocks)+random.shuffle(not_priority_stocks)
+    stocks = random.shuffle(priority_stocks) + random.shuffle(not_priority_stocks)
     my_pair_file = open('Stocks.txt', 'w')
-    for i in stocks:  
-        my_pair_file.write(i+ "\n")
+    for i in stocks:
+        my_pair_file.write(i + "\n")
     my_pair_file.close()
 
 

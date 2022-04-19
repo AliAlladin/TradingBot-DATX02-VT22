@@ -1,16 +1,18 @@
+import datetime
+import os
+import random
+import sys  # To find out the script name (in argv[0])
+import time
+from datetime import timedelta
+
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
-from statsmodels.tsa.stattools import coint
-from statsmodels.tsa.stattools import adfuller
 import yfinance as yf
+from statsmodels.tsa.stattools import adfuller
+from statsmodels.tsa.stattools import coint
+
 from Pair import Pair
-import time
-import os
-import sys  # To find out the script name (in argv[0])
-from datetime import timedelta
-import random
-import datetime
 
 
 # To find pairs in a specific interval
@@ -126,7 +128,6 @@ def store_pairs(pairlist, textfile):
 
 # To find pairs with stocks that only appear once
 def create_distinct_pairs(pairs):
-
     distinct_pairs = []
     used_stocks = []  # To keep track of which stocks we have put in our new list
 
@@ -150,7 +151,6 @@ def create_distinct_pairs(pairs):
 
 # Returns the pairs as [priority, not priority] where priority is a sublist of stocks with the correct start date
 def sort_by_csv(start, pairs):
-
     priority_list = []
     not_priority = []
 

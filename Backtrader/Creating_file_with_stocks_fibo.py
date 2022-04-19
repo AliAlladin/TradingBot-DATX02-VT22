@@ -1,7 +1,8 @@
 import os
 import sys  # To find out the script name (in argv[0])
 
-modpath = os.path.dirname(os.path.dirname(sys.argv[0])) # Individual os paths
+modpath = os.path.dirname(os.path.dirname(sys.argv[0]))  # Individual os paths
+
 
 def creating_file_with_stocks():
     stocks = []
@@ -13,7 +14,6 @@ def creating_file_with_stocks():
         x = x.removesuffix('.csv')
         stocks.append(x)
     my_pair_file = open('Stocks.txt', 'w')
-    for i in stocks:  
-        my_pair_file.write(i+ "\n")
+    for i in stocks:
+        my_pair_file.write(i + "\n")
     my_pair_file.close()
-

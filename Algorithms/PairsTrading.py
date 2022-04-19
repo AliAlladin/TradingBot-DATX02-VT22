@@ -24,7 +24,6 @@ class PairsTrading:
     def unsubscribe(self, observer):
         self._observers.remove(observer)
 
-
     def __init__(self, distance, period, invested_amount):
 
         self._observers = []  # List of observers to be notified
@@ -92,7 +91,6 @@ class PairsTrading:
                     # Send buy signal to main
                     self.notify_observers({"signal": "BUY", "symbol": pairs['t2'][i], "volume": shares_stock2})
 
-
                     # Description of our position
                     pairs['long'][i] = False
                     pairs['shares_stock1'][i] = shares_stock1
@@ -132,7 +130,6 @@ class PairsTrading:
                         # Send buy signal to main
                         self.notify_observers(
                             {"signal": "BUY", "symbol": pairs['t2'][i], "volume": pairs['shares_stock2'][i]})
-
 
                         # We close the position in the pair
                         pairs['shares_stock1'][i] = None

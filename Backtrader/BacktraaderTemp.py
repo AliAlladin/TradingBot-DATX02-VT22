@@ -9,8 +9,8 @@ from Pair import *
 from Strategies import *  # import our Strategies
 
 def main():
-    StrategyOne()
-    #StrategyTwo()
+    #StrategyOne()
+    StrategyTwo()
 
 
 def StrategyOne():

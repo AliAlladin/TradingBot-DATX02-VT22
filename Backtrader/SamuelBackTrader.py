@@ -18,9 +18,8 @@ portfolio_value_input=100000.0
 # Main function starts either strategy
 def main():
 
-    
-    StrategyOne()
-    #StrategyTwo()
+    #StrategyOne()
+    StrategyTwo()
 
 # Pair Trading
 def StrategyOne():
@@ -48,6 +47,7 @@ def StrategyOne():
 
 # Fibonacci
 def StrategyTwo():
+    
     endValueForEachStock=[]
     my_stock_file = open('Stocks.txt', 'r')
     # Only difference here is that here we only have one stock

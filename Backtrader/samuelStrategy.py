@@ -133,8 +133,8 @@ class Strategy_pairGen(Strategy):
             # Sort to receive only data of the last 'period' days
 
             # Extract relevant closing price for each stock
-            relevant_data_stock1 = self.stock1Data[len(self.stock1Data) - self.period:] 
-            relevant_data_stock2 = self.stock2Data[len(self.stock2Data) - self.period:]
+            relevant_data_stock1 = self.stock1Data[len(self.stock1Data) - self.period + 1:] 
+            relevant_data_stock2 = self.stock2Data[len(self.stock2Data) - self.period + 1:]
 
             # Add the current price for each stock    
             relevant_data_stock1.append(self.dataclose[0][0])
@@ -216,8 +216,9 @@ class Strategy_pairGen(Strategy):
         result = sm.OLS(data1_log, sm.add_constant(data2_log)).fit()
         beta = result.params[1]
         spread = data1_log - beta * data2_log
+        print(type(spread))
         #for i in range(0, period):
-         #   spread.append(data1_log[i] - beta * data2_log[i])
+        #   spread.append(data1_log[i] - beta * data2_log[i])
 
         # Calculation of the Z-score
         mean = np.mean(spread)
@@ -275,14 +276,17 @@ class Strategy_fibonacci(Strategy):
 
 
         if self.max_each_day[self.day]<self.dataclose[0]:
+            
             self.max_each_day[self.day]=self.dataclose[0]
             self.max_when[self.day]=self.datas[0]
         
         if self.low_each_day[self.day]>self.dataclose[0]:    
+            
             self.low_each_day[self.day]=self.dataclose[0]
             self.low_when[self.day]=self.datas[0]
 
         self.myData.append(self.dataclose[0])
+        
         if self.todate == self.datas[0].datetime.date(0): # Check if last day (then we want to sell)
             self.sellOf = True
             filevalues = open(self.datap, 'w')
@@ -293,6 +297,7 @@ class Strategy_fibonacci(Strategy):
 
         # We want the last 'period' of data points, stored in relevant_data
         if  self.day >= self.period-1:
+            
             relevant_data_max = self.max_each_day[-self.period:]
             relevant_data_min = self.low_each_day[-self.period:]
 
@@ -346,4 +351,3 @@ class Strategy_fibonacci(Strategy):
                     # We do not longer have a position in the ticker
                     for i in range(self.invested_at_level.count(True)):
                         self.invested_at_level[i] = False
-

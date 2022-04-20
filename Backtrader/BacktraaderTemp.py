@@ -65,7 +65,7 @@ def StrategyOne():
 
         # Add strategy to Cerebro
         # TODO: allow for strategy switching
-        todate1=datetime.date(2021, 12, 23)
+        todate1=datetime.date(2017, 5, 2)
         cerebro.addstrategy(Strategy_pairGen, dic=dict, pairs=pairs, distance=2, period=200, invested=1000, todate=todate1)
 
         # Set the commission - 0.1% ... divide by 100 to remove the %
@@ -166,7 +166,7 @@ def StrategyTwo():
 
             dataname=CSV_file_path,  # Full path to csv-file
             fromdate=datetime.datetime(2017, 1, 1, 9, 30, 00),  # Start  date
-            todate=datetime.datetime(2019, 1, 1, 16, 00, 00),  # Ending date
+            todate=datetime.datetime(2017, 5, 2, 16, 00, 00),  # Ending date
 
             nullvalue=0.0,  # Used for replacing NaN-values with 0
 
@@ -194,7 +194,7 @@ def StrategyTwo():
 
         # Add strategy to Cerebro
         # TODO: allow for strategy switching
-    cerebro.addstrategy(Strategy_fibonacci2, dic=dic, period=60, invested=1000, max=60)
+    cerebro.addstrategy(Strategy_fibonacci2, dic=dic, period=10, invested=1000, max=10)
 
         # Set the commission - 0.1% ... divide by 100 to remove the %
     cerebro.broker.setcommission(commission=0)

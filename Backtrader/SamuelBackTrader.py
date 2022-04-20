@@ -8,10 +8,10 @@ import pandas as pd
 
 # Global variables
 modpath = os.path.dirname(os.path.dirname(sys.argv[0])) # Individual os paths
-todate=datetime.date(2021, 12, 23) # Last date to trade
+todate=datetime.date(2017, 5, 2) # Last date to trade
 invested=1000 # How much to invest in each stock
 start_date=datetime.datetime(2017, 1, 1, 9, 30, 00)  # Start  date
-end_date=datetime.datetime(2021, 12, 23, 16, 00, 00)  # Ending date
+end_date=datetime.datetime(2017, 5, 2, 16, 00, 00)  # Ending date
 datap = os.path.join(modpath, 'Results/result.csv') # The data of pairs comes from Pairs.txt which we read
 my_result_file = open(datap, 'w') # Saving all our trades in a file
 portfolio_value_input=100000.0
@@ -56,11 +56,12 @@ def StrategyTwo():
         stock_name=stock.split()[0] #To get rid of new line sign
         add_data(cerebro, stock_name)
         my_result_file.write("Stock: " + stock_name+"\n ")
-        cerebro.addstrategy(Strategy_fibonacci, stock_name=stock_name, invested=1000, period=10, 
+        cerebro.addstrategy(Strategy_fibonacci, stock_name=stock_name, invested=invested, period=10, 
         todate=todate, my_result_file=my_result_file)
         endValueForEachStock.append(run(cerebro))
     total_portfolio_value=sum(endValueForEachStock)-len(endValueForEachStock)*portfolio_value_input
     my_result_file.close()
+    print(total_portfolio_value)
 
 # Function to add data to backtrader
 def add_data(cerebro, stock):

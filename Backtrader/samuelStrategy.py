@@ -216,7 +216,6 @@ class Strategy_pairGen(Strategy):
         result = sm.OLS(data1_log, sm.add_constant(data2_log)).fit()
         beta = result.params[1]
         spread = data1_log - beta * data2_log
-        print(type(spread))
         #for i in range(0, period):
         #   spread.append(data1_log[i] - beta * data2_log[i])
 

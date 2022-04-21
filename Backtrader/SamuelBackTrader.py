@@ -8,18 +8,18 @@ import pandas as pd
 
 # Global variables
 modpath = os.path.dirname(os.path.dirname(sys.argv[0])) # Individual os paths
-todate=datetime.date(2017, 5, 2) # Last date to trade
+todate=datetime.date(2022, 1, 6) # Last date to trade
 invested=1000 # How much to invest in each stock
-start_date=datetime.datetime(2017, 1, 1, 9, 30, 00)  # Start  date
-end_date=datetime.datetime(2017, 5, 2, 16, 00, 00)  # Ending date
+start_date=datetime.datetime(2017, 8, 17, 9, 30, 00)  # Start  date
+end_date=datetime.datetime(2022, 1, 6, 16, 00, 00)  # Ending date
 datap = os.path.join(modpath, 'Results/result.csv') # The data of pairs comes from Pairs.txt which we read
 my_result_file = open(datap, 'w') # Saving all our trades in a file
 portfolio_value_input=100000.0
 # Main function starts either strategy
 def main():
 
-    #StrategyOne()
-    StrategyTwo()
+    StrategyOne()
+    #StrategyTwo()
 
 # Pair Trading
 def StrategyOne():
@@ -38,7 +38,7 @@ def StrategyOne():
         for ticker in stocks: # Adds data for the two stock in that pair
             add_data(cerebro, ticker) # Add data to backtrader
         my_result_file.write("Pair: " + stock1 + " "+ stock2 +"\n") # In the file to know whcih trades below belong to this pair
-        cerebro.addstrategy(Strategy_pairGen, stock1=stock1, stock2=stock2, distance=2, period=200, invested=invested, 
+        cerebro.addstrategy(Strategy_pairGen, stock1=stock1, stock2=stock2, distance=2, period=600, invested=invested,
         todate=todate, my_result_file=my_result_file) # Add our strategy with right values on the parameters
         endValueForEachPair.append(run(cerebro)) # Run the program and save the portfolio value in the end
     total_portfolio_value=sum(endValueForEachPair)-len(endValueForEachPair)*portfolio_value_input # Calculate the profit for the total portfolio (all pairs)
@@ -100,10 +100,10 @@ def run(cerebro):
     cerebro.run() # Core method to perform backtesting
     print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue()) # Print final portfolio value
 
-    try: # If we want to plot each simulation of each pair, not in the actual simulation
-        cerebro.plot() # To plot the trades
-    except IndexError:
-        print('prob length 0')
+    #try: # If we want to plot each simulation of each pair, not in the actual simulation
+    #    cerebro.plot() # To plot the trades
+    #except IndexError:
+    #    print('prob length 0')
 
     return cerebro.broker.getvalue()
 

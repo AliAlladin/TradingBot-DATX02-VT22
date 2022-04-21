@@ -20,7 +20,7 @@ def main():
     end = '2014-01-07'
 
     stocks = acquire_stocks() # To acquire a list of stocks from our folder 'filtered_csv_data'
-
+    stocks = stocks[0:60]
     # Returns a list of distinct_stocks
     # get_distinct_stocks()
 
@@ -222,5 +222,6 @@ def in_csv_file(start):
     store_pairs(total_list, 'Pairs2.txt')
 
 
-start_time = datetime.date(2010, 1, 1)
-in_csv_file(start_time)
+#start_time = datetime.date(2010, 1, 1)
+#in_csv_file(start_time)
+main()

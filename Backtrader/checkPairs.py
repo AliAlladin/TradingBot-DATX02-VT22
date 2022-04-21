@@ -18,6 +18,7 @@ def checkPair(pairs):
     data = pd.DataFrame()
     newPairs = []
     stillCo = 0
+    futureP = {'0.01':[]}
 
     for pair in pairs:
         prices = yf.download(pair.stock1,start,end)
@@ -29,13 +30,12 @@ def checkPair(pairs):
         stock2data = data[pair.stock2]
         result = sm.OLS(stock2data, stock1data).fit()
         beta = result.params[0]
-        p1 = adfuller((stock2data-beta*stock1data))[1]
-        p2 = coint(stock1data, stock2data)[1]
+        p1 = coint(stock1data, stock2data)[1]
 
-        if(p1 < 0.1 and p2 <0.1):
+        if(p1 < 0.01):
             stillCo += 1
 
-        p = Pair(pair.stock1,pair.stock2,p1,p2)
+        p = Pair(pair.stock1,pair.stock2,p1)
         newPairs.append(p)
 
         plt.plot(stock2data-beta*stock1data)

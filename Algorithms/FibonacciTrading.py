@@ -88,8 +88,10 @@ class FibonacciStrategy:
 
                     if price_now < fibonacci_levels[m] and not invested_levels.loc[ratio][ticker]:
                         # We have reached the level, so we buy some stocks
+                        number_of_stocks_before = investments.loc[(investments.symbol == ticker), 'volume'].tolist()[0]
                         number_of_stocks = self.invested_amount / price_now
-                        investments.loc[(investments.Symbol == ticker), 'Volume'] = number_of_stocks
+
+                        investments.loc[(investments.symbol == ticker), 'volume'] = number_of_stocks_before + number_of_stocks
 
                         self.notify_observers({"signal": "BUY", "symbol": ticker, "volume": number_of_stocks})
 
@@ -98,22 +100,26 @@ class FibonacciStrategy:
 
                 # We sell when the stock price is at a new high on the period
                 if price_now == max_point[1]:
-                    if True in invested_levels.values:
+                    if True in invested_levels[ticker].values:
 
-                        number_of_stocks = investments.loc[(investments.symbol == ticker), 'volume'][0]
+                        number_of_stocks = investments.loc[(investments.symbol == ticker), 'volume'].tolist()[0]
                         # Sell all stocks, close the position
                         self.notify_observers({"signal": "SELL", "symbol": ticker, "volume": number_of_stocks})
+
+                        investments.loc[(investments.symbol == ticker), 'volume'] = 0
 
                         # We do no longer have a position in the ticker
                         for n in range(len(self.ratios)):
                             invested_levels.loc[self.ratios[n]][ticker] = False
 
             if not uptrend:
-                if round(price_now, 5) == min_point[1]:
-                    if True in invested_levels.values:
-                        number_of_stocks = investments.loc[(investments.symbol == ticker), 'volume'][0]
+                if price_now == min_point[1]:
+                    if True in invested_levels[ticker].values:
+                        number_of_stocks = investments.loc[(investments.symbol == ticker), 'volume'].tolist()[0]
                         # Sell all stocks, close the position
                         self.notify_observers({"signal": "SELL", "symbol": ticker, "volume": number_of_stocks})
+
+                        investments.loc[(investments.symbol == ticker), 'volume'] = 0
 
                         # We do no longer have a position in the ticker
                         for n in range(len(self.ratios)):

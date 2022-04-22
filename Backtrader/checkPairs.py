@@ -12,13 +12,17 @@ from statsmodels.regression.rolling import RollingOLS
 
 
 def checkPair(pairs):
-    start = '2018-02-08'
-    end = '2022-02-08'
+    start = '2020-01-08'
+    end = '2022-01-06'
     window = 252
     data = pd.DataFrame()
+    size = len(pairs)
     newPairs = []
     stillCo = 0
-    futureP = {'0.01':[]}
+    Plevels = [0.01, 0.05, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9]
+    futureP = {}
+    for level in Plevels:
+        futureP[level]=0
 
     for pair in pairs:
         prices = yf.download(pair.stock1,start,end)
@@ -28,45 +32,43 @@ def checkPair(pairs):
     for pair in pairs:
         stock1data = data[pair.stock1]
         stock2data = data[pair.stock2]
-        result = sm.OLS(stock2data, stock1data).fit()
-        beta = result.params[0]
+        #result = sm.OLS(stock2data, stock1data).fit()
+        #beta = result.params[0]
         p1 = coint(stock1data, stock2data)[1]
 
-        if(p1 < 0.01):
-            stillCo += 1
+        for level in Plevels:
+            if p1 < level:
+                futureP[level]= futureP[level]+1
+
 
         p = Pair(pair.stock1,pair.stock2,p1)
         newPairs.append(p)
 
-        plt.plot(stock2data-beta*stock1data)
-        plt.show()
-
-    my_pair_file = open('pairs2.txt', 'w')
-    print(stillCo/(len(pairs)))
+        #plt.plot(stock2data-beta*stock1data)
+        #plt.show()
+    for level in Plevels:
+        futureP[level]= futureP[level]/size
+    my_pair_file = open('pairsAllCo.txt', 'w')
+    #print(stillCo/(len(pairs)))
     for pair in newPairs:
-        my_pair_file.write(pair.stock1+" "+pair.stock2+ " "+ pair.p1 +" "+pair.p2+ "\n")
+        my_pair_file.write(pair.stock1+" "+pair.stock2+ " "+ pair.p1 + "\n")
     my_pair_file.close()
+    print(futureP)
     return
 
     
 def run():
     myPairs = []
     i=0
-    my_pair_file = open('pairs2.txt', 'r')
+    my_pair_file = open('pairsDistinct.txt', 'r')
     for p in my_pair_file:
         stocks=p.split()
         stock1=stocks[0]
-        stock2=stocks[1]
-        myPairs.append(Pair(stock1,stock2,1.1,1.1))
+        stock2 = stocks[1]
+        myPairs.append(Pair(stock1, stock2, 1.1))
     for p in myPairs:
         p.toString()
     checkPair(myPairs)
+
+
 run()
-
-
-
-
-
-
-
-

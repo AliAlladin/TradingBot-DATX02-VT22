@@ -20,7 +20,7 @@ def main():
     end = '2014-01-07'
 
     stocks = acquire_stocks() # To acquire a list of stocks from our folder 'filtered_csv_data'
-    stocks = stocks[0:60]
+    stocks = stocks[0:150]
     # Returns a list of distinct_stocks
     # get_distinct_stocks()
 

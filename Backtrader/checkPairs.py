@@ -12,8 +12,8 @@ from statsmodels.regression.rolling import RollingOLS
 
 
 def checkPair(pairs):
-    start = '2020-01-08'
-    end = '2022-01-06'
+    start = '2008-01-08'
+    end = '2009-01-08'
     window = 252
     data = pd.DataFrame()
     size = len(pairs)

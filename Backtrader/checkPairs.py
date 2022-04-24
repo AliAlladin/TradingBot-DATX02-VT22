@@ -21,6 +21,7 @@ def checkPair(pairs):
     stillCo = 0
     Plevels = [0.01, 0.05, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9]
     futureP = {}
+    pValues = []
     for level in Plevels:
         futureP[level]=0
 
@@ -35,6 +36,8 @@ def checkPair(pairs):
         #result = sm.OLS(stock2data, stock1data).fit()
         #beta = result.params[0]
         p1 = coint(stock1data, stock2data)[1]
+        pValues.append(p1)
+        results = loadResults()
 
         for level in Plevels:
             if p1 < level:
@@ -54,6 +57,13 @@ def checkPair(pairs):
         my_pair_file.write(pair.stock1+" "+pair.stock2+ " "+ pair.p1 + "\n")
     my_pair_file.close()
     print(futureP)
+    plt.scatter(pValues,results)
+    linex = np.linspace(0,1,100)
+    liney = np.linspace(0,0,100)
+    plt.plot(linex,liney,'r')
+    plt.xlabel('p-value')
+    plt.ylabel('profit (USD)')
+    plt.show()
     return
 
     
@@ -70,5 +80,11 @@ def run():
         p.toString()
     checkPair(myPairs)
 
+def loadResults():
+    file = open('resPair.txt', 'r')
+    res = []
+    for line in file:
+        res.append(float(line)-100000)
+    return res
 
 run()

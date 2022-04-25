@@ -71,7 +71,7 @@ def in_csv_file(start):
 
 
 def main():
-    start_time = datetime.date(2019, 9, 5)
+    start_time = datetime.date(2007, 9, 7)
     stocks = acquire_stocks()
     store_stocks(stocks, 'StocksAll.txt')
     in_csv_file(start_time)

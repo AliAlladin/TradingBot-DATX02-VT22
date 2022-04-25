@@ -8,18 +8,18 @@ import pandas as pd
 
 # Global variables
 modpath = os.path.dirname(os.path.dirname(sys.argv[0])) # Individual os paths
-todate=datetime.date(2022, 1, 6) # Last date to trade
+todate=datetime.date(2009, 1, 8) # Last date to trade
 invested=1000 # How much to invest in each stock
-start_date=datetime.datetime(2017, 8, 17, 9, 30, 00)  # Start  date
-end_date=datetime.datetime(2022, 1, 6, 16, 00, 00)  # Ending date
-datap = os.path.join(modpath, 'Results/result.csv') # The data of pairs comes from Pairs.txt which we read
+start_date=datetime.datetime(2007, 9, 7, 9, 30, 00)  # Start  date
+end_date=datetime.datetime(2009, 1, 8, 16, 00, 00)  # Ending date
+datap = os.path.join(modpath, 'Results/fibresult.csv') # The data of pairs comes from Pairs.txt which we read
 my_result_file = open(datap, 'w') # Saving all our trades in a file
 portfolio_value_input=100000.0
 # Main function starts either strategy
 def main():
 
-    StrategyOne()
-    #StrategyTwo()
+    #StrategyOne()
+    StrategyTwo()
 
 # Pair Trading
 def StrategyOne():
@@ -42,7 +42,12 @@ def StrategyOne():
         todate=todate, my_result_file=my_result_file) # Add our strategy with right values on the parameters
         endValueForEachPair.append(run(cerebro)) # Run the program and save the portfolio value in the end
     total_portfolio_value=sum(endValueForEachPair)-len(endValueForEachPair)*portfolio_value_input # Calculate the profit for the total portfolio (all pairs)
-    print(total_portfolio_value) 
+    resultcsv = os.path.join(modpath, 'Results/results.csv')
+    resultfile = open(resultcsv, 'w')
+    for i in range(len(endValueForEachPair)):
+        resultfile.write(str(endValueForEachPair[i]) + '\n')
+    resultfile.close()
+    print(total_portfolio_value)
     my_result_file.close()
 
 # Fibonacci
@@ -52,14 +57,20 @@ def StrategyTwo():
     my_stock_file = open('Stocks.txt', 'r')
     # Only difference here is that here we only have one stock
     for stock in my_stock_file:
+        print(stock)
         cerebro = bt.Cerebro()
         stock_name=stock.split()[0] #To get rid of new line sign
         add_data(cerebro, stock_name)
         my_result_file.write("Stock: " + stock_name+"\n ")
-        cerebro.addstrategy(Strategy_fibonacci, stock_name=stock_name, invested=invested, period=10, 
+        cerebro.addstrategy(Strategy_fibonacci, stock_name=stock_name, invested=invested, period=85,
         todate=todate, my_result_file=my_result_file)
         endValueForEachStock.append(run(cerebro))
     total_portfolio_value=sum(endValueForEachStock)-len(endValueForEachStock)*portfolio_value_input
+    fibresultcsv = os.path.join(modpath, 'Results/fibresults.csv')
+    resultfile = open(fibresultcsv, 'w')
+    for i in range(len(endValueForEachStock)):
+        resultfile.write(str(endValueForEachStock[i]) + '\n')
+    resultfile.close()
     my_result_file.close()
     print(total_portfolio_value)
 

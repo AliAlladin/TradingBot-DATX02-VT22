@@ -16,11 +16,11 @@ import datetime
 def main():
 
     # Date of start and end. Observe that it must be a day when the market is open.
-    start = '2011-01-07'
-    end = '2014-01-07'
+    start = '2020-01-08'
+    end = '2022-01-06'
 
     stocks = acquire_stocks() # To acquire a list of stocks from our folder 'filtered_csv_data'
-    stocks = stocks[0:150]
+    #stocks = stocks[0:150]
     # Returns a list of distinct_stocks
     # get_distinct_stocks()
 
@@ -102,7 +102,7 @@ def find_pairs(stocks, start, end):
             p1 = coint(stock1data, stock2data)[1]
 
             # If the p-values are lower than the significance level, they are a pair
-            sig = 0.65
+            sig = 1.1
             if p1 < sig:
                 p = Pair(stocks[i], stocks[j])
                 pairs.append(p)

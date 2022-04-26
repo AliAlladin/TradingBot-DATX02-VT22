@@ -7,13 +7,14 @@ from statsmodels.tsa.stattools import adfuller
 import matplotlib.pyplot as plt
 import yfinance as yf
 from Pair2 import Pair2 as Pair
+from scipy.stats import t
 import time
 from statsmodels.regression.rolling import RollingOLS
 
 
 def checkPair(pairs):
-    start = '2008-01-08'
-    end = '2009-01-08'
+    start = '2020-01-08'
+    end = '2022-01-06'
     window = 252
     data = pd.DataFrame()
     size = len(pairs)
@@ -26,18 +27,18 @@ def checkPair(pairs):
         futureP[level]=0
 
     for pair in pairs:
-        prices = yf.download(pair.stock1,start,end)
-        data[pair.stock1] = prices['Close']
-        prices = yf.download(pair.stock2,start,end)
-        data[pair.stock2] = prices['Close']
+        if not pair.stock1 in data.columns:
+            prices = yf.download(pair.stock1,start,end)
+            data[pair.stock1] = prices['Close']
+        if not pair.stock2 in data.columns:
+            prices = yf.download(pair.stock2,start,end)
+            data[pair.stock2] = prices['Close']
     for pair in pairs:
         stock1data = data[pair.stock1]
         stock2data = data[pair.stock2]
-        #result = sm.OLS(stock2data, stock1data).fit()
-        #beta = result.params[0]
         p1 = coint(stock1data, stock2data)[1]
         pValues.append(p1)
-        results = loadResults()
+        #results = loadResults()
 
         for level in Plevels:
             if p1 < level:
@@ -47,30 +48,24 @@ def checkPair(pairs):
         p = Pair(pair.stock1,pair.stock2,p1)
         newPairs.append(p)
 
-        #plt.plot(stock2data-beta*stock1data)
-        #plt.show()
     for level in Plevels:
         futureP[level]= futureP[level]/size
     my_pair_file = open('pairsAllCo.txt', 'w')
-    #print(stillCo/(len(pairs)))
+
     for pair in newPairs:
         my_pair_file.write(pair.stock1+" "+pair.stock2+ " "+ pair.p1 + "\n")
     my_pair_file.close()
+    #plotResults(pValues, results)
+    mean = np.mean(pValues)
+    print('mean: ', mean)
     print(futureP)
-    plt.scatter(pValues,results)
-    linex = np.linspace(0,1,100)
-    liney = np.linspace(0,0,100)
-    plt.plot(linex,liney,'r')
-    plt.xlabel('p-value')
-    plt.ylabel('profit (USD)')
-    plt.show()
     return
 
     
 def run():
     myPairs = []
     i=0
-    my_pair_file = open('pairsDistinct.txt', 'r')
+    my_pair_file = open('pairsAll.txt', 'r')
     for p in my_pair_file:
         stocks=p.split()
         stock1=stocks[0]
@@ -86,5 +81,15 @@ def loadResults():
     for line in file:
         res.append(float(line)-100000)
     return res
+
+def plotResults(pValues, results):
+    plt.scatter(pValues, results)
+    linex = np.linspace(0, 1, 100)
+    liney = np.linspace(0, 0, 100)
+    plt.plot(linex, liney, 'r')
+    plt.xlabel('p-värde')
+    plt.ylabel('Avkastning (USD)')
+    plt.show()
+
 
 run()

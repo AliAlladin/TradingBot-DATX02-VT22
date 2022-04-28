@@ -7,8 +7,8 @@ from Pair2 import Pair2 as Pair
 import pandas as pd
 import matplotlib.ticker as mtick
 
-start = '2011-01-11' #en mer än datafilen
-end = '2013-01-09' #en mer än datafilen
+start = '2011-01-14' #en mer än datafilen
+end = '2013-01-08' #en mer än datafilen
 invested = 120000
 
 prices = yf.download('^GSPC',start,end)
@@ -23,12 +23,16 @@ values = []
 for line in ResultFile:
     values.append(float(line.split()[0]))
 ValSer = pd.Series(values,index)
-ValSer = ((ValSer+invested)/invested-1) *100
 data = pd.DataFrame()
-data['S&P'] = SP
-data['Pair'] = ValSer
+#data['S&P'] = SP
+data['Pair trading'] = ValSer
 ax = data.plot()
-ax.yaxis.set_major_formatter(mtick.PercentFormatter())
+ax.tick_params(axis='both', which='major', labelsize=15)
+ax.set_xlabel("Datum", fontsize=15)
+ax.set_ylabel("Avkastning", fontsize=15)
+ax.legend(fontsize=15)
+
+#ax.yaxis.set_major_formatter(mtick.PercentFormatter())
 plt.show()
 
 

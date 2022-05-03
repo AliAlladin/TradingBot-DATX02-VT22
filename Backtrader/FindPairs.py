@@ -1,40 +1,36 @@
-import datetime
-import os
-import random
+import numpy as np #For mathematical functions
+import pandas as pd # For dataframe?
+from statsmodels.tsa.stattools import coint # To check for cointegration
+import matplotlib.pyplot as plt #To plot different things
+import yfinance as yf # For being able to acquire data from end of the day data from Yahoo
+from Pair import Pair # Import the pair object
+import time # Just for fun 
+import os #Get the right pathway here
 import sys  # To find out the script name (in argv[0])
-import time
-from datetime import timedelta
-
-import numpy as np
-import pandas as pd
-import statsmodels.api as sm
-import yfinance as yf
-from statsmodels.tsa.stattools import adfuller
-from statsmodels.tsa.stattools import coint
-
-from Pair import Pair
+from datetime import timedelta # To be able to change date since yahoo has weird way of handeling date inputs
+import random # To randomly generate pair so we do not get the ones first in alphabetical order
+import datetime
 
 
 # To find pairs in a specific interval
 def main():
+
     # Date of start and end. Observe that it must be a day when the market is open.
     start = '2011-01-07'
     end = '2014-01-07'
-    start_time = datetime.date(2010, 1, 1)
-    significance = 0.65
 
-    stocks = acquire_stocks()  # To acquire a list of stocks from our folder 'filtered_csv_data'
+    stocks = acquire_stocks() # To acquire a list of stocks from our folder 'filtered_csv_data'
 
-    pairs = find_pairs(stocks, start, end, significance)  # A list of pairs
-    store_pairs(pairs, 'Pairs.txt')  # To write all the pairs in a .txt-file
+    # Returns a list of distinct_stocks
+    # get_distinct_stocks()
 
-    random.shuffle(pairs)  # To avoid affect the pairs by alphabetic order
+    pairs = find_pairs(stocks, start, end) # To find pairs from a list of stocks in the period [start, end]
 
-    distinct_pairs = create_distinct_pairs(pairs)  # A list of pairs where a ticker only appears once
-    store_pairs(distinct_pairs, 'Pairs1.txt')
+    store_pairs(pairs, 'PairsAll.txt') # To write all the pairs in a txt-file
 
-    csv_pairs = sort_by_csv(start_time, distinct_pairs)  # A list of pairs sorted by availability in .csv-files
-    store_pairs(csv_pairs, 'Pairs2.txt')
+    distinct_pairs = create_distinct_pairs(pairs) # To get a list of pairs where a ticker only appears once
+
+    store_pairs(distinct_pairs, 'PairsDistinct.txt') # We save these pairs in another .txt-file
 
 
 # To get a list of stocks from our folder 'filtered_csv_data'
@@ -53,45 +49,48 @@ def acquire_stocks():
 
         # If both an A-share and a B-share of a stock exists, we include both
         if "." in x:
-            # The name is on the form 'TICKER.A', we want 'TICKER-A' for Yahoo Finance
+            # The name is on the form 'TICKER.A', we want 'TICKER-A'
             y = x.split('.')
             x = y[0] + "-" + y[1]
         stocks.append(x)
     return stocks
 
 
-# To find pairs in the interval [start, end] with a certain significance level
-def find_pairs(stocks, start, end, significance):
+# To find pairs in the interval [start, end]
+def find_pairs(stocks, start, end):
+
     data = pd.DataFrame()
+
     pairs = []  # An initially empty list of pairs
     stocks_new = []  # A list of stocks with data available on the period
 
-    # Downloading data
     tic = time.perf_counter()
-    for i in range(0, len(stocks)):  # We go through all stocks, find the price from start to end.
+    # We go through all stocks, find the price from start to end.
+    for i in range(0, len(stocks)):
+        # Daily data from Yahoo Finance
+        prices = yf.download(stocks[i], start, end)
 
-        prices = yf.download(stocks[i], start, end)  # Daily data from Yahoo Finance
         # If the stock was listed in the time period, we check if it was listed in our period
         if not prices.empty:
             # To gather the first day and the last day of the available data from Yahoo Finance
-            first_day = prices.index[1]
+            first_day = prices.index[1] # Take one day earlier
             first_day = str(first_day).split()[0]
 
             last_day = prices.index[-1]
-            last_day += timedelta(days=1)
+            last_day += timedelta(days=1) #Stop one day earlier
             last_day = str(last_day).split()[0]
 
             # To make sure that the stock has data at the end zones at our interval.
-            if first_day == start and last_day == end:
-                data[stocks[i]] = prices['Close']  # We store the closing price in data
+            if str(first_day) == start and last_day == end:
+                data[stocks[i]] = (prices['Close'])  # We store the closing price in data
                 stocks_new.append(stocks[i])
     toc = time.perf_counter()
     print('Downloading data took ', toc - tic, 'seconds.')
 
-    # Performing pair analysis
     stocks = stocks_new
-    tic = time.perf_counter()
 
+    tic = time.perf_counter()
+    
     # We try to find pairs for all available stocks
     for i in range(0, len(stocks)):
         for j in range(i + 1, len(stocks)):
@@ -99,20 +98,18 @@ def find_pairs(stocks, start, end, significance):
             stock1data = np.log10(data[stocks[i]].tolist())
             stock2data = np.log10(data[stocks[j]].tolist())
 
-            # An ordinary linear regression
-            result = sm.OLS(stock1data, sm.add_constant(stock2data)).fit()
-            beta = result.params[1]
-
             # We make use of the Augmented Dickey-Fuller test to check for co-integration.
-            p1 = adfuller(stock1data - beta * stock2data)[1]
-            p2 = coint(stock1data, stock2data)[1]
+            p1 = coint(stock1data, stock2data)[1]
 
             # If the p-values are lower than the significance level, they are a pair
-            if p1 < significance and p2 < significance:
-                pairs.append(Pair(stocks[i], stocks[j]))
+            sig = 0.65
+            if p1 < sig:
+                p = Pair(stocks[i], stocks[j])
+                pairs.append(p)
     toc = time.perf_counter()
 
-    print('Finding pairs took ', toc - tic, ' seconds.')
+    plt.show()
+    print('finding pairs took ', toc - tic, ' seconds')
     return pairs
 
 
@@ -126,15 +123,17 @@ def store_pairs(pairlist, textfile):
     file.close()
 
 
-# To find pairs with stocks that only appear once
 def create_distinct_pairs(pairs):
+    # To avoid affect the pairs by alphabetic order, we shuffle the list of pairs
+    random.shuffle(pairs)
+
     distinct_pairs = []
     used_stocks = []  # To keep track of which stocks we have put in our new list
 
     # For each pair of the old list of pairs, we try to add the pair if none of the two stocks are used.
     for pair in pairs:
-        can_add = True  # Initially, we expect that we can add the pair to distinct pair.
-        stocks = pair.get_pairs()  # get_pairs gives us (stock1, stock2)
+        can_add = True  # Can we add the pair to the new list? Initially, we expect that we can.
+        stocks = pair.get_pairs()  # get_pairs gives us (stock1, stock2) # TODO: Bad name for a function?
 
         for stock in stocks:
             if stock in used_stocks:
@@ -147,44 +146,6 @@ def create_distinct_pairs(pairs):
             used_stocks.append(stocks[1])
 
     return distinct_pairs
-
-
-# Returns the pairs as [priority, not priority] where priority is a sublist of stocks with the correct start date
-def sort_by_csv(start, pairs):
-    priority_list = []
-    not_priority = []
-
-    for pair in pairs:
-        priority = True  # Initially, we assume that the date exists
-        stocks = pair.get_pairs()
-        for j in stocks:
-            if "-" in j:  # The name is on the form 'TICKER-A' from Yahoo finance, we want 'TICKER.A' for csv
-                y = j.split('-')
-                j = y[0] + '.' + y[1]
-
-            # The path to find the stock
-            modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
-            datap = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(j)
-
-            # We open the stocks file and read the second line, which contains the first date.
-            csv_file = open(datap, 'r')
-            line = csv_file.readlines()[1]
-            date = line.split()[0]
-            date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
-
-            # If the start of the .csv-file is later than our starting point for a stock, the pair is not prioritized
-            if date > start:
-                priority = False
-            csv_file.close()
-
-        if priority:
-            priority_list.append(Pair(stocks[0], stocks[1]))
-        else:
-            not_priority.append(Pair(stocks[0], stocks[1]))
-
-    # We write the sorted list of pairs to a .txt-file
-    total_list = priority_list + not_priority
-    return total_list
 
 
 # To create a .txt-file of distinct dates
@@ -206,4 +167,60 @@ def get_distinct_dates():
         date_file.write(str(i) + "\n")
 
 
-main()
+# To create a list of distinct stocks in a .txt-file of pairs.
+def get_distinct_stocks():
+    # We open the .txt-file of pairs
+    my_pair_file = open('Backtrader/Pairs.txt', 'r')
+    distinct_stocks = []
+
+    # We go through all stocks in all pairs to see if they have been used before
+    for row in my_pair_file:
+        for stock in row.split():
+            if stock not in distinct_stocks:
+                distinct_stocks.append(stock)
+
+    return distinct_stocks
+
+
+# To check if the files contain the correct starting time.
+# The function will store the pairs as [priority, not priority] where priority is a list of stocks with the
+# correct start date
+def in_csv_file(start):
+
+    my_pair_file = open('Backtrader/Pairs.txt', 'r')
+    priority_list = []
+    not_priority = []
+
+    for pair in my_pair_file:
+        priority = True  # We assume that the date exists
+        stocks = pair.split()
+        for j in stocks:
+            # The path to find the stock
+            modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
+            datap = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(j)
+
+            # We open the stocks file and read the second line, which contains the first date.
+            csv_file = open(datap, 'r')
+            line = csv_file.readlines()[1]
+            date = line.split()[0]
+            date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+
+            # If the start of the .csv-file is later than our starting point for a stock, the pair is not prioritized
+            if date > start:
+                priority = False
+            csv_file.close()
+
+        if priority:
+            priority_list.append(Pair(stocks[0], stocks[1]))
+        else:
+            not_priority.append(Pair(stocks[0], stocks[1]))
+
+    my_pair_file.close()
+
+    # We write the sorted list of pairs to a .txt-file
+    total_list = priority_list + not_priority
+    store_pairs(total_list, 'Pairs2.txt')
+
+
+start_time = datetime.date(2010, 1, 1)
+in_csv_file(start_time)

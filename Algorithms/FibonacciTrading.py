@@ -4,20 +4,29 @@ import datetime
 import numpy as np
 import pandas as pd
 import pytz
-
 pd.options.mode.chained_assignment = None  # default='warn'
 
-
+'''
+Class that represents the fibonacci strategy.
+'''
 class FibonacciStrategy:
 
-    # Observer pattern stuff
+    """
+    Adds an observer to the list of observers.
+    """
     def subscribe(self, observer):
         self._observers.append(observer)
 
+    """
+    Sends signal to all observers.
+    """
     def notify_observers(self, signal: dict):
         for obs in self._observers:
             obs.notify(self, signal)
 
+    """
+    Deletes an observer from the list of observers.
+    """
     def unsubscribe(self, observer):
         self._observers.remove(observer)
 
@@ -43,6 +52,9 @@ class FibonacciStrategy:
         self.data.reset_index(drop=True, inplace=True)
         self.data['DateTime'] = pd.to_datetime(self.data['DateTime'])  # Change dtype of column DateTime to DateTime
 
+    """
+    This function calculates whether there is a buy or sell opportunity given data.
+    """
     def run(self, invested_levels, minute_data, investments):
         """
         NOTE: minute_data must be a dataframe with columns = ['DateTime', t1, t2,...tn] where t1-tn are ticker
@@ -126,7 +138,9 @@ class FibonacciStrategy:
                             invested_levels.loc[self.ratios[n]][ticker] = False
 
 
-# Method which extracts the starting index of the minute data
+"""
+Method that extracts the starting index of the minute data
+"""
 def extract_start_index(df, period: int):
     df['DateTime'] = pd.to_datetime(df['DateTime'])  # Change dtype of column DateTime to DateTime
 
@@ -141,7 +155,9 @@ def extract_start_index(df, period: int):
             start_index = i
     return start_index
 
-
+"""
+Adds the latest data to the DataFrame with historic data.
+"""
 def updateData(path, csv_df, minuteBars):
     dat = csv_df['DateTime']
     csvFrame = csv_df.reindex(sorted(csv_df.columns[1:]), axis=1)
@@ -162,7 +178,9 @@ def updateData(path, csv_df, minuteBars):
     return csvFrame
 
 
-# Adds a new row to the CSV-file
+"""
+Adds a new row to the CSV-file
+"""
 def addToCSV(path, row):
     with open(path, 'a', newline='') as f:
         writer = csv.writer(f)

@@ -1,38 +1,80 @@
-import os
-import sys
+
+import os  # Get the right pathway here
+import sys  # To find out the script name (in argv[0])
+import random
+import datetime
 
 
-# To create a .txt-file with all stocks with data
-def creating_file_with_stocks():
-    stocks = []  # Initially empty list of stocks
-
-    # To find the correct data files
+def acquire_stocks():
+    # To create the directory for which we read the ticker names.
     modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
     directory_in_str = os.path.join(modpath, 'Data/filtered_csv_data/')
     directory = os.fsencode(directory_in_str)
 
-    # We go through every file and save the name of the stock
+    # For each .csv-file, we read the stock name and append it do a list.
+    stocks = []
     for filename in os.listdir(directory):
-        stock_name = get_stock_name(filename)
-        stocks.append(stock_name)
+        x = (str(filename))
+        x = x.split('\'')[1]
+        x = x.removesuffix('.csv')
 
-    store_stocks(stocks)
-
-
-# To get the correct format of the name
-def get_stock_name(filename):
-    stock_name = str(filename)
-    stock_name = stock_name.split('\'')[1]
-    stock_name = stock_name.removesuffix('.csv')
-    return stock_name
+        stocks.append(x)
+    return stocks
 
 
-# To write stocks from the list to a .txt-file
-def store_stocks(stocks):
-    my_pair_file = open('Stocks.txt', 'w')
+def store_stocks(stocks, textfile):
+    # We open the file, write each stock on its own line
+    file = open(textfile, 'w')
     for stock in stocks:
-        my_pair_file.write(stock + "\n")
-    my_pair_file.close()
+        file.write(stock + "\n")
+    file.close()
 
 
-creating_file_with_stocks()
+def in_csv_file(start):
+
+    my_stock_file = open('StocksAll.txt', 'r')
+    priority_list = []
+    not_priority = []
+
+    for stock in my_stock_file:
+        priority = True  # We assume that the date exists
+
+        # The path to find the stock
+        modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
+        stock = stock.split()[0]
+        datap = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(stock)
+        print(stock)
+
+        # We open the stocks file and read the second line, which contains the first date.
+        csv_file = open(datap, 'r')
+        line = csv_file.readlines()[1]
+        date = line.split()[0]
+        date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+
+        # If the start of the .csv-file is later than our starting point for a stock, the pair is not prioritized
+        if date > start:
+            priority = False
+        csv_file.close()
+
+        if priority:
+            priority_list.append(stock)
+        else:
+            not_priority.append(stock)
+
+    my_stock_file.close()
+    random.shuffle(priority_list)
+    random.shuffle(not_priority)
+
+    # We write the sorted list of pairs to a .txt-file
+    total_list = priority_list + not_priority
+    store_stocks(total_list, 'StocksPrioritized.txt')
+
+
+def main():
+    start_time = datetime.date(2007, 9, 7)
+    stocks = acquire_stocks()
+    store_stocks(stocks, 'StocksAll.txt')
+    in_csv_file(start_time)
+
+
+main()

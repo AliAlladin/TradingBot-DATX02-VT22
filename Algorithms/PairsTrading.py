@@ -114,12 +114,6 @@ class PairsTrading:
                                        'shares_stock2': shares_stock2,
                                        'active': True})
 
-                    '''
-                    pairs['long'][i] = False
-                    pairs['shares_stock1'][i] = shares_stock1
-                    pairs['shares_stock2'][i] = shares_stock2
-                    pairs['active'][i] = True
-                    '''
 
                 # The Z-score is unusually low, we buy stock1 and sell stock2
                 elif z_score < -self.distance:
@@ -142,12 +136,6 @@ class PairsTrading:
                                        'shares_stock2': shares_stock2,
                                        'active': True})
 
-                    '''
-                    pairs['long'][i] = True
-                    pairs['shares_stock1'][i] = shares_stock1
-                    pairs['shares_stock2'][i] = shares_stock2
-                    pairs['active'][i] = True
-                    '''
 
             # We have a position on a pair and therefore examine whether to close it
             else:
@@ -172,11 +160,6 @@ class PairsTrading:
                                            'shares_stock2': None,
                                            'active': False})
 
-                        '''
-                        pairs['shares_stock1'][i] = None
-                        pairs['shares_stock2'][i] = None
-                        pairs['active'][i] = False
-                        '''
 
                 else:
                     if z_score < 0:
@@ -197,9 +180,3 @@ class PairsTrading:
                                            'shares_stock1': None,
                                            'shares_stock2': None,
                                            'active': False})
-                        
-                        '''
-                        pairs['shares_stock1'][i] = None
-                        pairs['shares_stock2'][i] = None
-                        pairs['active'][i] = False
-                        '''

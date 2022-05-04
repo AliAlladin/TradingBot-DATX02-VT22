@@ -10,13 +10,17 @@ from DataProvider import live_data_provider
 from Database import handleDataFib
 from NotificationHandler import NotificationBot
 
-
+'''
+Observer-class for the strategy (observer pattern).
+'''
 class StrategyObserver:
     def __init__(self, observable):
         observable.subscribe(self)
 
+    '''
+    Sends the order to the broker, tells database_handler to save order information and tells NotificationBot to notify.
+    '''
     def notify(self, observable, signal: dict):
-
         try:
             if signal['signal'] == "BUY":
                 order_id = broker.buy(signal['symbol'], (signal['volume']))  # Send buy order to broker
@@ -49,19 +53,24 @@ class StrategyObserver:
         except Exception as e:
             print(e)
 
-
+'''
+Observer-class for the live data.
+'''
 class DataObserver:
     def __init__(self, observable):
         observable.subscribe(self)
 
+    '''
+    Sends the latest stock price to the database_handler for it to save it. 
+    '''
     def notify(self, update):
         database_handler.sqlUpdatePrice(update['ticker'][0], update['price'][0])
 
-
+'''
+main method in which program runs
+'''
 def main():
-    # csv = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'Algorithms/testingData.csv'))
 
-    # TODO: Add a csv-file to the MainSystem folder and name it "final.csv"
     pathToCSV = os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'MainSystem/final.csv')
 
     global broker

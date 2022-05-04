@@ -1,20 +1,23 @@
 import os
 import sys
 from time import sleep
-
 import pandas as pd
-
 from Algorithms import PairsTrading
 from Alpaca import AlpacaBroker
 from DataProvider import live_data_provider, hist_data_provider
 from Database import handleData
 from NotificationHandler import NotificationBot
 
-
+'''
+Observer-class for the strategy (observer pattern).
+'''
 class StrategyObserver:
     def __init__(self, observable):
         observable.subscribe(self)
 
+    '''
+    Sends the order to the broker, tells database_handler to save order information and tells NotificationBot to notify.
+    '''
     def notify(self, observable, signal: dict):
         try:
             if signal['signal'] == "BUY":
@@ -48,17 +51,25 @@ class StrategyObserver:
             print(e)
 
 
+'''
+Observer-class for the live data.
+'''
 class DataObserver:
     def __init__(self, observable):
         observable.subscribe(self)
 
+    '''
+    Sends the latest stock price to the database_handler for it to save it. 
+    '''
     def notify(self, update):
         database_handler.sqlUpdatePrice(update['ticker'][0], update['price'][0])
 
 
+'''
+main method in which program runs
+'''
 def main():
     pairs = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'MainSystem/Pairstorun.txt'),
-
                         sep=" ",
                         header=None)
 

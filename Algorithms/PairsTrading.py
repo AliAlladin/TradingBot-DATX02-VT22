@@ -13,10 +13,15 @@ a sell/buy sigal will be passed back to Main.
 
 
 class PairsTrading:
-
+    """
+    Adds an observer to the list of observers.
+    """
     def subscribe(self, observer):
         self._observers.append(observer)
 
+    """
+    Sends signal to all observers.
+    """
     def notify_observers(self, signal: dict):
         for obs in self._observers:
             obs.notify(self, signal)
@@ -25,6 +30,9 @@ class PairsTrading:
         for obs in self._observers:
             obs.update_info(self, info)
 
+    """
+    Deletes an observer from the list of observers.
+    """
     def unsubscribe(self, observer):
         self._observers.remove(observer)
 
@@ -37,6 +45,9 @@ class PairsTrading:
         self.period = period
         self.invested_amount = invested_amount
 
+    """
+    This function calculates whether there is a buy or sell opportunity given data.
+    """
     def run(self, pairs: pd.DataFrame, latest_prices: pd.DataFrame, hist_prices: pd.DataFrame):
         for i in range(len(pairs.index)):
 

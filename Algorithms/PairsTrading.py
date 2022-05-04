@@ -4,39 +4,56 @@ import statsmodels.api as sm
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
-'''
-This class receives a dataframe containing the latest prices for each ticker.
-It will go through each ticker, find its pair and perform the strategy on that pair in order
-to check whether or not we should sell or buy a either of the stocks of that pair. In that case,
-a sell/buy sigal will be passed back to Main.
-'''
-
 
 class PairsTrading:
     """
-    Adds an observer to the list of observers.
+    This class receives a dataframe containing the latest prices for each ticker.
+    It will go through each ticker, find its pair and perform the strategy on that pair in order
+    to check whether or not we should sell or buy a either of the stocks of that pair. In that case,
+    a sell/buy sigal will be passed back to Main.
     """
-    def subscribe(self, observer):
+
+    def subscribe(self, observer) -> None:
+        """
+        Adds an observer to the list of observers.
+        :param observer: Observer that should be attached to the observable.
+        :return: None
+        """
         self._observers.append(observer)
 
-    """
-    Sends signal to all observers.
-    """
-    def notify_observers(self, signal: dict):
+    def notify_observers(self, signal: dict) -> None:
+        """
+        Sends signal to all observers.
+        :param signal: The signal that should be sent to observers.
+        :return: None
+        """
         for obs in self._observers:
             obs.notify(self, signal)
 
-    def update_pairs(self, info: dict):
+    def update_pairs(self, info: dict) -> None:
+        """
+        Sends information to be updated to observers.
+        :param info: The new information.
+        :return: None
+        """
         for obs in self._observers:
             obs.update_info(self, info)
 
-    """
-    Deletes an observer from the list of observers.
-    """
     def unsubscribe(self, observer):
+        """
+        Deletes an observer from the list of observers.
+        :param observer: The observer that should be removed from observers.
+        :return: None
+        """
         self._observers.remove(observer)
 
-    def __init__(self, distance, period, invested_amount):
+    def __init__(self, distance: int, period: int, invested_amount: int):
+        """
+        Constructor for the class.
+        :param distance: -
+        :param period: -
+        :param invested_amount: Amount to be invested in each trade.
+        """
 
         self._observers = []  # List of observers to be notified
 
@@ -45,10 +62,14 @@ class PairsTrading:
         self.period = period
         self.invested_amount = invested_amount
 
-    """
-    This function calculates whether there is a buy or sell opportunity given data.
-    """
-    def run(self, pairs: pd.DataFrame, latest_prices: pd.DataFrame, hist_prices: pd.DataFrame):
+    def run(self, pairs: pd.DataFrame, latest_prices: pd.DataFrame, hist_prices: pd.DataFrame) -> None:
+        """
+        This function calculates whether there is a buy or sell opportunity given data.
+        :param pairs: DataFrame with the pairs of stocks.
+        :param latest_prices: DataFrame with the latest price of each stock.
+        :param hist_prices: DataFrame with end-of-day for each stock.
+        :return: None
+        """
         for i in range(len(pairs.index)):
 
             # Fetches a pair and the latest prices for each of the tickers
@@ -114,7 +135,6 @@ class PairsTrading:
                                        'shares_stock2': shares_stock2,
                                        'active': True})
 
-
                 # The Z-score is unusually low, we buy stock1 and sell stock2
                 elif z_score < -self.distance:
 
@@ -135,7 +155,6 @@ class PairsTrading:
                                        'shares_stock1': shares_stock1,
                                        'shares_stock2': shares_stock2,
                                        'active': True})
-
 
             # We have a position on a pair and therefore examine whether to close it
             else:
@@ -159,7 +178,6 @@ class PairsTrading:
                                            'shares_stock1': None,
                                            'shares_stock2': None,
                                            'active': False})
-
 
                 else:
                     if z_score < 0:

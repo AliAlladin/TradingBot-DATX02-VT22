@@ -4,7 +4,7 @@ from time import sleep
 import pandas as pd
 from Algorithms import PairsTrading
 from Alpaca import AlpacaBroker
-from DataProvider import live_data_provider, hist_data_provider
+from DataProvider import live_data_provider, HistDataProvider
 from Database import handleData
 from NotificationHandler import NotificationBot
 
@@ -101,7 +101,7 @@ def main():
         tickers.add(pairs['t1'][i])
         tickers.add(pairs['t2'][i])
 
-    hist_data = hist_data_provider.end_of_day(list(tickers), 30)
+    hist_data = HistDataProvider.end_of_day(list(tickers), 30)
 
     while True:
         if broker.market_is_open():
@@ -124,7 +124,7 @@ def main():
                 NotificationBot.sendNotification("Starting")
                 live_data_provider.marketOpen()  # Unlock live-data thread
                 sleep(60)  # Wait one minute
-                hist_data = hist_data_provider.end_of_day(list(tickers), 30)  # Update historic data
+                hist_data = HistDataProvider.end_of_day(list(tickers), 30)  # Update historic data
             except Exception as e:
                 print(e)
 

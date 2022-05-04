@@ -21,6 +21,10 @@ class PairsTrading:
         for obs in self._observers:
             obs.notify(self, signal)
 
+    def update_pairs(self, info: dict):
+        for obs in self._observers:
+            obs.update_info(self, info)
+
     def unsubscribe(self, observer):
         self._observers.remove(observer)
 
@@ -92,10 +96,19 @@ class PairsTrading:
                     self.notify_observers({"signal": "BUY", "symbol": pairs['t2'][i], "volume": shares_stock2})
 
                     # Description of our position
+                    self.update_pairs({'t1': pairs['t1'][i],
+                                       't2': pairs['t2'][i],
+                                       'long': False,
+                                       'shares_stock1': shares_stock1,
+                                       'shares_stock2': shares_stock2,
+                                       'active': True})
+
+                    '''
                     pairs['long'][i] = False
                     pairs['shares_stock1'][i] = shares_stock1
                     pairs['shares_stock2'][i] = shares_stock2
                     pairs['active'][i] = True
+                    '''
 
                 # The Z-score is unusually low, we buy stock1 and sell stock2
                 elif z_score < -self.distance:
@@ -111,10 +124,19 @@ class PairsTrading:
                     self.notify_observers({"signal": "BUY", "symbol": pairs['t1'][i], "volume": shares_stock1})
 
                     # Description of our position
+                    self.update_pairs({'t1': pairs['t1'][i],
+                                       't2': pairs['t2'][i],
+                                       'long': True,
+                                       'shares_stock1': shares_stock1,
+                                       'shares_stock2': shares_stock2,
+                                       'active': True})
+
+                    '''
                     pairs['long'][i] = True
                     pairs['shares_stock1'][i] = shares_stock1
                     pairs['shares_stock2'][i] = shares_stock2
                     pairs['active'][i] = True
+                    '''
 
             # We have a position on a pair and therefore examine whether to close it
             else:
@@ -132,9 +154,18 @@ class PairsTrading:
                             {"signal": "BUY", "symbol": pairs['t2'][i], "volume": pairs['shares_stock2'][i]})
 
                         # We close the position in the pair
+                        self.update_pairs({'t1': pairs['t1'][i],
+                                           't2': pairs['t2'][i],
+                                           'long': '%s',
+                                           'shares_stock1': None,
+                                           'shares_stock2': None,
+                                           'active': False})
+
+                        '''
                         pairs['shares_stock1'][i] = None
                         pairs['shares_stock2'][i] = None
                         pairs['active'][i] = False
+                        '''
 
                 else:
                     if z_score < 0:
@@ -149,6 +180,15 @@ class PairsTrading:
                             {"signal": "SELL", "symbol": pairs['t2'][i], "volume": pairs['shares_stock2'][i]})
 
                         # We close the position in the pair
+                        self.update_pairs({'t1': pairs['t1'][i],
+                                           't2': pairs['t2'][i],
+                                           'long': None,
+                                           'shares_stock1': None,
+                                           'shares_stock2': None,
+                                           'active': False})
+                        
+                        '''
                         pairs['shares_stock1'][i] = None
                         pairs['shares_stock2'][i] = None
                         pairs['active'][i] = False
+                        '''

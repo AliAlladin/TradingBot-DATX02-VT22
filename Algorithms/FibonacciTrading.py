@@ -4,41 +4,54 @@ import datetime
 import numpy as np
 import pandas as pd
 import pytz
+
 pd.options.mode.chained_assignment = None  # default='warn'
 
-'''
-Class that represents the fibonacci strategy.
-'''
-class FibonacciStrategy:
 
+class FibonacciStrategy:
     """
-    Adds an observer to the list of observers.
+    Class that represents the fibonacci strategy.
     """
-    def subscribe(self, observer):
+
+    def subscribe(self, observer) -> None:
+        """
+        Adds an observer to the list of observers.
+        :param observer: Observer that should be attached to the observable.
+        :return: None
+        """
         self._observers.append(observer)
 
-    """
-    Sends signal to all observers.
-    """
-    def notify_observers(self, signal: dict):
+    def notify_observers(self, signal: dict) -> None:
+        """
+        Sends signal to all observers.
+        :param signal: The signal that should be sent to observers.
+        :return: None
+        """
         for obs in self._observers:
             obs.notify(self, signal)
 
-    """
-    Deletes an observer from the list of observers.
-    """
-    def unsubscribe(self, observer):
+    def unsubscribe(self, observer) -> None:
+        """
+        Deletes an observer from the list of observers.
+        :param observer: The observer that should be removed from observers.
+        :return: None
+        """
         self._observers.remove(observer)
 
-    def __init__(self, pathToCSV):
+    def __init__(self, path_to_csv: str):
+        """
+        Constructor for the class.
+        :param path_to_csv: Path to the csv file where the histric data is saved.
+        """
+
+        self._observers = []  # List of observers to be notified
+        self.csvPath = path_to_csv
+
         """
         NOTE: csv_data must be a dataframe with columns = ['DateTime', t1, t2,...tn] where t1-tn are ticker symbols with
         only closing/current prices
         """
-        self._observers = []  # List of observers to be notified
-        self.csvPath = pathToCSV
-
-        csv_data = pd.read_csv(pathToCSV)  # Convert the csv-file to a dataframe
+        csv_data = pd.read_csv(path_to_csv)  # Convert the csv-file to a dataframe
 
         # Parameters
         self.invested_amount = 10000  # The amount for which we invest
@@ -53,35 +66,39 @@ class FibonacciStrategy:
         self.data['DateTime'] = pd.to_datetime(self.data['DateTime'])  # Change dtype of column DateTime to DateTime
 
     """
-    This function calculates whether there is a buy or sell opportunity given data.
     """
-    def run(self, invested_levels, minute_data, investments):
+
+    def run(self, invested_levels: pd.DataFrame, minute_data: pd.DataFrame, investments: pd.DataFrame) -> None:
         """
-        NOTE: minute_data must be a dataframe with columns = ['DateTime', t1, t2,...tn] where t1-tn are ticker
-        symbols with closing prices only in order for the concat to be successful.
+        This function calculates whether there is a buy or sell opportunity given data.
+        :param invested_levels: A DataFrame with information about which Fibonacci levels each share is invested in.
+        :param minute_data: Latest stock prices. Must be a dataframe with columns = ['DateTime', t1, t2,...tn] where
+                            t1-tn are ticker symbols with closing prices only in order for the concat to be successful.
+        :param investments: DataDrame with the number of stocks bought in each share.
+        :return: None
         """
 
         fibonacci_levels = []
         uptrend = False
         self.data.drop(0, inplace=True, axis=0)  # Remove the first row of the dataframe
         self.data.reset_index(inplace=True, drop=True)  # Resets index of dataframe
-        self.data = updateData(self.csvPath, self.data, minute_data)
+        self.data = update_data(self.csvPath, self.data, minute_data)
 
         self.data['DateTime'] = pd.to_datetime(self.data['DateTime'])  # Change dtype of column DateTime to DateTime
 
         for i in range(1, (len(self.data.columns))):  # Iterate through the tickers of the dataframe
 
             # Extracts ticker data for a specific ticker
-            relevantData = self.data[['DateTime', self.data.columns[i]]].copy()
-            ticker = relevantData.columns[1]
+            relevant_data = self.data[['DateTime', self.data.columns[i]]].copy()
+            ticker = relevant_data.columns[1]
 
-            relevantData[ticker] = pd.to_numeric(relevantData[ticker])  # Change dtype of column DateTime to DateTime
+            relevant_data[ticker] = pd.to_numeric(relevant_data[ticker])  # Change dtype of column DateTime to DateTime
 
-            price_now = relevantData.iloc[-1, 1]  # Latest recorded price of the current ticker
-            max_point = relevantData.loc[
-                relevantData[ticker].astype(np.float64).idxmax()]  # Date,value of the highest recorded price
-            min_point = relevantData.loc[
-                relevantData[ticker].astype(np.float64).idxmin()]  # Date,value of the lowest recorded price
+            price_now = relevant_data.iloc[-1, 1]  # Latest recorded price of the current ticker
+            max_point = relevant_data.loc[
+                relevant_data[ticker].astype(np.float64).idxmax()]  # Date,value of the highest recorded price
+            min_point = relevant_data.loc[
+                relevant_data[ticker].astype(np.float64).idxmin()]  # Date,value of the lowest recorded price
 
             # Check dates fo if we are in an uptrend or downtrend
             if max_point[0] > min_point[0]:  # Note that the variables hold both a datetime type and int type
@@ -103,7 +120,8 @@ class FibonacciStrategy:
                         number_of_stocks_before = investments.loc[(investments.symbol == ticker), 'volume'].tolist()[0]
                         number_of_stocks = self.invested_amount / price_now
 
-                        investments.loc[(investments.symbol == ticker), 'volume'] = number_of_stocks_before + number_of_stocks
+                        investments.loc[
+                            (investments.symbol == ticker), 'volume'] = number_of_stocks_before + number_of_stocks
 
                         self.notify_observers({"signal": "BUY", "symbol": ticker, "volume": number_of_stocks})
 
@@ -138,10 +156,13 @@ class FibonacciStrategy:
                             invested_levels.loc[self.ratios[n]][ticker] = False
 
 
-"""
-Method that extracts the starting index of the minute data
-"""
-def extract_start_index(df, period: int):
+def extract_start_index(df: pd.DataFrame, period: int) -> int:
+    """
+    Method that extracts the starting index of the minute data.
+    :param df: The DataFrame from which the index should be extracted.
+    :param period: Length of period.
+    :return: Index of where the period starts in the DataFrame.
+    """
     df['DateTime'] = pd.to_datetime(df['DateTime'])  # Change dtype of column DateTime to DateTime
 
     start_index = 0
@@ -155,33 +176,41 @@ def extract_start_index(df, period: int):
             start_index = i
     return start_index
 
-"""
-Adds the latest data to the DataFrame with historic data.
-"""
-def updateData(path, csv_df, minuteBars):
+
+def update_data(path: str, csv_df: pd.DataFrame, minute_bars: pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds the latest data to the DataFrame with historic data.
+    :param path: Path to CSV-file.
+    :param csv_df: CSV-file as DataFrame.
+    :param minute_bars: DataFrame with latest stock prices.
+    :return: Updated DataFrame with latest stock prices.
+    """
     dat = csv_df['DateTime']
-    csvFrame = csv_df.reindex(sorted(csv_df.columns[1:]), axis=1)
-    csvFrame.insert(0, 'DateTime', dat)
+    csv_frame = csv_df.reindex(sorted(csv_df.columns[1:]), axis=1)
+    csv_frame.insert(0, 'DateTime', dat)
 
-    minuteBars.sort_values(by='Symbol', inplace=True)
-    emptyRow = [0] * len(csvFrame.columns)
+    minute_bars.sort_values(by='Symbol', inplace=True)
+    empty_row = [0] * len(csv_frame.columns)
     new_timezone = pytz.timezone("US/Eastern")
-    csvFrame.loc[len(csv_df.index)] = emptyRow
-    csvFrame.iloc[-1, 0] = datetime.datetime.now(new_timezone).strftime("%Y-%m-%d %H:%M:%S")
+    csv_frame.loc[len(csv_df.index)] = empty_row
+    csv_frame.iloc[-1, 0] = datetime.datetime.now(new_timezone).strftime("%Y-%m-%d %H:%M:%S")
 
-    for i in range(1, (len(csvFrame.columns))):
-        csvFrame.iloc[-1, i] = minuteBars.iloc[i - 1]['Price']
+    for i in range(1, (len(csv_frame.columns))):
+        csv_frame.iloc[-1, i] = minute_bars.iloc[i - 1]['Price']
 
     # Converts last row of df to a list and sends it as a parameter to addToCSV()
-    addToCSV(path, csvFrame.iloc[-1].tolist())
+    add_to_csv(path, csv_frame.iloc[-1].tolist())
 
-    return csvFrame
+    return csv_frame
 
 
-"""
-Adds a new row to the CSV-file
-"""
-def addToCSV(path, row):
+def add_to_csv(path: str, row) -> None:
+    """
+    Adds a new row to the CSV-file
+    :param path: Path to CSV-file.
+    :param row: Row that should be added (as list).
+    :return: None
+    """
     with open(path, 'a', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(row)

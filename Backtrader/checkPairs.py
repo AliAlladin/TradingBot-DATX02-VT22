@@ -13,9 +13,8 @@ from statsmodels.regression.rolling import RollingOLS
 
 
 def checkPair(pairs):
-    start = '2020-01-08'
-    end = '2022-01-06'
-    window = 252
+    start = '2008-01-08'
+    end = '2009-01-08'
     data = pd.DataFrame()
     size = len(pairs)
     newPairs = []
@@ -38,7 +37,7 @@ def checkPair(pairs):
         stock2data = data[pair.stock2]
         p1 = coint(stock1data, stock2data)[1]
         pValues.append(p1)
-        #results = loadResults()
+        results = loadResults()
 
         for level in Plevels:
             if p1 < level:
@@ -55,7 +54,7 @@ def checkPair(pairs):
     for pair in newPairs:
         my_pair_file.write(pair.stock1+" "+pair.stock2+ " "+ pair.p1 + "\n")
     my_pair_file.close()
-    #plotResults(pValues, results)
+    plotResults(pValues, results)
     mean = np.mean(pValues)
     print('mean: ', mean)
     print(futureP)
@@ -79,17 +78,47 @@ def loadResults():
     file = open('resPair.txt', 'r')
     res = []
     for line in file:
-        res.append(float(line)-100000)
+        res.append(float(line.rstrip())-100000)
     return res
 
 def plotResults(pValues, results):
+    plotsize=13
     plt.scatter(pValues, results)
     linex = np.linspace(0, 1, 100)
     liney = np.linspace(0, 0, 100)
-    plt.plot(linex, liney, 'r')
-    plt.xlabel('p-värde')
-    plt.ylabel('Avkastning (USD)')
+    plt.plot(linex, liney, 'black', linestyle = 'dashed')
+    plt.xlabel('p-värde', fontsize = plotsize)
+    plt.ylabel('Avkastning ($)', fontsize = plotsize)
+    plt.xticks(size=plotsize)
+    plt.yticks(size=plotsize)
     plt.show()
 
+def plotAll():
+    plotsize = 13
+    file_res = open('resPairAll.txt', 'r')
+    file_p = open('AllPVal.txt', 'r')
+    res = []
+    p = []
+    for line in file_res:
+        res.append(float(line) - 100000)
+    for line in file_p:
+        p.append(float(line))
+    plt.scatter(p, res)
+    linex = np.linspace(0, 1, 100)
+    liney = np.linspace(0, 0, 100)
+    plt.plot(linex, liney, 'black', linestyle ='dashed')
+    plt.xlabel('p-värde', fontsize=plotsize)
+    plt.ylabel('Avkastning ($)', fontsize=plotsize)
+    plt.xticks(size=plotsize)
+    plt.yticks(size=plotsize)
+    reg = sm.OLS(res,sm.add_constant(p)).fit()
+    print(reg.summary())
+    beta = reg.params[1]
+    alpha = reg.params[0]
+    y = alpha + linex *beta
+    plt.plot(linex,y,'g')
+    plt.show()
+    #18 configure subplots
 
+#plotAll()
 run()

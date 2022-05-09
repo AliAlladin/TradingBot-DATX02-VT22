@@ -1,14 +1,14 @@
 import datetime
 import os
 import random
-import sys  # To find out the script name (in argv[0])
-import time
 from datetime import timedelta
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
+import sys  # To find out the script name (in argv[0])
+import time
 import yfinance as yf
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.stattools import coint

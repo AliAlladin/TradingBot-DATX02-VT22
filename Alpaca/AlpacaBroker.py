@@ -1,6 +1,7 @@
-import time
 import alpaca_trade_api as tradeapi
 import pandas as pd
+import time
+
 from Alpaca.Config import *
 
 
@@ -8,6 +9,7 @@ class AlpacaBroker:
     """
     Wrapper class for the alpaca_trade_api library.
     """
+
     def __init__(self):
         """
         Constructor for the class.

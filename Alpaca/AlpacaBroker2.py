@@ -1,7 +1,6 @@
-import time
-
 import alpaca_trade_api as tradeapi
 import pandas as pd
+import time
 from Alpaca.Config2 import *
 
 

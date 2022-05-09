@@ -1,8 +1,8 @@
-
-import os  # Get the right pathway here
-import sys  # To find out the script name (in argv[0])
-import random
 import datetime
+import os  # Get the right pathway here
+import random
+
+import sys  # To find out the script name (in argv[0])
 
 
 def acquire_stocks():
@@ -31,7 +31,6 @@ def store_stocks(stocks, textfile):
 
 
 def in_csv_file(start):
-
     my_stock_file = open('StocksAll.txt', 'r')
     priority_list = []
     not_priority = []

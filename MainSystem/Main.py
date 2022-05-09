@@ -1,8 +1,8 @@
 import os
-import sys
-from time import sleep
 
 import pandas as pd
+import sys
+from time import sleep
 
 from Algorithms import PairsTrading
 from Alpaca import AlpacaBroker

@@ -1,11 +1,11 @@
 import datetime
 import os
-
-import backtrader.analyzers as btanalyzers
-import pandas as pd
 import sys  # To find out the script name (in argv[0])
 # import qgrid
 import time
+
+import backtrader.analyzers as btanalyzers
+import pandas as pd
 
 pd.options.mode.chained_assignment = None
 

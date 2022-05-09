@@ -130,8 +130,8 @@ class Strategy_pairGen(bt.Strategy):
                 result = sm.OLS(relevant_data_stock1Log, sm.add_constant(relevant_data_stock2Log)).fit()
                 beta = result.params[1]
                 spread = relevant_data_stock1Log - beta * relevant_data_stock2Log
-                # for i in range(0, self.period):
-                #   spread.append(relevant_data_stock1Log[i] - beta * relevant_data_stock2Log[i])
+                #for i in range(0, self.period):
+                 #   spread.append(relevant_data_stock1Log[i] - beta * relevant_data_stock2Log[i])
 
                 # Calculation of the Z-score
                 mean = np.mean(spread)

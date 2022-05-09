@@ -3,11 +3,16 @@ import json
 import requests
 import sys
 
-# Replace with the generated webhock URL
+# Replace with the generated webhock URL. Not to be published online.
 url = "___________________________________________________________"
 
 
 def sendNotification(message):
+    '''
+    This method is responsible for sending out messages to a channel in Slack, specified by a specific URL-address.
+    :param message: The message which is to be sent
+    :return: returns a error message if the message could not be sent
+    '''
     notification = message
     slack_data = {
         "username": "NotBot",

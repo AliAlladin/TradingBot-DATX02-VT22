@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS Buy(
     buyTime TIMESTAMP NOT NULL,
     price DECIMAL NOT NULL,
     volume DECIMAL NOT NULL
-
+                              
 );
 
 CREATE TABLE IF NOT EXISTS Sell(

@@ -68,8 +68,8 @@ Detta är ett exempel på hur du installerar bibliotek
    ```
 
 5. Ladda in CSV-filer med historisk aktiedata från First Rate Data LLC som är konverterade från TXT till CSV. 
-6. 
-7. Ladda in en CSV-fil med historisk data för aktier som ska handlas i real tid i följande format:
+
+6. Ladda in en CSV-fil med historisk data för aktier som ska handlas i real tid i följande format:
 <img src="https://i.imgur.com/I4bdHyA.png" width="750" height="500">
 
 <p align="right">(<a href="#top">Tillbaka till toppen</a>)</p>

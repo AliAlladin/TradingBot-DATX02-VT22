@@ -38,25 +38,25 @@ class StrategyObserver:
                     return
                 while broker.get_order(order_id)['filled_at'] is None:  # Wait for order to be filled
                     continue
-                database_handler.sqlBuy(signal['symbol'],
-                                        database_handler.sqlGetPrice(signal['symbol']),
-                                        round(broker.get_order(order_id)['qty']))
+                database_handler.sql_buy(signal['symbol'],
+                                         database_handler.sql_get_price(signal['symbol']),
+                                         round(broker.get_order(order_id)['qty']))
             elif signal['signal'] == "SELL":
                 order_id = broker.sell(signal['symbol'], signal['volume'])  # Send sell order to broker
                 if order_id is None:
                     return
                 while broker.get_order(order_id)['filled_at'] is None:  # Wait for order to be filled
                     continue
-                print(database_handler.sqlGetPrice(signal['symbol']))
-                database_handler.sqlSell(signal['symbol'],
-                                         database_handler.sqlGetPrice(signal['symbol']),
-                                         round(broker.get_order(order_id)['qty']))
+                print(database_handler.sql_get_price(signal['symbol']))
+                database_handler.sql_sell(signal['symbol'],
+                                          database_handler.sql_get_price(signal['symbol']),
+                                          round(broker.get_order(order_id)['qty']))
 
             order = broker.get_order(order_id)
             message = "{} {} {} at {}$".format(order['type'],
                                                order['qty'],
                                                order['symbol'],
-                                               database_handler.sqlGetPrice(signal['symbol']))
+                                               database_handler.sql_get_price(signal['symbol']))
             print(message)
             NotificationBot.sendNotification('Fib: ' + message)
 
@@ -82,7 +82,7 @@ class DataObserver:
         :param update: Dictionary with new price.
         :return: None
         """
-        database_handler.sqlUpdatePrice(update['ticker'][0], update['price'][0])
+        database_handler.sql_update_price(update['ticker'][0], update['price'][0])
 
 
 def main():
@@ -104,8 +104,8 @@ def main():
     ratios = pd.DataFrame(['0.382', '0.500', '0.618'])
     tickers.columns = ['ticker']
     tickers.sort_values(by='ticker', inplace=True)
-    database_handler.sqlLoadFib(ratios, tickers)
-    database_handler.sqlLoadInvestments(tickers)
+    database_handler.sql_load_fib(ratios, tickers)
+    database_handler.sql_load_investments(tickers)
 
     global data_provider
     data_provider = live_data_provider.liveDataStream(2, "fib_data", "../MainSystem/Stockstorun.txt")
@@ -120,17 +120,17 @@ def main():
     while True:
         if broker.market_is_open():
             print("Running")
-            latest_price = database_handler.sqlGetAllPrices()  # Get latest prices from database
+            latest_price = database_handler.sql_get_all_prices()  # Get latest prices from database
 
             if len(latest_price) == 40:
                 latest_price.drop(latest_price.index[latest_price['Symbol'] == 'TLSNY'], inplace=True)
                 latest_price.drop(latest_price.index[latest_price['Symbol'] == 'AZN'], inplace=True)
                 latest_price.reset_index(inplace=True, drop=True)
-                dataFrame = database_handler.sqlGetSaved()
-                investments = database_handler.sqlGetInvestments()
+                dataFrame = database_handler.sql_get_saved()
+                investments = database_handler.sql_get_investments()
                 strategy.run(dataFrame, latest_price, investments)  # Run strategy
-                database_handler.sqlUpdateFib(dataFrame)
-                database_handler.sqlUpdateInvestments(investments)
+                database_handler.sql_update_fib(dataFrame)
+                database_handler.sql_update_investments(investments)
                 sleep(60)
             else:
                 sleep(60)  # Wait one minute
@@ -139,10 +139,10 @@ def main():
             try:
                 NotificationBot.sendNotification('Fib: ' + "Portfolio value: {}".format(broker.get_portfolio_value()))
                 NotificationBot.sendNotification('Fib: ' + "Going to sleep")
-                live_data_provider.marketClosed()  # Lock live-data thread
+                live_data_provider.market_closed()  # Lock live-data thread
                 broker.wait_for_market_open()  # Send program to sleep until market opens.
                 NotificationBot.sendNotification('Fib: ' + "Starting")
-                live_data_provider.marketOpen()  # Unlock live-data thread
+                live_data_provider.market_open()  # Unlock live-data thread
                 sleep(60)  # Wait one minute
             except Exception as e:
                 print(e)

@@ -8,6 +8,7 @@ class DatabaseHandler:
     This class sets up a connection to a postgres server on post 5432 and creates all tables, views and queries for
     a database that saves information for the pairs trading strategy.
     """
+
     def __init__(self):
         """
         Constructor for the class that sets up a connection to the database server and sets up required tables
@@ -47,7 +48,7 @@ class DatabaseHandler:
         self.conn.commit()
         print("views created")
 
-    def insertAndCommitQuery(self, stockTicker: str, price: float, volume: float, query: str):
+    def insert_and_commit_query(self, stockTicker: str, price: float, volume: float, query: str):
         """
         Inserts values into a query and executes to so that it is saved on the server
         :param stockTicker: string with stock name
@@ -62,7 +63,7 @@ class DatabaseHandler:
         self.cursor.execute(query)
         self.conn.commit()
 
-    def sqlBuy(self, stockTicker: str, price: float, volume: float):
+    def sql_buy(self, stockTicker: str, price: float, volume: float):
         """
         Saves information to the server if the system buys a stock
         :param stockTicker: string with stock name
@@ -71,10 +72,10 @@ class DatabaseHandler:
         :return: None
         """
         query = "INSERT INTO Buy VALUES (DEFAULT,a1,current_timestamp ,a2,a3)"
-        self.insertAndCommitQuery(stockTicker, price, volume, query)
+        self.insert_and_commit_query(stockTicker, price, volume, query)
 
     # inserts into sell
-    def sqlSell(self, stockTicker: str, price: float, volume: float):
+    def sql_sell(self, stockTicker: str, price: float, volume: float):
         """
         Saves information to the server if the system sells a stock
         :param stockTicker: string with stock name
@@ -83,10 +84,10 @@ class DatabaseHandler:
         :return: None
         """
         query = "INSERT INTO Sell VALUES (DEFAULT,a1,current_timestamp ,a2,a3)"
-        self.insertAndCommitQuery(stockTicker, price, volume, query)
+        self.insert_and_commit_query(stockTicker, price, volume, query)
 
     # inserts into blank
-    def sqlShort(self, stockTicker: str, price: float, volume: float):
+    def sql_short(self, stockTicker: str, price: float, volume: float):
         """
         Saves information to the server if the system shorts a stock
         :param stockTicker: string with stock name
@@ -95,10 +96,10 @@ class DatabaseHandler:
         :return: None
         """
         query = "INSERT INTO Short VALUES (DEFAULT,a1,current_timestamp ,a2,a3)"
-        self.insertAndCommitQuery(stockTicker, price, volume, query)
+        self.insert_and_commit_query(stockTicker, price, volume, query)
 
     # inserts into pairs
-    def sqlPairs(self, stockTicker1: str, stockTicker2: str, standardDiv: float):
+    def sql_pairs(self, stockTicker1: str, stockTicker2: str, standardDiv: float):
         """
         Saves all the pairs in pair trading
         :param stockTicker1: stock name
@@ -113,7 +114,7 @@ class DatabaseHandler:
         self.cursor.execute(query)
         self.conn.commit()
 
-    def sqlUpdatePrice(self, stockTicker: str, price: float):
+    def sql_update_price(self, stockTicker: str, price: float):
         """
          Creates a table PriceF if it doesnt exist that saves the prices of all the stocks that are needed in fibonacci
          :param stockTicker: name of a stock
@@ -131,7 +132,7 @@ class DatabaseHandler:
             print(stockTicker)
             print(e)
 
-    def sqlGetAllPrices(self):
+    def sql_get_all_prices(self):
         """
         Returns all the values in PriceF which include stock names and the most recent price of that stock
         :return: Dataframe with all prices of all stocks in the database
@@ -142,9 +143,9 @@ class DatabaseHandler:
             return pd.DataFrame.from_records(self.cursor.fetchall(), columns=['Symbol', 'Price'])
         except Exception as e:
             print(e)
-            return self.sqlGetAllPrices()
+            return self.sql_get_all_prices()
 
-    def sqlGetPrice(self, symbol: str):
+    def sql_get_price(self, symbol: str):
         """
         Gets the most recent price of one specific stock
         :param symbol: stock name
@@ -154,7 +155,7 @@ class DatabaseHandler:
         self.cursor.execute(postgreSQL_select_Query, (symbol,))
         return float(self.cursor.fetchone()[0])
 
-    def sqlLoadPairs(self, pairs: pd.DataFrame):
+    def sql_load_pairs(self, pairs: pd.DataFrame):
         """
         Loads the save database with if a pair is active and how many shares of a stock is bought.
         :param pairs: Dataframe with data from pairs strategy
@@ -173,7 +174,7 @@ class DatabaseHandler:
         except Exception as e:
             print(e)
 
-    def sqlUpdatePairs(self, pairs: pd.DataFrame):
+    def sql_update_pairs(self, pairs: pd.DataFrame):
         """
         Updates the save database with new data about all stock that pairs trading has active
         :param pairs: Dataframe with data from pairs strategy
@@ -186,8 +187,7 @@ class DatabaseHandler:
         except Exception as e:
             print(e)
 
-
-    def sqlGetSaved(self):
+    def sql_get_saved(self):
         """
         Gets backup of all of the pairs, if they are active, a numberic value and how many of each stock is bought in
          pairs trading restore the program in case it is needed
@@ -200,4 +200,4 @@ class DatabaseHandler:
                                              columns=['t1', 't2', 'active', 'long', 'shares_stock1', 'shares_stock2'])
         except Exception as e:
             print(e)
-            return self.sqlGetSaved()
+            return self.sql_get_saved()

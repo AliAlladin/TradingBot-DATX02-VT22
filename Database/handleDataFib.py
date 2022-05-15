@@ -43,7 +43,7 @@ class DatabaseHandler:
         self.conn.commit()
         print("Table created")
 
-    def insertAndCommitQuery(self, stockTicker: str, price: float, volume: float, query: str):
+    def insert_and_commit_query(self, stockTicker: str, price: float, volume: float, query: str):
         """
         Inserts values into a query and executes to so that it is saved on the server
         :param stockTicker: string with stock name
@@ -58,7 +58,7 @@ class DatabaseHandler:
         self.cursor.execute(query)
         self.conn.commit()
 
-    def sqlBuy(self, stockTicker: str, price: float, volume: float):
+    def sql_buy(self, stockTicker: str, price: float, volume: float):
         """
         Saves information to the server if the system buys a stock
         :param stockTicker: string with stock name
@@ -67,9 +67,9 @@ class DatabaseHandler:
         :return: None
         """
         query = "INSERT INTO BuyF VALUES (DEFAULT,a1,current_timestamp ,a2,a3)"
-        self.insertAndCommitQuery(stockTicker, price, volume, query)
+        self.insert_and_commit_query(stockTicker, price, volume, query)
 
-    def sqlSell(self, stockTicker: str, price: float, volume: float):
+    def sql_sell(self, stockTicker: str, price: float, volume: float):
         """
         Saves information to the server if the system sells a stock
         :param stockTicker: string with stock name
@@ -78,9 +78,9 @@ class DatabaseHandler:
         :return: None
         """
         query = "INSERT INTO SellF VALUES (DEFAULT,a1,current_timestamp ,a2,a3)"
-        self.insertAndCommitQuery(stockTicker, price, volume, query)
+        self.insert_and_commit_query(stockTicker, price, volume, query)
 
-    def sqlShort(self, stockTicker: str, price: float, volume: float):
+    def sql_short(self, stockTicker: str, price: float, volume: float):
         """
         Saves information to the server if the system shorts a stock
         :param stockTicker: string with stock name
@@ -89,9 +89,9 @@ class DatabaseHandler:
         :return: None
         """
         query = "INSERT INTO ShortF VALUES (DEFAULT,a1,current_timestamp ,a2,a3)"
-        self.insertAndCommitQuery(stockTicker, price, volume, query)
+        self.insert_and_commit_query(stockTicker, price, volume, query)
 
-    def sqlUpdatePrice(self, stockTicker: str, price: float):
+    def sql_update_price(self, stockTicker: str, price: float):
         """
         Creates a table PriceF if it doesnt exist that saves the prices of all the stocks that are needed in fibonacci
         :param stockTicker: name of a stock
@@ -109,7 +109,7 @@ class DatabaseHandler:
             print(stockTicker)
             print(e)
 
-    def sqlGetAllPrices(self):
+    def sql_get_all_prices(self):
         """
         Returns all the values in PriceF which include stock names and the most recent price of that stock
         :return: Dataframe with all prices of all stocks in the database
@@ -120,9 +120,9 @@ class DatabaseHandler:
             return pd.DataFrame.from_records(self.cursor.fetchall(), columns=['Symbol', 'Price'])
         except Exception as e:
             print(e)
-            return self.sqlGetAllPrices()
+            return self.sql_get_all_prices()
 
-    def sqlGetPrice(self, symbol: str):
+    def sql_get_price(self, symbol: str):
         """
         Gets the most recent price of one specific stock
         :param symbol: stock name
@@ -132,7 +132,7 @@ class DatabaseHandler:
         self.cursor.execute(postgreSQL_select_Query, (symbol,))
         return float(self.cursor.fetchone()[0])
 
-    def sqlLoadFib(self, ratio: pd.DataFrame, tickers: pd.DataFrame):
+    def sql_load_fib(self, ratio: pd.DataFrame, tickers: pd.DataFrame):
         """
         Reloads the system with all the information needed for fibonacci if the system crashes or restarts.
         :param ratio: a dataframe with all the ratios required
@@ -149,7 +149,7 @@ class DatabaseHandler:
         except Exception as e:
             print(e)
 
-    def sqlLoadInvestments(self, tickers: pd.DataFrame):
+    def sql_load_investments(self, tickers: pd.DataFrame):
         """
         Saves the volume and ticker name of a bought stock. If the table doesnt exist it is created
         :param tickers: stock name
@@ -167,7 +167,7 @@ class DatabaseHandler:
         except Exception as e:
             print(e)
 
-    def sqlUpdateInvestments(self, investments: pd.DataFrame):
+    def sql_update_investments(self, investments: pd.DataFrame):
         """
         Updates the values in investmentsf
         :param investments: dataframe with new investments
@@ -180,7 +180,7 @@ class DatabaseHandler:
         except Exception as e:
             print(e)
 
-    def sqlGetInvestments(self):
+    def sql_get_investments(self):
         """
         Get the volume and stock that have been invested in
         :return: dataframe with symbol and volume from investmentF table
@@ -192,7 +192,7 @@ class DatabaseHandler:
         except Exception as e:
             print(e)
 
-    def sqlUpdateFib(self, stock: pd.DataFrame):
+    def sql_update_fib(self, stock: pd.DataFrame):
         """
         Updates all values in save file to have a save if program crashes or is closed
         :param stock: all stocks that need to be saved
@@ -204,7 +204,7 @@ class DatabaseHandler:
         except Exception as e:
             print(e)
 
-    def sqlGetSaved(self):
+    def sql_get_saved(self):
         """
         Gets backup of all of the investments in fibonacci to restore the program in case it is needed
         :return: dataframe with all stocks and the levels they are invested at
@@ -221,4 +221,4 @@ class DatabaseHandler:
 
         except Exception as e:
             print(e)
-            return self.sqlGetSaved()
+            return self.sql_get_saved()

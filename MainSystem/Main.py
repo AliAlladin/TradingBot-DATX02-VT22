@@ -38,24 +38,24 @@ class StrategyObserver:
                     return
                 while broker.get_order(order_id)['filled_at'] is None:  # Wait for order to be filled
                     continue
-                database_handler.sqlBuy(signal['symbol'],
-                                        database_handler.sqlGetPrice(signal['symbol']),
-                                        round(broker.get_order(order_id)['qty']))
+                database_handler.sql_buy(signal['symbol'],
+                                         database_handler.sql_get_price(signal['symbol']),
+                                         round(broker.get_order(order_id)['qty']))
             elif signal['signal'] == "SELL":
                 order_id = broker.sell(signal['symbol'], signal['volume'])  # Send sell order to broker
                 if order_id is None:
                     return
                 while broker.get_order(order_id)['filled_at'] is None:  # Wait for order to be filled
                     continue
-                database_handler.sqlSell(signal['symbol'],
-                                         database_handler.sqlGetPrice(signal['symbol']),
-                                         round(broker.get_order(order_id)['qty']))
+                database_handler.sql_sell(signal['symbol'],
+                                          database_handler.sql_get_price(signal['symbol']),
+                                          round(broker.get_order(order_id)['qty']))
 
             order = broker.get_order(order_id)
             message = "{} {} {} at {}$".format(order['type'],
                                                order['qty'],
                                                order['symbol'],
-                                               database_handler.sqlGetPrice(signal['symbol']))
+                                               database_handler.sql_get_price(signal['symbol']))
             print(message)
             NotificationBot.sendNotification(message)
 
@@ -81,7 +81,7 @@ class DataObserver:
         :param update: Dictionary with new price.
         :return: None
         """
-        database_handler.sqlUpdatePrice(update['ticker'][0], update['price'][0])
+        database_handler.sql_update_price(update['ticker'][0], update['price'][0])
 
 
 def main() -> None:
@@ -101,7 +101,7 @@ def main() -> None:
 
     global database_handler
     database_handler = handleData.DatabaseHandler()
-    database_handler.sqlLoadPairs(pairs)
+    database_handler.sql_load_pairs(pairs)
 
     global strategy
     strategy = PairsTrading.PairsTrading(1, 50, 10000)
@@ -127,10 +127,10 @@ def main() -> None:
         if broker.market_is_open():
             try:
                 print("Running")
-                latest_price = database_handler.sqlGetAllPrices()  # Get latest prices from database
-                pairs = database_handler.sqlGetSaved()
+                latest_price = database_handler.sql_get_all_prices()  # Get latest prices from database
+                pairs = database_handler.sql_get_saved()
                 strategy.run(pairs, latest_price, hist_data)  # Run strategy
-                database_handler.sqlUpdatePairs(pairs)
+                database_handler.sql_update_pairs(pairs)
                 sleep(60)  # Wait one minute
             except Exception as e:
                 print(e)
@@ -139,10 +139,10 @@ def main() -> None:
             try:
                 NotificationBot.sendNotification("Portfolio value: {}".format(broker.get_portfolio_value()))
                 NotificationBot.sendNotification("Going to sleep")
-                live_data_provider.marketClosed()  # Lock live-data thread
+                live_data_provider.market_closed()  # Lock live-data thread
                 broker.wait_for_market_open()  # Send program to sleep until market opens.
                 NotificationBot.sendNotification("Starting")
-                live_data_provider.marketOpen()  # Unlock live-data thread
+                live_data_provider.market_open()  # Unlock live-data thread
                 sleep(60)  # Wait one minute
                 hist_data = HistDataProvider.end_of_day(list(tickers), 30)  # Update historic data
             except Exception as e:

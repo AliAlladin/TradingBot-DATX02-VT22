@@ -9,7 +9,6 @@ log = logging.getLogger(__name__)
 
 
 class liveDataStream(threading.Thread):
-
     """
     This class opens up a websocket on its own threat to yahoo! Finance and receives dataframes for each ticker
     requested for. Each ticker is received from the websocket, all the relevant information is extracted and then a
@@ -64,7 +63,10 @@ class liveDataStream(threading.Thread):
         global thisInstance
         thisInstance = self
         print('Starting ' + thisInstance.name + '\n')
-        yliveticker.YLiveTicker(on_ticker=on_new_msg, ticker_names=extractTickers(self.ticker_path))
+        yliveticker.YLiveTicker(on_ticker=on_new_msg, ticker_names=extract_tickers(self.ticker_path))
+
+    def open(self):
+        yliveticker.YLiveTicker(on_ticker=on_new_msg, ticker_names=extract_tickers(self.ticker_path))
 
 
 thisInstance = None
@@ -77,7 +79,7 @@ dataLock = threading.Lock()
 savedData = list
 
 
-def extractTickers(ticker_path):
+def extract_tickers(ticker_path):
     """
     Method that extracts all tickers from a file in a filepath
     :param ticker_path: filepath in which all the tickers are located
@@ -116,7 +118,7 @@ def send_data(data):
     liveDataStream.notify_observers(thisInstance, data)
 
 
-def getSP500Tickers():
+def get_SP500_tickers():
     """
     Gets all tickers in the S&P 500 from a wikipedia list
     :return: A list will all the tickers in the S&P 500
@@ -140,7 +142,7 @@ def save_data(data):
     dataLock.release()
 
 
-def accessLiveData():
+def access_live_data():
     """
     lets observers access data if needed in a thread safe way.
     :return: None
@@ -180,7 +182,7 @@ def on_new_msg(ws, msg):
         sleepLock.release()
 
 
-def marketClosed():
+def market_closed():
     """
     if market is closed, this method is run to lock the main sequence
     :return: None
@@ -188,9 +190,10 @@ def marketClosed():
     sleepLock.acquire()
 
 
-def marketOpen():
+def market_open():
     """
     if market is open, this method is run to start the main sequence
     :return: None
     """
     sleepLock.release()
+    liveDataStream.open(thisInstance)

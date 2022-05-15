@@ -8,7 +8,7 @@ import yliveticker
 log = logging.getLogger(__name__)
 
 
-class liveDataStream(threading.Thread):
+class LiveDataStream(threading.Thread):
     """
     This class opens up a websocket on its own threat to yahoo! Finance and receives dataframes for each ticker
     requested for. Each ticker is received from the websocket, all the relevant information is extracted and then a
@@ -86,9 +86,9 @@ def extract_tickers(ticker_path):
     :return: list of all tickers that are on the file
     """
     # opening the file in read mode
-    tickerFile = open(ticker_path, "r")
+    ticker_file = open(ticker_path, "r")
     # reading the file
-    data = tickerFile.read()
+    data = ticker_file.read()
 
     # replacing end of line('/n') with ' ' and
     # splitting the text it further when '.' is seen.
@@ -115,10 +115,10 @@ def send_data(data):
     :param data: dataframe with data that can be gathered.
     :return: None
     """
-    liveDataStream.notify_observers(thisInstance, data)
+    LiveDataStream.notify_observers(thisInstance, data)
 
 
-def get_SP500_tickers():
+def get_sp500_tickers():
     """
     Gets all tickers in the S&P 500 from a wikipedia list
     :return: A list will all the tickers in the S&P 500
@@ -148,9 +148,9 @@ def access_live_data():
     :return: None
     """
     dataLock.acquire()
-    returnData = savedData
+    return_data = savedData
     dataLock.release()
-    return returnData
+    return return_data
 
 
 i = 0
@@ -196,4 +196,4 @@ def market_open():
     :return: None
     """
     sleepLock.release()
-    liveDataStream.open(thisInstance)
+    LiveDataStream.open(thisInstance)

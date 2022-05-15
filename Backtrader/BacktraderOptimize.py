@@ -55,7 +55,7 @@ else:
                'TRV', 'COF', 'HUM', 'AON', 'GRMN', 'BUD']
 # We add the data to cerebro
 for ticker in tickers:
-    CSV_file_path = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(ticker)  # Full path to csv-file
+    CSV_file_path = os.path.join(modpath, 'data/filtered_csv_data/{}.csv').format(ticker)  # Full path to csv-file
 
     data = bt.feeds.GenericCSVData(
 

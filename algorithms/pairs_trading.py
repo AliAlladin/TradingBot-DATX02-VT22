@@ -82,7 +82,7 @@ class PairsTrading:
 
             '''
             Creates a new dataframe with only the historical closing prices for the specific pair.
-            By default, the Alpaca API will return today's candle even though it is not closed. This is incomplete.
+            By default, the alpaca API will return today's candle even though it is not closed. This is incomplete.
             We update the last row later.
             '''
             data_df = pd.concat([hist_prices[t1], hist_prices[t2]], axis=1, join='inner', keys=[t1, t2], )

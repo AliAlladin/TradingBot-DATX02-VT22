@@ -7,12 +7,12 @@ import sys
 url = "___________________________________________________________"
 
 
-def sendNotification(message):
-    '''
+def send_notification(message):
+    """
     This method is responsible for sending out messages to a channel in Slack, specified by a specific URL-address.
     :param message: The message which is to be sent
     :return: returns a error message if the message could not be sent
-    '''
+    """
     notification = message
     slack_data = {
         "username": "NotBot",

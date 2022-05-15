@@ -1,7 +1,7 @@
 import time
 import alpaca_trade_api as tradeapi
 import pandas as pd
-from Alpaca.Config import *
+from alpaca.config import *
 
 
 class AlpacaBroker:

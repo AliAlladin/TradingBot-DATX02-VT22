@@ -8,7 +8,7 @@ import datetime
 def acquire_stocks():
     # To create the directory for which we read the ticker names.
     modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
-    directory_in_str = os.path.join(modpath, 'Data/filtered_csv_data/')
+    directory_in_str = os.path.join(modpath, 'data/filtered_csv_data/')
     directory = os.fsencode(directory_in_str)
 
     # For each .csv-file, we read the stock name and append it do a list.
@@ -42,7 +42,7 @@ def in_csv_file(start):
         # The path to find the stock
         modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
         stock = stock.split()[0]
-        datap = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(stock)
+        datap = os.path.join(modpath, 'data/filtered_csv_data/{}.csv').format(stock)
         print(stock)
 
         # We open the stocks file and read the second line, which contains the first date.

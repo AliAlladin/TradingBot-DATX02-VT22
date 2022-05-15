@@ -76,7 +76,7 @@ def StrategyTwo():
 
 # Function to add data to backtrader
 def add_data(cerebro, stock):
-    CSV_file_path = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(stock)  # Full path to csv-file
+    CSV_file_path = os.path.join(modpath, 'data/filtered_csv_data/{}.csv').format(stock)  # Full path to csv-file
     data = bt.feeds.GenericCSVData(
         dataname=CSV_file_path,  # Full path to csv-file
         fromdate=start_date,

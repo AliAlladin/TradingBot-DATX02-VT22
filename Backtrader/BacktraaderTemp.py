@@ -36,7 +36,7 @@ def StrategyOne():
         for ticker in stocks:
             dict[ticker]=i
             i=+1
-            CSV_file_path = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(ticker)  # Full path to csv-file
+            CSV_file_path = os.path.join(modpath, 'data/filtered_csv_data/{}.csv').format(ticker)  # Full path to csv-file
             data = bt.feeds.GenericCSVData(
                 dataname=CSV_file_path,  # Full path to csv-file
                 fromdate=datetime.datetime(2017, 1, 1, 9, 30, 00),  # Start  date
@@ -161,7 +161,7 @@ def StrategyTwo():
     # We go through Pairs.txt to add all tickers and Pairs
     for line in my_pair_file:
         stock=line.split()[0]
-        CSV_file_path = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(stock)  # Full path to csv-file
+        CSV_file_path = os.path.join(modpath, 'data/filtered_csv_data/{}.csv').format(stock)  # Full path to csv-file
         data = bt.feeds.GenericCSVData(
 
             dataname=CSV_file_path,  # Full path to csv-file
@@ -228,7 +228,7 @@ def creating_file_with_stocks(start):
     priority_stocks = []
     not_priority_stocks=[]
     modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
-    directory_in_str = os.path.join(modpath, 'Data/filtered_csv_data/')
+    directory_in_str = os.path.join(modpath, 'data/filtered_csv_data/')
     directory = os.fsencode(directory_in_str)
     for filename in os.listdir(directory):
         x = (str(filename))
@@ -237,7 +237,7 @@ def creating_file_with_stocks(start):
         if "." in x:
             y = x.split('.')
             x = y[0] + "-" + y[1]
-        datap = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(x)
+        datap = os.path.join(modpath, 'data/filtered_csv_data/{}.csv').format(x)
         csv_file = open(datap, 'r')
         a=csv_file.readlines()[1]
         date=a.split()[0]

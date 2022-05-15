@@ -2,7 +2,7 @@ import time
 
 import alpaca_trade_api as tradeapi
 import pandas as pd
-from Alpaca.Config2 import *
+from alpaca.Config2 import *
 
 
 class AlpacaBroker:

@@ -20,7 +20,7 @@ class Strategy_pairGen(bt.Strategy):
     def __init__(self):
         self.dic = self.params.dic  # Dictionary of tickers with indices
         self.pairs = self.params.pairs  # List of pairs
-        self.myData = {}  # To store all the data we need, {'TICKER' -> Data}
+        self.myData = {}  # To store all the data we need, {'TICKER' -> data}
         for ticker in self.dic.keys():  # Initially, the values of data are just empty lists
             self.myData[ticker] = []
 
@@ -408,7 +408,7 @@ class Strategy_fibonacci2(bt.Strategy):
         self.max = self.params.max
         # To store data for each ticker
         self.ratios = [0.382, 0.5, 0.618]  # The Fibonacci ratios
-        self.myData = {}  # To store all the data we need, {'TICKER' -> Data}
+        self.myData = {}  # To store all the data we need, {'TICKER' -> data}
         self.invested_at_level = {}  # To know if we are invested, {'TICKER' -> [boolean, boolean, boolean]}
 
         self.indexChangeOfDay = []

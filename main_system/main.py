@@ -4,11 +4,11 @@ from time import sleep
 
 import pandas as pd
 
-from Algorithms import FibonacciTrading
-from Alpaca import AlpacaBroker2
-from DataProvider import live_data_provider
-from Database import handleDataFib
-from NotificationHandler import NotificationBot
+from algorithms import pairs_trading
+from alpaca import alpaca_broker
+from data_provider import live_data_provider, hist_data_provider
+from database import handle_data
+from notification_handler import notification_bot
 
 
 class StrategyObserver:
@@ -23,7 +23,7 @@ class StrategyObserver:
         """
         observable.subscribe(self)
 
-    def notify(self, observable, signal: dict):
+    def notify(self, observable, signal: dict) -> None:
         """
         Sends the order to the broker, tells database_handler to save order information and tells NotificationBot to
         notify.
@@ -47,7 +47,6 @@ class StrategyObserver:
                     return
                 while broker.get_order(order_id)['filled_at'] is None:  # Wait for order to be filled
                     continue
-                print(database_handler.sql_get_price(signal['symbol']))
                 database_handler.sql_sell(signal['symbol'],
                                           database_handler.sql_get_price(signal['symbol']),
                                           round(broker.get_order(order_id)['qty']))
@@ -58,16 +57,16 @@ class StrategyObserver:
                                                order['symbol'],
                                                database_handler.sql_get_price(signal['symbol']))
             print(message)
-            NotificationBot.sendNotification('Fib: ' + message)
+            notification_bot.send_notification(message)
 
         except Exception as e:
             print(e)
 
 
 class DataObserver:
-    '''
+    """
     Observer-class for the live data.
-    '''
+    """
 
     def __init__(self, observable):
         """
@@ -76,7 +75,7 @@ class DataObserver:
         """
         observable.subscribe(self)
 
-    def notify(self, update):
+    def notify(self, update) -> None:
         """
         Sends the latest stock price to the database_handler for it to save it.
         :param update: Dictionary with new price.
@@ -85,65 +84,67 @@ class DataObserver:
         database_handler.sql_update_price(update['ticker'][0], update['price'][0])
 
 
-def main():
+def main() -> None:
     """
     Main method in which program runs.
+    :return: None
     """
+    pairs = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'main_system/pairs_to_run.txt'),
+                        sep=" ",
+                        header=None)
 
-    pathToCSV = os.path.join(os.path.dirname(os.path.dirname(sys.argv[0])), 'MainSystem/final.csv')
+    pairs.columns = ['t1', 't2']
 
     global broker
-    broker = AlpacaBroker2.AlpacaBroker()
-
-    global strategy
-    strategy = FibonacciTrading.FibonacciStrategy(pathToCSV)
+    broker = alpaca_broker.AlpacaBroker()
+    broker.get_shortable(pairs)
 
     global database_handler
-    database_handler = handleDataFib.DatabaseHandler()
-    tickers = pd.read_csv('Stockstorun.txt', header=None)
-    ratios = pd.DataFrame(['0.382', '0.500', '0.618'])
-    tickers.columns = ['ticker']
-    tickers.sort_values(by='ticker', inplace=True)
-    database_handler.sql_load_fib(ratios, tickers)
-    database_handler.sql_load_investments(tickers)
+    database_handler = handle_data.DatabaseHandler()
+    database_handler.sql_load_pairs(pairs)
+
+    global strategy
+    strategy = pairs_trading.PairsTrading(1, 50, 10000)
 
     global data_provider
-    data_provider = live_data_provider.liveDataStream(2, "fib_data", "../MainSystem/Stockstorun.txt")
+    data_provider = live_data_provider.LiveDataStream(1, "pairs_data", "/pairs_to_run.txt")
 
     DataObserver(data_provider)  # Add data observer
     data_provider.start()  # Start live-data thread
 
-    sleep(10)
+    sleep(60)
 
     strategy_observer = StrategyObserver(strategy)  # Add strategy observer
 
+    tickers = set()
+    for i in range(len(pairs.index)):
+        tickers.add(pairs['t1'][i])
+        tickers.add(pairs['t2'][i])
+
+    hist_data = hist_data_provider.end_of_day(list(tickers), 30)
+
     while True:
         if broker.market_is_open():
-            print("Running")
-            latest_price = database_handler.sql_get_all_prices()  # Get latest prices from database
-
-            if len(latest_price) == 40:
-                latest_price.drop(latest_price.index[latest_price['Symbol'] == 'TLSNY'], inplace=True)
-                latest_price.drop(latest_price.index[latest_price['Symbol'] == 'AZN'], inplace=True)
-                latest_price.reset_index(inplace=True, drop=True)
-                dataFrame = database_handler.sql_get_saved()
-                investments = database_handler.sql_get_investments()
-                strategy.run(dataFrame, latest_price, investments)  # Run strategy
-                database_handler.sql_update_fib(dataFrame)
-                database_handler.sql_update_investments(investments)
-                sleep(60)
-            else:
+            try:
+                print("Running")
+                latest_price = database_handler.sql_get_all_prices()  # Get latest prices from database
+                pairs = database_handler.sql_get_saved()
+                strategy.run(pairs, latest_price, hist_data)  # Run strategy
+                database_handler.sql_update_pairs(pairs)
                 sleep(60)  # Wait one minute
-
+            except Exception as e:
+                print(e)
+                continue
         else:
             try:
-                NotificationBot.sendNotification('Fib: ' + "Portfolio value: {}".format(broker.get_portfolio_value()))
-                NotificationBot.sendNotification('Fib: ' + "Going to sleep")
+                notification_bot.send_notification("Portfolio value: {}".format(broker.get_portfolio_value()))
+                notification_bot.send_notification("Going to sleep")
                 live_data_provider.market_closed()  # Lock live-data thread
                 broker.wait_for_market_open()  # Send program to sleep until market opens.
-                NotificationBot.sendNotification('Fib: ' + "Starting")
+                notification_bot.send_notification("Starting")
                 live_data_provider.market_open()  # Unlock live-data thread
                 sleep(60)  # Wait one minute
+                hist_data = hist_data_provider.end_of_day(list(tickers), 30)  # Update historic data
             except Exception as e:
                 print(e)
 

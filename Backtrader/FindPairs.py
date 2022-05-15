@@ -37,7 +37,7 @@ def main():
 def acquire_stocks():
     # To create the directory for which we read the ticker names.
     modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
-    directory_in_str = os.path.join(modpath, 'Data/filtered_csv_data/')
+    directory_in_str = os.path.join(modpath, 'data/filtered_csv_data/')
     directory = os.fsencode(directory_in_str)
 
     # For each .csv-file, we read the stock name and append it do a list.
@@ -151,7 +151,7 @@ def create_distinct_pairs(pairs):
 # To create a .txt-file of distinct dates
 def get_distinct_dates():
     # We open a data-file and put all dates in a .txt-file
-    data_file = open('Data/filtered_csv_data/A.csv', 'r')
+    data_file = open('data/filtered_csv_data/A.csv', 'r')
     distinct_dates = []  # A list to keep track of the dates
 
     # Looping through the data file and append our distinct dates
@@ -197,7 +197,7 @@ def in_csv_file(start):
         for j in stocks:
             # The path to find the stock
             modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
-            datap = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(j)
+            datap = os.path.join(modpath, 'data/filtered_csv_data/{}.csv').format(j)
 
             # We open the stocks file and read the second line, which contains the first date.
             csv_file = open(datap, 'r')

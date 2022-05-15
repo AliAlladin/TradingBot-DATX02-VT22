@@ -35,7 +35,7 @@ def main():
 
 def gettingDistinctDates():
     modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
-    datap = os.path.join(modpath, 'Data/filtered_csv_data/A.csv')
+    datap = os.path.join(modpath, 'data/filtered_csv_data/A.csv')
     my_pair_file = open(datap, 'r')
     distinctDates = []
     for i in my_pair_file:
@@ -51,7 +51,7 @@ def gettingDistinctDates():
 def acquireList():
     stocks = []
     modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
-    directory_in_str = os.path.join(modpath, 'Data/filtered_csv_data/')
+    directory_in_str = os.path.join(modpath, 'data/filtered_csv_data/')
     directory = os.fsencode(directory_in_str)
     for filename in os.listdir(directory):
         x = (str(filename))
@@ -152,7 +152,7 @@ def in_csv_file(start):
         x = i.split()
         for j in x:
             modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
-            datap = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(j)
+            datap = os.path.join(modpath, 'data/filtered_csv_data/{}.csv').format(j)
             csv_file = open(datap, 'r')
             a = csv_file.readlines()[1]
             date = a.split()[0]

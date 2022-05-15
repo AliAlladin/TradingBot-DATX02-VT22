@@ -6,7 +6,7 @@ modpath = os.path.dirname(os.path.dirname(sys.argv[0]))  # Individual os paths
 
 def creating_file_with_stocks():
     stocks = []
-    directory_in_str = os.path.join(modpath, 'Data/filtered_csv_data/')
+    directory_in_str = os.path.join(modpath, 'data/filtered_csv_data/')
     directory = os.fsencode(directory_in_str)
     for filename in os.listdir(directory):
         x = (str(filename))

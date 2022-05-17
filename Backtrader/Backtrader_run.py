@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from Backtrader_strategies import *  # Import our Strategies
 import pandas as pd
+import datetime
 
 # Global variables
 modpath = os.path.dirname(os.path.dirname(sys.argv[0]))  # Individual os paths

@@ -1,4 +1,4 @@
-import backtrader as bt # The backtrader package
+import Backtrader as bt # The backtrader package
 import numpy as np # So we can take the logarithm 
 import statsmodels.api as sm # To make the linear regression
 import datetime # To use dates

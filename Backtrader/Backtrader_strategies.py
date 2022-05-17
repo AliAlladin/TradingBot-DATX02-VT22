@@ -1,7 +1,7 @@
 import backtrader as bt  # The backtrader package
 import numpy as np  # So we can take the logarithm
 import statsmodels.api as sm  # To make the linear regression
-import os
+import os  # To find our csv files
 import sys
 
 

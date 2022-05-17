@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from Backtrader_strategies import *  # Import our Strategies
+from Backtrader_strategies import *  # Import our Strategies.
 import pandas as pd
 import datetime
 

@@ -129,7 +129,6 @@ def store_pairs(pairlist, textfile):
 def create_distinct_pairs(pairs):
     # To avoid affect the pairs by alphabetic order, we shuffle the list of pairs
     random.shuffle(pairs)
-    store_pairs(pairs, "test.txt")
     distinct_pairs = []
     used_stocks = []  # To keep track of which stocks we have put in our new list
 

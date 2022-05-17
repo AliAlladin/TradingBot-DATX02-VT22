@@ -34,7 +34,7 @@ def store_stocks(stocks, textfile):
 # To check if we have .csv-data for the specific start date
 def in_csv_file(start):
 
-    my_stock_file = open('StocksAll.txt', 'r')  # Chalmers' computers need Backtrader/ in the txt-name
+    my_stock_file = open('StocksAll.txt', 'r')  # Chalmers' computers need Backtrader/ in the txt-name.
     priority_list = []
     not_priority = []
 

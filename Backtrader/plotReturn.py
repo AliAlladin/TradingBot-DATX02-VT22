@@ -46,7 +46,7 @@ def plotFib():
     portfolio = 1000000 # bara för realtidshandel
     invested = 1200000
     plotsize = 13
-
+    p = 2
     prices = yf.download('^GSPC', start, end)
     SP = prices['Close']
     print(SP)

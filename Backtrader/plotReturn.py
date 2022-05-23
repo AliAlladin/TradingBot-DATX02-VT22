@@ -8,57 +8,46 @@ import pandas as pd
 import matplotlib.ticker as mtick
 def plotPair():
 
-    start = '2022-04-14'  # en mer än datafilen
-    end = '2022-05-04'  # en mer än datafilen
-    invested = 120000
-    plotsize=13
+    start = '2022-04-14'  # yahoo gets the data for all dates before this date so use one day after the day you want to plot
+    end = '2022-05-04'  # yahoo gets the data for all dates before this date so use one day after the day you want to plot
+    plotsize=13 # size of plots
     prices = yf.download('^GSPC',start,end)
-    SP = prices['Close']
-    print(SP)
-    index = SP.index
-    print(index)
-    ResultFile = open('resultToPlot.txt', 'r')
+    SP = prices['Close'] #extracts closing prices
+    index = SP.index  #extracts the index so we can make the results as a pandas.series
+    ResultFile = open('resultToPlot.txt', 'r') #file where all results are
     values = []
+    portfoliValueStart = 1000000 #the start value of the portfolio
 
     for line in ResultFile:
-        values.append(float(line.split()[0])-1000000)
+        values.append(float(line.split()[0])- portfoliValueStart) #converts the total portfolio value to money gained
     ValSer = pd.Series(values,index)
     data = pd.DataFrame()
-    #data['S&P'] = SP
     data['Pair trading'] = ValSer
     ax = data.plot()
     ax.tick_params(axis='both', which='major', labelsize=plotsize)
     ax.set_xlabel("Datum", fontsize=plotsize)
     ax.set_ylabel("Avkastning ($)", fontsize=plotsize)
     ax.legend(fontsize=plotsize)
-    #ax.annotate('%0.0f' % round(values[-1]), xy=(0.97, values[-1]), xytext=(8, 0),
-                     #xycoords=('axes fraction', 'data'), textcoords='offset points', ha='center')
-
-    #ax.yaxis.set_major_formatter(mtick.PercentFormatter())
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     plt.show()
 
 def plotFib():
-    start = '2022-04-22'  # en mer än datafilen
-    startL = '2022-04-21'
-    end = '2022-05-04'  # en mer än datafilen
-    portfolio = 1000000 # bara för realtidshandel
-    invested = 1200000
+    start = '2022-04-22'  # yahoo gets the data for all dates before this date so use one day after the day you want to plot
+    end = '2022-05-04'  # yahoo gets the data for all dates before this date so use one day after the day you want to plot
+    invested = 1200000  #the Portfolio value at the start
     plotsize = 13
-    p = 2
+
     prices = yf.download('^GSPC', start, end)
-    SP = prices['Close']
-    print(SP)
-    startSP = SP.get(startL)
-    SP = (SP / startSP - 1) * 100
+    SP = prices['Close'] #extracts closing prices
+    startSP = SP.get(start)
+    SP = (SP / startSP - 1) * 100 #convert to percentage return
     index = SP.index
-    print(index)
-    ResultFile = open('resultToPlot.txt', 'r')
+    ResultFile = open('resultToPlot.txt', 'r') #file where all results are
     values = []
 
     for line in ResultFile:
-        values.append(((float(line.split()[0])-portfolio)/invested) *100) # -portfolio är bara för realtidshandeln då datan är i annat format
+        values.append(((float(line.split()[0]))/invested) *100) #convert to percentage return
     ValSer = pd.Series(values, index)
     data = pd.DataFrame()
     data['Fibonacci retracements'] = ValSer
@@ -78,9 +67,4 @@ def plotFib():
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     plt.show()
-    print(index)
-
-
-#plotPair()
-plotFib()
 

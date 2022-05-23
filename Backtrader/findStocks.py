@@ -1,10 +1,10 @@
-
 import os  # Get the right pathway here
 import sys  # To find out the script name (in argv[0])
-import random
-import datetime
+import random  # To shuffle the list of stocks
+import datetime  # To compare dates
 
 
+# To get the stocks that we have .csv-files for
 def acquire_stocks():
     # To create the directory for which we read the ticker names.
     modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
@@ -22,6 +22,7 @@ def acquire_stocks():
     return stocks
 
 
+# To store the stocks in a file
 def store_stocks(stocks, textfile):
     # We open the file, write each stock on its own line
     file = open(textfile, 'w')
@@ -30,9 +31,10 @@ def store_stocks(stocks, textfile):
     file.close()
 
 
+# To check if we have .csv-data for the specific start date
 def in_csv_file(start):
 
-    my_stock_file = open('StocksAll.txt', 'r')
+    my_stock_file = open('StocksAll.txt', 'r')  # Chalmers' computers need Backtrader/ in the txt-name.
     priority_list = []
     not_priority = []
 
@@ -43,7 +45,6 @@ def in_csv_file(start):
         modpath = os.path.dirname(os.path.dirname(sys.argv[0]))
         stock = stock.split()[0]
         datap = os.path.join(modpath, 'Data/filtered_csv_data/{}.csv').format(stock)
-        print(stock)
 
         # We open the stocks file and read the second line, which contains the first date.
         csv_file = open(datap, 'r')
@@ -62,12 +63,14 @@ def in_csv_file(start):
             not_priority.append(stock)
 
     my_stock_file.close()
+
+    # Shuffle the list to avoid alphabetical order
     random.shuffle(priority_list)
     random.shuffle(not_priority)
 
     # We write the sorted list of pairs to a .txt-file
     total_list = priority_list + not_priority
-    store_stocks(total_list, 'StocksPrioritized.txt')
+    store_stocks(total_list, 'Stocks.txt')
 
 
 def main():
